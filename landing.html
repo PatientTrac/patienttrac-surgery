@@ -3,184 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PatientTrac OutPatient Surgery - Comprehensive OR Documentation Platform</title>
+    <title>PatientTracSurg - Futuristic Surgical Workflow Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+        }
+        
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #060e1c;
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
             color: #ffffff;
             line-height: 1.6;
+            overflow-x: hidden;
         }
         
-        /* Header */
-        header {
-            background: linear-gradient(135deg, #060e1c 0%, #0a1628 100%);
-            border-bottom: 1px solid rgba(201, 169, 110, 0.2);
-            position: sticky;
+        /* Animated Background Particles */
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
             top: 0;
-            z-index: 100;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
         }
         
-        nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1.5rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
         }
         
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #c9a96e;
-        }
-        
-        .logo svg {
-            width: 36px;
-            height: 36px;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-        
-        .nav-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: color 0.3s;
-            font-weight: 500;
-        }
-        
-        .nav-links a:hover {
-            color: #c9a96e;
-        }
-        
-        .btn-primary {
-            background: #c9a96e;
-            color: #060e1c;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .btn-primary:hover {
-            background: #b39960;
-            transform: translateY(-2px);
-        }
-        
-        .btn-secondary {
-            background: rgba(201, 169, 110, 0.1);
-            color: #c9a96e;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            border: 1px solid rgba(201, 169, 110, 0.3);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(201, 169, 110, 0.2);
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33% { transform: translate(100px, -100px); }
+            66% { transform: translate(-100px, 100px); }
         }
         
         /* Hero Section */
         .hero {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 6rem 2rem;
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
+            padding: 2rem;
         }
         
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #ffffff 0%, #c9a96e 100%);
+        .logo-shield {
+            width: 300px;
+            height: 300px;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.6));
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.6)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.8)); }
+        }
+        
+        .hero-title {
+            font-size: 4.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--gold) 0%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+        
+        .hero-subtitle {
+            font-size: 2rem;
+            color: var(--cyan);
+            font-weight: 300;
+            margin-bottom: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .btn-primary {
+            padding: 1.25rem 3rem;
+            background: linear-gradient(135deg, var(--cyan) 0%, #0891b2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+        }
+        
+        .btn-secondary {
+            padding: 1.25rem 3rem;
+            background: transparent;
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            color: var(--gold);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gold);
+            color: var(--darker-bg);
+            transform: translateY(-3px);
+        }
+        
+        /* Workflow Cards Section */
+        .workflow-section {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 6rem 2rem;
+        }
+        
+        .section-title {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: linear-gradient(90deg, var(--cyan) 0%, var(--purple) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         
-        .hero p {
-            font-size: 1.25rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 3rem;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        /* Features Grid */
-        .features {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 3rem;
-            color: #c9a96e;
-        }
-        
-        .features-grid {
+        .workflow-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
+            margin-bottom: 4rem;
         }
         
-        .feature-card {
-            background: linear-gradient(135deg, #0a1628 0%, #060e1c 100%);
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            border-radius: 12px;
+        .workflow-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 16px;
             padding: 2rem;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
         
-        .feature-card:hover {
-            border-color: #c9a96e;
+        .workflow-card:hover {
+            border-color: var(--cyan);
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(201, 169, 110, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
         }
         
-        .feature-icon {
+        .card-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
+            display: block;
         }
         
-        .feature-card h3 {
+        .card-title {
             font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #c9a96e;
+            color: var(--cyan);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
         }
         
-        .feature-card p {
+        .card-description {
             color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-features li {
+            padding: 0.4rem 0;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        .card-features li::before {
+            content: "✓ ";
+            color: var(--green);
+            font-weight: bold;
+            margin-right: 0.5rem;
         }
         
         /* Pricing Section */
-        .pricing {
+        .pricing-section {
             max-width: 1200px;
             margin: 0 auto;
             padding: 4rem 2rem;
@@ -188,350 +224,249 @@
         
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
-            margin-top: 3rem;
         }
         
         .pricing-card {
-            background: linear-gradient(135deg, #0a1628 0%, #060e1c 100%);
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 2px solid rgba(201, 169, 110, 0.2);
+            border-radius: 16px;
             padding: 2.5rem;
-            position: relative;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .pricing-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
         }
         
         .pricing-card.featured {
-            border-color: #c9a96e;
-            box-shadow: 0 0 40px rgba(201, 169, 110, 0.3);
+            border-color: var(--cyan);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, rgba(10, 22, 40, 0.9) 100%);
         }
         
-        .pricing-badge {
-            position: absolute;
-            top: -12px;
-            right: 20px;
-            background: #c9a96e;
-            color: #060e1c;
-            padding: 0.25rem 1rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
+        .plan-name {
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-weight: 600;
         }
         
-        .pricing-card h3 {
-            font-size: 1.75rem;
-            margin-bottom: 0.5rem;
-            color: #c9a96e;
-        }
-        
-        .pricing-card .price {
+        .plan-price {
             font-size: 3rem;
             font-weight: 700;
-            margin: 1rem 0;
+            color: white;
+            margin-bottom: 0.5rem;
         }
         
-        .pricing-card .price span {
-            font-size: 1rem;
+        .plan-price span {
+            font-size: 1.2rem;
             color: rgba(255, 255, 255, 0.6);
         }
         
-        .pricing-features {
+        .plan-features {
             list-style: none;
             margin: 2rem 0;
+            text-align: left;
         }
         
-        .pricing-features li {
+        .plan-features li {
             padding: 0.75rem 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .pricing-features li:before {
-            content: "✓";
-            color: #c9a96e;
-            font-weight: 700;
-        }
-        
-        /* CTA Section */
-        .cta {
-            max-width: 800px;
-            margin: 4rem auto;
-            padding: 4rem 2rem;
-            text-align: center;
-            background: linear-gradient(135deg, #c9a96e 0%, #b39960 100%);
-            border-radius: 16px;
-        }
-        
-        .cta h2 {
-            font-size: 2.5rem;
-            color: #060e1c;
-            margin-bottom: 1rem;
-        }
-        
-        .cta p {
-            font-size: 1.25rem;
-            color: rgba(6, 14, 28, 0.8);
-            margin-bottom: 2rem;
-        }
-        
-        .cta .btn-primary {
-            background: #060e1c;
-            color: #c9a96e;
-        }
-        
-        .cta .btn-primary:hover {
-            background: #0a1628;
+            color: rgba(255, 255, 255, 0.8);
         }
         
         /* Footer */
         footer {
-            background: #0a1628;
+            background: var(--darker-bg);
             border-top: 1px solid rgba(201, 169, 110, 0.2);
             padding: 3rem 2rem;
-            margin-top: 4rem;
-        }
-        
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        
-        .footer-section h4 {
-            color: #c9a96e;
-            margin-bottom: 1rem;
-        }
-        
-        .footer-section a {
-            display: block;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            margin-bottom: 0.5rem;
-            transition: color 0.3s;
-        }
-        
-        .footer-section a:hover {
-            color: #c9a96e;
-        }
-        
-        .footer-bottom {
-            max-width: 1200px;
-            margin: 2rem auto 0;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.6);
         }
         
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .nav-links {
-                display: none;
-            }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-links a {
+            color: var(--cyan);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: white;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <nav>
-            <div class="logo">
-                <svg viewBox="0 0 32 32" fill="none">
-                    <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2"/>
-                    <path d="M16 8v8l5 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="16" cy="16" r="2" fill="currentColor"/>
-                </svg>
-                <span>PatientTrac Surgery</span>
-            </div>
-            <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="#integration">Integration</a>
-                <a href="/app.html" class="btn-secondary">Sign In</a>
-                <a href="#demo" class="btn-primary">Request Demo</a>
-            </div>
-        </nav>
-    </header>
+    <!-- Animated Background -->
+    <div class="particles">
+        <div class="particle" style="width: 4px; height: 4px; top: 20%; left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="width: 6px; height: 6px; top: 60%; left: 80%; animation-delay: 3s;"></div>
+        <div class="particle" style="width: 3px; height: 3px; top: 40%; left: 60%; animation-delay: 6s;"></div>
+        <div class="particle" style="width: 5px; height: 5px; top: 80%; left: 30%; animation-delay: 9s;"></div>
+        <div class="particle" style="width: 4px; height: 4px; top: 15%; left: 70%; animation-delay: 12s;"></div>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero">
-        <h1>OutPatient Surgery<br/>Documentation, Perfected</h1>
-        <p>Comprehensive OR documentation platform accessible from any specialty EMR. One operative note system for your entire surgical practice.</p>
-        <div class="hero-buttons">
-            <a href="/app.html" class="btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">Access Surgery Portal</a>
-            <a href="#features" class="btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem;">Learn More</a>
+        <img src="/mnt/user-data/uploads/PatientTracESurg2.jpg" alt="PatientTracSurg Shield Logo" class="logo-shield">
+        
+        <h1 class="hero-title">PatientTracSurg</h1>
+        <p class="hero-subtitle">Futuristic Surgical Workflow</p>
+        
+        <div class="cta-buttons">
+            <a href="/app.html" class="btn-primary">Launch Platform</a>
+            <a href="#workflow" class="btn-secondary">Explore Features</a>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <h2 class="section-title">Complete Surgical Documentation Suite</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">⚕️</div>
-                <h3>Operative Notes</h3>
-                <p>CPT/ICD-10 live search, implant tracking with FDA serial numbers, equipment checkout, and auto-populated superbills for seamless billing.</p>
+    <!-- Workflow Cards Section -->
+    <section class="workflow-section" id="workflow">
+        <h2 class="section-title">Comprehensive Surgical Documentation</h2>
+        
+        <div class="workflow-grid">
+            <!-- Pre-Op Checklist -->
+            <div class="workflow-card">
+                <span class="card-icon">✓</span>
+                <h3 class="card-title">Pre-Op Checklist</h3>
+                <p class="card-description">Comprehensive pre-operative assessment and clearance system</p>
+                <ul class="card-features">
+                    <li>Patient ID Verification</li>
+                    <li>Consent Forms Signed</li>
+                    <li>Allergies Confirmed</li>
+                    <li>Anesthesia Evaluation Complete</li>
+                </ul>
             </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🔬</div>
-                <h3>Pre-Op Assessment</h3>
-                <p>Surgical risk stratification, anesthesia evaluation, lab review, and clearance documentation all in one unified workflow.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">💉</div>
-                <h3>Anesthesia Records</h3>
-                <p>Complete anesthesia progress notes with vital signs tracking, medication administration, and procedural documentation.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📋</div>
-                <h3>Post-Op Care</h3>
-                <p>PACU notes, discharge instructions, wound care protocols, pain management plans, and follow-up scheduling.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🏥</div>
-                <h3>Equipment Management</h3>
-                <p>OR equipment checkout, supply usage tracking, implant inventory management, and automatic deduction from stock.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🔗</div>
-                <h3>Cross-App Integration</h3>
-                <p>Seamlessly accessible from PatientTracForge, Revela, Mind, and all future specialty EMRs via secure token bridge.</p>
-            </div>
-        </div>
-    </section>
 
-    <!-- Integration Section -->
-    <section id="integration" class="features" style="background: linear-gradient(135deg, #0a1628 0%, #060e1c 100%); margin: 4rem 0; padding: 4rem 2rem; border-radius: 16px;">
-        <h2 class="section-title">Works With Your Specialty EMR</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <h3>🔷 PatientTracForge</h3>
-                <p>Schedule → Check-In → Route to Surgery. One-click access from your scheduling platform.</p>
+            <!-- Surgical Schedule -->
+            <div class="workflow-card">
+                <span class="card-icon">📅</span>
+                <h3 class="card-title">Surgical Schedule</h3>
+                <p class="card-description">Real-time OR scheduling with multi-surgeon coordination</p>
+                <ul class="card-features">
+                    <li>08:00 - Lap Chole (OR 3)</li>
+                    <li>10:30 - Arthroscopy (OR 1)</li>
+                    <li>10:30 - Parathyroidectomy (OR 3)</li>
+                </ul>
             </div>
-            
-            <div class="feature-card">
-                <h3>💎 Revela (Plastic Surgery)</h3>
-                <p>Document consultations in Revela, route to Surgery for operative notes, seamless patient context.</p>
+
+            <!-- Anesthesia Dashboard -->
+            <div class="workflow-card">
+                <span class="card-icon">💉</span>
+                <h3 class="card-title">Anesthesia Dashboard</h3>
+                <p class="card-description">Real-time vital signs monitoring and anesthesia depth tracking</p>
+                <ul class="card-features">
+                    <li>HR, SpO2, EtCO2 Live Monitoring</li>
+                    <li>Anesthesia Depth Gauge</li>
+                    <li>Medication Administration Log</li>
+                </ul>
             </div>
-            
-            <div class="feature-card">
-                <h3>🧠 PatientTrac Mind (Behavioral)</h3>
-                <p>ECT procedures, TMS documentation, all surgical psychiatry procedures in one place.</p>
+
+            <!-- Procedure Timeline -->
+            <div class="workflow-card">
+                <span class="card-icon">⏱️</span>
+                <h3 class="card-title">Procedure Timeline</h3>
+                <p class="card-description">Visual workflow tracking from incision to closure</p>
+                <ul class="card-features">
+                    <li>Incision</li>
+                    <li>Exploration</li>
+                    <li>Intervention</li>
+                    <li>Closure & Transfer</li>
+                </ul>
+            </div>
+
+            <!-- Post-Op Tracking -->
+            <div class="workflow-card">
+                <span class="card-icon">📊</span>
+                <h3 class="card-title">Post-Op Tracking</h3>
+                <p class="card-description">PACU recovery monitoring with discharge readiness indicators</p>
+                <ul class="card-features">
+                    <li>Recovery Times Tracking</li>
+                    <li>Patients in PACU Status</li>
+                    <li>Discharge Ready Alerts</li>
+                </ul>
+            </div>
+
+            <!-- Equipment Management -->
+            <div class="workflow-card">
+                <span class="card-icon">🔧</span>
+                <h3 class="card-title">Equipment Management</h3>
+                <p class="card-description">OR equipment tracking and supply inventory management</p>
+                <ul class="card-features">
+                    <li>Equipment Checkout</li>
+                    <li>Usage Logging</li>
+                    <li>Maintenance Alerts</li>
+                </ul>
             </div>
         </div>
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="pricing">
-        <h2 class="section-title">Simple, Transparent Pricing</h2>
+    <section class="pricing-section">
+        <h2 class="section-title">Pricing Plans</h2>
+        
         <div class="pricing-grid">
             <div class="pricing-card">
-                <h3>Starter</h3>
-                <div class="price">$299<span>/month</span></div>
-                <p>Perfect for small surgical practices</p>
-                <ul class="pricing-features">
-                    <li>Up to 50 procedures/month</li>
-                    <li>1 surgical site</li>
-                    <li>3 surgeon users</li>
-                    <li>Basic operative notes</li>
-                    <li>Equipment tracking</li>
+                <h3 class="plan-name">Starter</h3>
+                <div class="plan-price">$299<span>/mo</span></div>
+                <ul class="plan-features">
+                    <li>50 procedures/month</li>
+                    <li>3 surgeons</li>
+                    <li>2 OR rooms</li>
+                    <li>Basic reporting</li>
                     <li>Email support</li>
                 </ul>
-                <a href="#demo" class="btn-secondary" style="width: 100%; text-align: center; display: block;">Get Started</a>
+                <a href="/app.html" class="btn-secondary">Get Started</a>
             </div>
-            
+
             <div class="pricing-card featured">
-                <span class="pricing-badge">Most Popular</span>
-                <h3>Professional</h3>
-                <div class="price">$699<span>/month</span></div>
-                <p>For growing surgical centers</p>
-                <ul class="pricing-features">
-                    <li>Up to 200 procedures/month</li>
-                    <li>3 surgical sites</li>
-                    <li>10 surgeon users</li>
-                    <li>Full operative documentation</li>
-                    <li>Anesthesia progress notes</li>
-                    <li>FDA implant tracking</li>
-                    <li>Equipment & supply management</li>
+                <h3 class="plan-name">Professional</h3>
+                <div class="plan-price">$699<span>/mo</span></div>
+                <ul class="plan-features">
+                    <li>200 procedures/month</li>
+                    <li>10 surgeons</li>
+                    <li>5 OR rooms</li>
+                    <li>Advanced analytics</li>
                     <li>Priority support</li>
+                    <li>Custom templates</li>
                 </ul>
-                <a href="#demo" class="btn-primary" style="width: 100%; text-align: center; display: block;">Get Started</a>
+                <a href="/app.html" class="btn-primary">Most Popular</a>
             </div>
-            
+
             <div class="pricing-card">
-                <h3>Enterprise</h3>
-                <div class="price">$1,499<span>/month</span></div>
-                <p>For large multi-specialty centers</p>
-                <ul class="pricing-features">
+                <h3 class="plan-name">Enterprise</h3>
+                <div class="plan-price">$1,499<span>/mo</span></div>
+                <ul class="plan-features">
                     <li>Unlimited procedures</li>
-                    <li>Unlimited sites</li>
-                    <li>Unlimited users</li>
-                    <li>All Professional features</li>
-                    <li>Custom workflows</li>
-                    <li>API access</li>
-                    <li>Dedicated account manager</li>
+                    <li>Unlimited surgeons</li>
+                    <li>Unlimited OR rooms</li>
+                    <li>AI-powered insights</li>
                     <li>24/7 phone support</li>
+                    <li>Custom integration</li>
+                    <li>Dedicated account manager</li>
                 </ul>
-                <a href="#demo" class="btn-secondary" style="width: 100%; text-align: center; display: block;">Contact Sales</a>
+                <a href="/app.html" class="btn-secondary">Contact Sales</a>
             </div>
         </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta">
-        <h2>Ready to Transform Your OR Documentation?</h2>
-        <p>Join leading surgical centers using PatientTrac OutPatient Surgery</p>
-        <a href="/app.html" class="btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">Access Surgery Portal</a>
     </section>
 
     <!-- Footer -->
     <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>Product</h4>
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="#integration">Integration</a>
-                <a href="/app.html">Sign In</a>
-            </div>
-            
-            <div class="footer-section">
-                <h4>Company</h4>
-                <a href="mailto:sales@patienttrac.com">Contact Sales</a>
-                <a href="mailto:support@patienttrac.com">Support</a>
-                <a href="#">About Us</a>
-            </div>
-            
-            <div class="footer-section">
-                <h4>Legal</h4>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">HIPAA Compliance</a>
-            </div>
-            
-            <div class="footer-section">
-                <h4>Connect</h4>
-                <a href="https://patienttracforge.com">PatientTracForge</a>
-                <a href="https://patienttrac-revela.com">Revela (Plastic Surgery)</a>
-                <a href="https://patienttracmind.com">PatientTrac Mind</a>
-            </div>
+        <div class="footer-links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Service</a>
+            <a href="/security">Security</a>
+            <a href="mailto:support@patienttrac.com">Support</a>
         </div>
-        
-        <div class="footer-bottom">
-            © 2026 PatientTrac Corp. All rights reserved. | HIPAA Compliant | Built with ❤️ for Surgeons
-        </div>
+        <p>&copy; 2026 PatientTrac Corp. All rights reserved. | HIPAA Compliant</p>
     </footer>
 </body>
 </html>
