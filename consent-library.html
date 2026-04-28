@@ -430,7 +430,7 @@
     <script>
         // Initialize Supabase
         const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTM5MTE0ODMsImV4cCI6MjAyOTQ4NzQ4M30.zAkrBNQhU4_yqvj6PaSV5eKgqd5CyLFzFhZA7Y4XQ6o';
+        const SUPABASE_ANON_KEY = window.__PT_ANON_KEY || '';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const urlParams = new URLSearchParams(window.location.search);

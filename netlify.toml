@@ -1,0 +1,19 @@
+# Netlify build configuration for patienttrac-surgery
+# Runs inject-env.sh at build time to substitute Supabase anon key from env var
+# into HTML files that use the window.__PT_ANON_KEY placeholder.
+
+[build]
+  command = "bash inject-env.sh"
+  publish = "."
+
+# If you ever add /api or serverless functions, configure them here.
+# [functions]
+#   directory = "functions/"
+
+# Headers — set Content Security Policy or HSTS later if needed.
+# [[headers]]
+#   for = "/*"
+#   [headers.values]
+#     X-Frame-Options = "DENY"
+
+# Redirects — none currently needed; static HTML files self-route.
