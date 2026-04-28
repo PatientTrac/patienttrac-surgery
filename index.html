@@ -23,11 +23,11 @@
             overflow-x: hidden;
         }
         
-        /* Hero Section with Background */
+        /* Hero Section with Shield Logo */
         .hero {
             min-height: 100vh;
-            background: linear-gradient(135deg, rgba(6, 14, 28, 0.95) 0%, rgba(10, 22, 40, 0.9) 100%),
-                        url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1920') center/cover;
+            background: linear-gradient(135deg, rgba(6, 14, 28, 0.98) 0%, rgba(10, 22, 40, 0.95) 100%),
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23060e1c" width="100" height="100"/></svg>');
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -43,23 +43,24 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            background: radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.15) 0%, transparent 60%);
             pointer-events: none;
         }
         
         /* Shield Logo */
         .shield-logo {
-            width: 200px;
-            height: 200px;
-            margin-bottom: 2rem;
+            width: 400px;
+            max-width: 90vw;
+            height: auto;
+            margin-bottom: 3rem;
             position: relative;
             z-index: 2;
         }
         
-        .shield-logo svg {
+        .shield-logo img {
             width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.6));
+            height: auto;
+            filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.6));
         }
         
         .hero-content {
@@ -391,6 +392,27 @@
             margin-right: 1rem;
         }
         
+        /* Workflow Showcase */
+        .workflow-showcase {
+            background: var(--dark-bg);
+            padding: 6rem 2rem;
+        }
+        
+        .workflow-image {
+            max-width: 1400px;
+            margin: 3rem auto 0;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(0, 212, 255, 0.4);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        .workflow-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
         /* Footer */
         footer {
             background: var(--darker-bg);
@@ -407,6 +429,7 @@
             .hero h1 { font-size: 2.5rem; }
             .hero .tagline { font-size: 1.2rem; }
             .section-title { font-size: 2rem; }
+            .shield-logo { width: 300px; }
             .timeline-items::before { left: 0; }
             .timeline-item:nth-child(odd) { padding-right: 0; padding-left: 3rem; text-align: left; }
             .timeline-item:nth-child(even) { padding-left: 3rem; }
@@ -414,23 +437,10 @@
     </style>
 </head>
 <body>
-    <!-- Hero Section -->
+    <!-- Hero Section with Shield Logo -->
     <section class="hero">
         <div class="shield-logo">
-            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#c9a96e;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <path d="M100,20 L170,50 L170,110 Q170,160 100,180 Q30,160 30,110 L30,50 Z" 
-                      fill="none" stroke="url(#shieldGrad)" stroke-width="3"/>
-                <path d="M70,100 L90,120 L130,70" fill="none" stroke="url(#shieldGrad)" 
-                      stroke-width="4" stroke-linecap="round"/>
-                <circle cx="100" cy="100" r="10" fill="url(#shieldGrad)"/>
-            </svg>
+            <img src="/mnt/user-data/uploads/PatientTracESurg2.jpg" alt="PatientTracSurg Shield Logo">
         </div>
         
         <div class="hero-content">
@@ -688,6 +698,18 @@
                     </ul>
                     <a href="/app.html" class="btn btn-secondary">Contact Sales</a>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow Showcase -->
+    <section class="workflow-showcase">
+        <div class="container">
+            <h2 class="section-title">Complete Surgical Workflow</h2>
+            <p class="section-subtitle">From Pre-Op to Post-Op in One Integrated Platform</p>
+            
+            <div class="workflow-image">
+                <img src="/mnt/user-data/uploads/ptsuurg.jpg" alt="PatientTracSurg Comprehensive Workflow Dashboard">
             </div>
         </div>
     </section>
