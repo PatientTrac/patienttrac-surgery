@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-Anesthesia Evaluation | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            padding-bottom: 100px;
+        }
+        
+        /* Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--purple);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--purple);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .risk-badge {
+            background: linear-gradient(135deg, var(--orange) 0%, var(--red) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-left: auto;
+        }
+        
+        .risk-badge.low { background: linear-gradient(135deg, var(--green) 0%, #059669 100%); }
+        .risk-badge.moderate { background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%); }
+        .risk-badge.high { background: linear-gradient(135deg, var(--red) 0%, #dc2626 100%); }
+        
+        /* Tabs */
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn.active {
+            color: var(--purple);
+            border-bottom-color: var(--purple);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            color: white;
+            background: rgba(168, 85, 247, 0.05);
+        }
+        
+        /* Content */
+        .content-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-card h3 {
+            color: var(--purple);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-card h3::before {
+            content: "";
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--purple) 0%, var(--cyan) 100%);
+            border-radius: 2px;
+        }
+        
+        /* ASA Classification Cards */
+        .asa-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .asa-card {
+            background: rgba(6, 14, 28, 0.6);
+            border: 2px solid rgba(168, 85, 247, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .asa-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(168, 85, 247, 0.3);
+        }
+        
+        .asa-card.selected {
+            border-color: var(--cyan);
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+        }
+        
+        .asa-card.recommended {
+            border-color: var(--gold);
+        }
+        
+        .asa-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+        
+        .asa-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        .asa-description {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.4;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: var(--gold);
+            color: var(--darker-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+        
+        /* Mallampati Visual */
+        .mallampati-visual {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .mallampati-option {
+            text-align: center;
+            cursor: pointer;
+            padding: 1rem;
+            border: 2px solid rgba(168, 85, 247, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .mallampati-option:hover {
+            border-color: var(--purple);
+            background: rgba(168, 85, 247, 0.05);
+        }
+        
+        .mallampati-option.selected {
+            border-color: var(--cyan);
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .mallampati-image {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 0.75rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .mallampati-label {
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Airway Risk Alert */
+        .risk-alert {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+            border: 2px solid var(--red);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            display: none;
+        }
+        
+        .risk-alert.active {
+            display: block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { border-color: var(--red); }
+            50% { border-color: var(--orange); }
+        }
+        
+        .risk-alert h4 {
+            color: var(--red);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--purple);
+            background: rgba(6, 14, 28, 0.8);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+        
+        /* Clearance Decision */
+        .clearance-options {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .clearance-option {
+            background: rgba(6, 14, 28, 0.6);
+            border: 2px solid rgba(168, 85, 247, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .clearance-option:hover {
+            border-color: var(--purple);
+            transform: translateX(5px);
+        }
+        
+        .clearance-option.selected {
+            border-color: var(--cyan);
+            background: rgba(0, 212, 255, 0.05);
+        }
+        
+        .clearance-option input[type="radio"] {
+            width: 24px;
+            height: 24px;
+            margin-top: 0.2rem;
+            cursor: pointer;
+        }
+        
+        .clearance-content h4 {
+            font-size: 1.25rem;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+        
+        .clearance-content p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .clearance-option.approved .clearance-content h4 { color: var(--green); }
+        .clearance-option.conditional .clearance-content h4 { color: var(--orange); }
+        .clearance-option.denied .clearance-content h4 { color: var(--red); }
+        
+        .clearance-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        
+        .clearance-option.selected .clearance-details {
+            display: block;
+        }
+        
+        /* Action Bar */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.98) 0%, rgba(6, 14, 28, 0.98) 100%);
+            border-top: 2px solid rgba(168, 85, 247, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            z-index: 50;
+        }
+        
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple) 0%, #9333ea 100%);
+            color: white;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gold);
+            color: var(--darker-bg);
+        }
+        
+        /* Checkbox Styling */
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(6, 14, 28, 0.4);
+            border: 1px solid rgba(168, 85, 247, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-item:hover {
+            border-color: var(--purple);
+            background: rgba(168, 85, 247, 0.05);
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img id="patientPhoto" src="https://via.placeholder.com/80" alt="Patient" class="patient-photo">
+        <div class="patient-info">
+            <h2 id="patientName">Loading...</h2>
+            <div class="patient-meta">
+                <span>🆔 MRN: <strong id="patientMRN">--</strong></span>
+                <span>📅 DOB: <strong id="patientDOB">--</strong></span>
+                <span>⚖️ BMI: <strong id="patientBMI">--</strong></span>
+                <span>🏥 Procedure: <strong id="procedureName">--</strong></span>
+            </div>
+        </div>
+        <div class="risk-badge moderate" id="airwayRiskBadge">
+            Airway Risk: Moderate
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="switchTab(0)">ASA & Airway</button>
+        <button class="tab-btn" onclick="switchTab(1)">Medical History</button>
+        <button class="tab-btn" onclick="switchTab(2)">Anesthesia Plan</button>
+        <button class="tab-btn" onclick="switchTab(3)">Clearance Decision</button>
+    </nav>
+
+    <!-- Content -->
+    <div class="content-wrapper">
+        <!-- Tab 1: ASA & Airway -->
+        <div class="tab-content active">
+            <div class="section-card">
+                <h3>ASA Physical Status Classification</h3>
+                <div class="asa-selector">
+                    <div class="asa-card" onclick="selectASA(this, 'I')">
+                        <div class="asa-number">I</div>
+                        <div class="asa-label">Normal Healthy</div>
+                        <div class="asa-description">No organic, physiologic, or psychiatric disturbance</div>
+                    </div>
+
+                    <div class="asa-card" onclick="selectASA(this, 'II')">
+                        <div class="asa-number">II</div>
+                        <div class="asa-label">Mild Disease</div>
+                        <div class="asa-description">Controlled hypertension, well-controlled diabetes</div>
+                    </div>
+
+                    <div class="asa-card recommended" onclick="selectASA(this, 'III')">
+                        <div class="asa-number">III</div>
+                        <div class="asa-label">Severe Disease</div>
+                        <div class="asa-description">Morbid obesity, diabetes with complications, uncontrolled HTN</div>
+                        <div class="badge">Typical Bariatric</div>
+                    </div>
+
+                    <div class="asa-card" onclick="selectASA(this, 'IV')">
+                        <div class="asa-number">IV</div>
+                        <div class="asa-label">Severe Threat</div>
+                        <div class="asa-description">Recent MI, ongoing cardiac ischemia, advanced organ failure</div>
+                    </div>
+
+                    <div class="asa-card" onclick="selectASA(this, 'V')">
+                        <div class="asa-number">V</div>
+                        <div class="asa-label">Moribund</div>
+                        <div class="asa-description">Not expected to survive without surgery</div>
+                    </div>
+
+                    <div class="asa-card" onclick="selectASA(this, 'VI')">
+                        <div class="asa-number">VI</div>
+                        <div class="asa-label">Brain Dead</div>
+                        <div class="asa-description">Organ donor</div>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="asaEmergency">
+                        <strong>Emergency Procedure (Add "E" modifier)</strong>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Mallampati Airway Classification</h3>
+                <div class="mallampati-visual">
+                    <div class="mallampati-option" onclick="selectMallampati(this, 1)">
+                        <div class="mallampati-image">👄</div>
+                        <div class="mallampati-label">Class I</div>
+                        <small>Full visibility</small>
+                    </div>
+                    <div class="mallampati-option" onclick="selectMallampati(this, 2)">
+                        <div class="mallampati-image">👅</div>
+                        <div class="mallampati-label">Class II</div>
+                        <small>Soft palate visible</small>
+                    </div>
+                    <div class="mallampati-option" onclick="selectMallampati(this, 3)">
+                        <div class="mallampati-image">🦷</div>
+                        <div class="mallampati-label">Class III</div>
+                        <small>Hard palate only</small>
+                    </div>
+                    <div class="mallampati-option" onclick="selectMallampati(this, 4)">
+                        <div class="mallampati-image">⚠️</div>
+                        <div class="mallampati-label">Class IV</div>
+                        <small>No palate visible</small>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Mouth Opening</label>
+                        <select id="mouthOpening" onchange="calculateAirwayRisk()">
+                            <option value="adequate">&gt;4cm (Adequate)</option>
+                            <option value="borderline">3-4cm (Borderline)</option>
+                            <option value="difficult">&lt;3cm (Difficult)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Thyromental Distance</label>
+                        <select id="thyromental" onchange="calculateAirwayRisk()">
+                            <option value="adequate">≥6cm (Adequate)</option>
+                            <option value="difficult">&lt;6cm (Difficult)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Neck Mobility</label>
+                        <select id="neckMobility" onchange="calculateAirwayRisk()">
+                            <option value="full">Full Range</option>
+                            <option value="limited">Limited</option>
+                            <option value="severely_limited">Severely Limited</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dentition</label>
+                        <select id="dentition">
+                            <option value="natural">Natural teeth</option>
+                            <option value="dentures">Dentures (removable)</option>
+                            <option value="missing">Missing teeth</option>
+                            <option value="caps">Caps/Crowns</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="difficultAirwayHistory" onchange="calculateAirwayRisk()">
+                        <strong>History of Difficult Intubation</strong>
+                    </label>
+                </div>
+
+                <div class="risk-alert" id="airwayAlert">
+                    <h4>⚠️ Difficult Airway Predicted</h4>
+                    <div class="form-group">
+                        <label>Airway Management Plan</label>
+                        <textarea id="airwayPlan" rows="3" placeholder="Document plan for difficult airway (e.g., video laryngoscopy, fiber optic, awake intubation, LMA backup)"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Medical History -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Cardiovascular Assessment</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Current Blood Pressure</label>
+                        <input type="text" id="bloodPressure" placeholder="e.g., 140/90">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Heart Rate</label>
+                        <input type="number" id="heartRate" placeholder="bpm">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Exercise Tolerance</label>
+                        <select id="exerciseTolerance">
+                            <option value="good">&gt;2 blocks without symptoms</option>
+                            <option value="moderate">1-2 blocks</option>
+                            <option value="poor">&lt;1 block or unable</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="hypertension">
+                        <strong>Hypertension (controlled on medications)</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="coronaryDisease">
+                        <strong>Coronary Artery Disease</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="arrhythmia">
+                        <strong>Arrhythmia</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="valveDisease">
+                        <strong>Valvular Heart Disease</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="cardiacClearance">
+                        <strong>Cardiac Clearance Obtained</strong>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Respiratory Assessment</h3>
+                <div class="form-group">
+                    <label>Oxygen Saturation (Room Air)</label>
+                    <input type="number" id="oxygenSat" placeholder="%" min="70" max="100">
+                </div>
+
+                <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="sleepApnea" onchange="toggleSleepApneaDetails()">
+                        <strong>Obstructive Sleep Apnea</strong>
+                    </label>
+                    <div id="sleepApneaDetails" style="display: none; padding-left: 2rem;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>CPAP User?</label>
+                                <select id="cpapUser">
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>AHI Score</label>
+                                <input type="number" id="ahiScore" placeholder="Events per hour">
+                            </div>
+                            <div class="form-group">
+                                <label>CPAP Pressure</label>
+                                <input type="text" id="cpapPressure" placeholder="e.g., 10 cm H2O">
+                            </div>
+                        </div>
+                    </div>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="asthma">
+                        <strong>Asthma</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="copd">
+                        <strong>COPD</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="recentURI">
+                        <strong>Recent Upper Respiratory Infection</strong>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Smoking Status</label>
+                    <select id="smokingStatus">
+                        <option value="never">Never smoker</option>
+                        <option value="former">Former smoker</option>
+                        <option value="current">Current smoker</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>NPO Verification</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Last Solid Food</label>
+                        <input type="datetime-local" id="lastSolidFood">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Clear Liquids</label>
+                        <input type="datetime-local" id="lastLiquids">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="npoCompliant">
+                        <strong>NPO Compliance Verified (≥8hrs solids, ≥2hrs clear liquids)</strong>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Anesthesia Plan -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Anesthesia Technique</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Anesthesia Type</label>
+                        <select id="anesthesiaType">
+                            <option value="GETA">General Endotracheal Anesthesia</option>
+                            <option value="LMA">LMA/Supraglottic Airway</option>
+                            <option value="Regional">Regional + Sedation</option>
+                            <option value="MAC">Monitored Anesthesia Care</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Induction Agent</label>
+                        <select id="inductionAgent">
+                            <option value="Propofol">Propofol</option>
+                            <option value="Etomidate">Etomidate</option>
+                            <option value="Ketamine">Ketamine</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Maintenance</label>
+                        <select id="maintenanceAgent">
+                            <option value="Sevoflurane">Sevoflurane</option>
+                            <option value="Desflurane">Desflurane</option>
+                            <option value="TIVA">TIVA (Propofol infusion)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Endotracheal Tube Size</label>
+                        <select id="ettSize">
+                            <option value="7.0">7.0 mm</option>
+                            <option value="7.5">7.5 mm</option>
+                            <option value="8.0">8.0 mm</option>
+                            <option value="8.5">8.5 mm</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Prophylaxis & Monitoring</h3>
+                <div style="display: grid; gap: 1rem;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="aspirationProphylaxis" checked>
+                        <strong>Aspiration Prophylaxis (Reglan + H2 blocker)</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="dvtProphylaxis" checked>
+                        <strong>DVT Prophylaxis (SCDs + Heparin)</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="antibioticProphylaxis" checked>
+                        <strong>Antibiotic Prophylaxis</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="arterialLine">
+                        <strong>Arterial Line</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="centralLine">
+                        <strong>Central Line</strong>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Special Considerations</h3>
+                <div class="form-group">
+                    <label>Anesthesia notes, concerns, or special equipment needed</label>
+                    <textarea id="specialConsiderations" rows="4" placeholder="Document any special considerations for this case..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Clearance Decision -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Anesthesia Clearance Decision</h3>
+                <div class="clearance-options">
+                    <label class="clearance-option approved">
+                        <input type="radio" name="clearance" value="approved" onchange="toggleClearanceDetails(this)">
+                        <div class="clearance-content">
+                            <h4>✅ Cleared for Surgery</h4>
+                            <p>Patient meets all anesthesia criteria and is cleared to proceed as planned.</p>
+                        </div>
+                    </label>
+
+                    <label class="clearance-option conditional">
+                        <input type="radio" name="clearance" value="conditional" onchange="toggleClearanceDetails(this)">
+                        <div class="clearance-content">
+                            <h4>⚠️ Cleared with Modifications</h4>
+                            <p>Patient is cleared but requires special considerations or equipment.</p>
+                            <div class="clearance-details">
+                                <div class="form-group">
+                                    <label>Required Modifications</label>
+                                    <textarea id="conditionalNotes" rows="3" placeholder="Specify modifications needed (e.g., video laryngoscopy available, additional monitoring, ICU bed reserved)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="clearance-option denied">
+                        <input type="radio" name="clearance" value="denied" onchange="toggleClearanceDetails(this)">
+                        <div class="clearance-content">
+                            <h4>❌ Not Cleared - Further Evaluation Needed</h4>
+                            <p>Patient requires additional workup or optimization before proceeding.</p>
+                            <div class="clearance-details">
+                                <div class="form-group">
+                                    <label>Required Workup</label>
+                                    <textarea id="deniedNotes" rows="3" placeholder="Specify what is needed before clearance (e.g., cardiology consult, echo, optimize BP control, sleep study)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Anesthesiologist Summary</h3>
+                <div class="form-group">
+                    <label>Overall assessment and any additional notes</label>
+                    <textarea id="anesthesiaSummary" rows="6" placeholder="Document overall anesthesia assessment, concerns addressed, and final recommendations..."></textarea>
+                </div>
+
+                <div class="form-grid" style="margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label>Anesthesiologist Name</label>
+                        <input type="text" id="anesthesiologistName" placeholder="Dr. Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Evaluation Date</label>
+                        <input type="date" id="evalDate" value="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+        <button onclick="saveAnesthesiaEval()" class="btn btn-primary">Save Anesthesia Evaluation</button>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTM5MTE0ODMsImV4cCI6MjAyOTQ4NzQ4M30.zAkrBNQhU4_yqvj6PaSV5eKgqd5CyLFzFhZA7Y4XQ6o';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const encounterId = urlParams.get('encounter_id');
+        const patientId = urlParams.get('patient_id');
+        const token = urlParams.get('token');
+
+        // State
+        let selectedASA = null;
+        let selectedMallampati = null;
+        let airwayRiskScore = 0;
+
+        // Load patient data
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Set today's date
+            document.getElementById('evalDate').valueAsDate = new Date();
+
+            if (!encounterId || !patientId || !token) {
+                alert('Invalid access.');
+                window.location.href = '/app.html';
+                return;
+            }
+
+            const { data: patient, error } = await supabase
+                .from('surgery_encounter_view')
+                .select('*')
+                .eq('encounter_id', encounterId)
+                .single();
+
+            if (error || !patient) {
+                alert('Unable to load patient data.');
+                return;
+            }
+
+            document.getElementById('patientName').textContent = `${patient.first_name} ${patient.last_name}`;
+            document.getElementById('patientMRN').textContent = patient.mrn || '--';
+            document.getElementById('patientDOB').textContent = patient.dob || '--';
+            document.getElementById('procedureName').textContent = patient.encounter_type || 'Bariatric Surgery';
+            
+            if (patient.photo_url) {
+                document.getElementById('patientPhoto').src = patient.photo_url;
+            }
+
+            if (patient.weight_kg && patient.height_cm) {
+                const bmi = (patient.weight_kg / Math.pow(patient.height_cm / 100, 2)).toFixed(1);
+                document.getElementById('patientBMI').textContent = bmi;
+            }
+        });
+
+        // Tab switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => tab.classList.toggle('active', i === index));
+            contents.forEach((content, i) => content.classList.toggle('active', i === index));
+        }
+
+        // Select ASA class
+        function selectASA(card, asaClass) {
+            document.querySelectorAll('.asa-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedASA = asaClass;
+        }
+
+        // Select Mallampati
+        function selectMallampati(option, mallClass) {
+            document.querySelectorAll('.mallampati-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            selectedMallampati = mallClass;
+            calculateAirwayRisk();
+        }
+
+        // Calculate airway risk score
+        function calculateAirwayRisk() {
+            let score = 0;
+            
+            if (selectedMallampati >= 3) score += 2;
+            if (document.getElementById('mouthOpening').value === 'difficult') score += 2;
+            if (document.getElementById('thyromental').value === 'difficult') score += 1;
+            if (document.getElementById('neckMobility').value !== 'full') score += 1;
+            if (document.getElementById('difficultAirwayHistory').checked) score += 3;
+            
+            airwayRiskScore = score;
+            
+            const badge = document.getElementById('airwayRiskBadge');
+            const alert = document.getElementById('airwayAlert');
+            
+            if (score >= 4) {
+                badge.textContent = 'Airway Risk: HIGH';
+                badge.className = 'risk-badge high';
+                alert.classList.add('active');
+            } else if (score >= 2) {
+                badge.textContent = 'Airway Risk: MODERATE';
+                badge.className = 'risk-badge moderate';
+                alert.classList.remove('active');
+            } else {
+                badge.textContent = 'Airway Risk: LOW';
+                badge.className = 'risk-badge low';
+                alert.classList.remove('active');
+            }
+        }
+
+        // Toggle sleep apnea details
+        function toggleSleepApneaDetails() {
+            const details = document.getElementById('sleepApneaDetails');
+            details.style.display = document.getElementById('sleepApnea').checked ? 'block' : 'none';
+        }
+
+        // Toggle clearance details
+        function toggleClearanceDetails(radio) {
+            document.querySelectorAll('.clearance-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            radio.closest('.clearance-option').classList.add('selected');
+        }
+
+        // Save anesthesia evaluation
+        async function saveAnesthesiaEval() {
+            const clearanceRadio = document.querySelector('input[name="clearance"]:checked');
+            if (!clearanceRadio) {
+                alert('Please select a clearance decision.');
+                return;
+            }
+
+            const saveData = {
+                org_id: '00000000-0000-0000-0000-000000000001',
+                patient_id: parseInt(patientId),
+                encounter_id: parseInt(encounterId),
+                provider_id: 1, // Will be actual anesthesiologist ID
+                asa_classification: selectedASA || 'III',
+                asa_emergency: document.getElementById('asaEmergency').checked,
+                difficult_airway: airwayRiskScore >= 4,
+                difficult_airway_history: document.getElementById('difficultAirwayHistory').checked,
+                airway_management_notes: document.getElementById('airwayPlan').value,
+                clearance_status: clearanceRadio.value,
+                clearance_notes: clearanceRadio.value === 'conditional' 
+                    ? document.getElementById('conditionalNotes').value 
+                    : (clearanceRadio.value === 'denied' 
+                        ? document.getElementById('deniedNotes').value 
+                        : null),
+                anesthesia_summary: document.getElementById('anesthesiaSummary').value,
+                created_at: new Date().toISOString()
+            };
+
+            const { error } = await supabase
+                .from('anesthesia_progress_note')
+                .insert(saveData);
+
+            if (error) {
+                console.error('Error:', error);
+                alert('Error saving: ' + error.message);
+            } else {
+                alert('✅ Anesthesia evaluation saved successfully!');
+                window.location.href = '/dashboard.html?encounter_id=' + encounterId + '&patient_id=' + patientId + '&token=' + token;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PACU Recovery & Discharge | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            padding-bottom: 100px;
+        }
+        
+        /* Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(16, 185, 129, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--green);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--green);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .recovery-status {
+            background: linear-gradient(135deg, var(--green) 0%, #059669 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-left: auto;
+        }
+        
+        .recovery-status.stable { background: linear-gradient(135deg, var(--green) 0%, #059669 100%); }
+        .recovery-status.monitoring { background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%); }
+        .recovery-status.critical { background: linear-gradient(135deg, var(--red) 0%, #dc2626 100%); }
+        
+        /* Content */
+        .content-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .section-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-card h3 {
+            color: var(--green);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-card h3::before {
+            content: "";
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--green) 0%, var(--cyan) 100%);
+            border-radius: 2px;
+        }
+        
+        /* Vital Signs Grid */
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .vital-box {
+            background: rgba(6, 14, 28, 0.6);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .vital-box:hover {
+            border-color: var(--green);
+            transform: translateY(-3px);
+        }
+        
+        .vital-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .vital-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 0.25rem;
+        }
+        
+        .vital-unit {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .vital-box.abnormal {
+            border-color: var(--red);
+            background: rgba(239, 68, 68, 0.05);
+        }
+        
+        .vital-box.abnormal .vital-value {
+            color: var(--red);
+        }
+        
+        /* Pain Scale */
+        .pain-scale {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .pain-number {
+            flex: 1;
+            background: rgba(6, 14, 28, 0.6);
+            border: 2px solid rgba(16, 185, 129, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .pain-number:hover {
+            border-color: var(--green);
+            transform: scale(1.05);
+        }
+        
+        .pain-number.selected {
+            background: var(--green);
+            color: var(--darker-bg);
+            border-color: var(--green);
+        }
+        
+        .pain-number.pain-high { color: var(--red); }
+        .pain-number.pain-moderate { color: var(--orange); }
+        .pain-number.pain-low { color: var(--green); }
+        
+        /* Timeline */
+        .recovery-timeline {
+            position: relative;
+            padding-left: 3rem;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding: 1.5rem;
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -3rem;
+            top: 1.5rem;
+            width: 20px;
+            height: 20px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+        
+        .timeline-item::after {
+            content: "";
+            position: absolute;
+            left: -2.4rem;
+            top: 3.5rem;
+            width: 2px;
+            height: calc(100% + 1.5rem);
+            background: linear-gradient(180deg, var(--green) 0%, transparent 100%);
+        }
+        
+        .timeline-item:last-child::after {
+            display: none;
+        }
+        
+        .timeline-time {
+            font-size: 0.9rem;
+            color: var(--cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-event {
+            font-size: 1.1rem;
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Aldrete Score */
+        .aldrete-score {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .aldrete-item {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .aldrete-item h4 {
+            color: var(--green);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .aldrete-options {
+            display: grid;
+            gap: 0.75rem;
+        }
+        
+        .aldrete-option {
+            background: rgba(6, 14, 28, 0.4);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .aldrete-option:hover {
+            border-color: var(--green);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .aldrete-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .aldrete-score-display {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+            border: 2px solid var(--green);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        
+        .aldrete-total {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--green);
+        }
+        
+        .aldrete-label {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .aldrete-status {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .aldrete-status.ready {
+            color: var(--green);
+        }
+        
+        .aldrete-status.not-ready {
+            color: var(--orange);
+        }
+        
+        /* Discharge Checklist */
+        .discharge-checklist {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .discharge-item {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .discharge-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        
+        .discharge-item input[type="checkbox"]:checked + .discharge-content {
+            opacity: 1;
+        }
+        
+        .discharge-content {
+            flex: 1;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        
+        .discharge-content h4 {
+            color: var(--green);
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--green);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+        
+        /* Action Bar */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.98) 0%, rgba(6, 14, 28, 0.98) 100%);
+            border-top: 2px solid rgba(16, 185, 129, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            z-index: 50;
+        }
+        
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green) 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gold);
+            color: var(--darker-bg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img id="patientPhoto" src="https://via.placeholder.com/80" alt="Patient" class="patient-photo">
+        <div class="patient-info">
+            <h2 id="patientName">Loading...</h2>
+            <div class="patient-meta">
+                <span>🆔 MRN: <strong id="patientMRN">--</strong></span>
+                <span>🏥 Procedure: <strong id="procedureName">--</strong></span>
+                <span>⏱️ In PACU: <strong id="pacuTime">--</strong> min</span>
+            </div>
+        </div>
+        <div class="recovery-status stable" id="recoveryStatus">
+            Stable
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-wrapper">
+        <!-- Vital Signs -->
+        <div class="section-card">
+            <h3>Current Vital Signs</h3>
+            <div class="vitals-grid">
+                <div class="vital-box" id="hrBox">
+                    <div class="vital-label">Heart Rate</div>
+                    <div class="vital-value" id="hrValue">--</div>
+                    <div class="vital-unit">bpm</div>
+                    <input type="number" id="hrInput" placeholder="Enter HR" onchange="updateVital('hr', this.value)" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(6, 14, 28, 0.8); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; color: white; text-align: center;">
+                </div>
+
+                <div class="vital-box" id="bpBox">
+                    <div class="vital-label">Blood Pressure</div>
+                    <div class="vital-value" id="bpValue">--</div>
+                    <div class="vital-unit">mmHg</div>
+                    <input type="text" id="bpInput" placeholder="120/80" onchange="updateVital('bp', this.value)" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(6, 14, 28, 0.8); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; color: white; text-align: center;">
+                </div>
+
+                <div class="vital-box" id="rrBox">
+                    <div class="vital-label">Resp. Rate</div>
+                    <div class="vital-value" id="rrValue">--</div>
+                    <div class="vital-unit">/min</div>
+                    <input type="number" id="rrInput" placeholder="Enter RR" onchange="updateVital('rr', this.value)" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(6, 14, 28, 0.8); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; color: white; text-align: center;">
+                </div>
+
+                <div class="vital-box" id="spo2Box">
+                    <div class="vital-label">SpO₂</div>
+                    <div class="vital-value" id="spo2Value">--</div>
+                    <div class="vital-unit">%</div>
+                    <input type="number" id="spo2Input" placeholder="Enter SpO2" onchange="updateVital('spo2', this.value)" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(6, 14, 28, 0.8); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; color: white; text-align: center;">
+                </div>
+
+                <div class="vital-box" id="tempBox">
+                    <div class="vital-label">Temperature</div>
+                    <div class="vital-value" id="tempValue">--</div>
+                    <div class="vital-unit">°C</div>
+                    <input type="number" id="tempInput" step="0.1" placeholder="Enter Temp" onchange="updateVital('temp', this.value)" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(6, 14, 28, 0.8); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; color: white; text-align: center;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Pain Assessment -->
+        <div class="section-card">
+            <h3>Pain Score (0-10 Scale)</h3>
+            <div class="pain-scale">
+                <div class="pain-number pain-low" onclick="selectPain(0)">0</div>
+                <div class="pain-number pain-low" onclick="selectPain(1)">1</div>
+                <div class="pain-number pain-low" onclick="selectPain(2)">2</div>
+                <div class="pain-number pain-low" onclick="selectPain(3)">3</div>
+                <div class="pain-number pain-moderate" onclick="selectPain(4)">4</div>
+                <div class="pain-number pain-moderate" onclick="selectPain(5)">5</div>
+                <div class="pain-number pain-moderate" onclick="selectPain(6)">6</div>
+                <div class="pain-number pain-high" onclick="selectPain(7)">7</div>
+                <div class="pain-number pain-high" onclick="selectPain(8)">8</div>
+                <div class="pain-number pain-high" onclick="selectPain(9)">9</div>
+                <div class="pain-number pain-high" onclick="selectPain(10)">10</div>
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label>Pain Management Provided</label>
+                <textarea id="painManagement" rows="2" placeholder="Document pain medications given, timing, and effectiveness..."></textarea>
+            </div>
+        </div>
+
+        <!-- Aldrete Score -->
+        <div class="section-card">
+            <h3>Aldrete Post-Anesthesia Recovery Score</h3>
+            <div class="aldrete-score">
+                <div class="aldrete-item">
+                    <h4>1. Activity (Movement)</h4>
+                    <div class="aldrete-options">
+                        <label class="aldrete-option">
+                            <input type="radio" name="activity" value="2" onchange="calculateAldrete()">
+                            <span><strong>2</strong> - Able to move 4 extremities voluntarily or on command</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="activity" value="1" onchange="calculateAldrete()">
+                            <span><strong>1</strong> - Able to move 2 extremities voluntarily or on command</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="activity" value="0" onchange="calculateAldrete()">
+                            <span><strong>0</strong> - Unable to move extremities voluntarily or on command</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="aldrete-item">
+                    <h4>2. Respiration</h4>
+                    <div class="aldrete-options">
+                        <label class="aldrete-option">
+                            <input type="radio" name="respiration" value="2" onchange="calculateAldrete()">
+                            <span><strong>2</strong> - Able to breathe deeply and cough freely</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="respiration" value="1" onchange="calculateAldrete()">
+                            <span><strong>1</strong> - Dyspnea, shallow or limited breathing</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="respiration" value="0" onchange="calculateAldrete()">
+                            <span><strong>0</strong> - Apneic</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="aldrete-item">
+                    <h4>3. Circulation (Blood Pressure)</h4>
+                    <div class="aldrete-options">
+                        <label class="aldrete-option">
+                            <input type="radio" name="circulation" value="2" onchange="calculateAldrete()">
+                            <span><strong>2</strong> - BP ± 20 mmHg of pre-anesthetic level</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="circulation" value="1" onchange="calculateAldrete()">
+                            <span><strong>1</strong> - BP ± 20-50 mmHg of pre-anesthetic level</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="circulation" value="0" onchange="calculateAldrete()">
+                            <span><strong>0</strong> - BP ± 50+ mmHg of pre-anesthetic level</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="aldrete-item">
+                    <h4>4. Consciousness</h4>
+                    <div class="aldrete-options">
+                        <label class="aldrete-option">
+                            <input type="radio" name="consciousness" value="2" onchange="calculateAldrete()">
+                            <span><strong>2</strong> - Fully awake</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="consciousness" value="1" onchange="calculateAldrete()">
+                            <span><strong>1</strong> - Arousable on calling</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="consciousness" value="0" onchange="calculateAldrete()">
+                            <span><strong>0</strong> - Not responding</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="aldrete-item">
+                    <h4>5. Oxygen Saturation</h4>
+                    <div class="aldrete-options">
+                        <label class="aldrete-option">
+                            <input type="radio" name="oxygen" value="2" onchange="calculateAldrete()">
+                            <span><strong>2</strong> - SpO₂ >92% on room air</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="oxygen" value="1" onchange="calculateAldrete()">
+                            <span><strong>1</strong> - Needs O₂ to maintain SpO₂ >90%</span>
+                        </label>
+                        <label class="aldrete-option">
+                            <input type="radio" name="oxygen" value="0" onchange="calculateAldrete()">
+                            <span><strong>0</strong> - SpO₂ <90% even with O₂</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="aldrete-score-display">
+                <div class="aldrete-total" id="aldreteTotal">0</div>
+                <div class="aldrete-label">/ 10 Points</div>
+                <div class="aldrete-status not-ready" id="aldreteStatus">
+                    Score ≥9 required for discharge
+                </div>
+            </div>
+        </div>
+
+        <!-- Recovery Timeline -->
+        <div class="section-card">
+            <h3>Recovery Timeline</h3>
+            <div class="recovery-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-time" id="arrivalTime">--:--</div>
+                    <div class="timeline-event">Arrived in PACU</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time" id="awakeTime">--:--</div>
+                    <div class="timeline-event">Fully Awake & Oriented</div>
+                    <button onclick="recordEvent('awake')" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--green); border: none; border-radius: 6px; color: white; cursor: pointer;">Record Now</button>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time" id="voidTime">--:--</div>
+                    <div class="timeline-event">Voided</div>
+                    <button onclick="recordEvent('void')" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--green); border: none; border-radius: 6px; color: white; cursor: pointer;">Record Now</button>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time" id="ambulateTime">--:--</div>
+                    <div class="timeline-event">Ambulated</div>
+                    <button onclick="recordEvent('ambulate')" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--green); border: none; border-radius: 6px; color: white; cursor: pointer;">Record Now</button>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time" id="tolerateTime">--:--</div>
+                    <div class="timeline-event">Tolerated PO Fluids</div>
+                    <button onclick="recordEvent('tolerate')" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: var(--green); border: none; border-radius: 6px; color: white; cursor: pointer;">Record Now</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discharge Criteria -->
+        <div class="section-card">
+            <h3>Discharge Readiness Checklist</h3>
+            <div class="discharge-checklist">
+                <label class="discharge-item">
+                    <input type="checkbox" id="aldrete9" disabled>
+                    <div class="discharge-content">
+                        <h4>Aldrete Score ≥9</h4>
+                        <p>Post-anesthesia recovery score meets discharge criteria</p>
+                    </div>
+                </label>
+
+                <label class="discharge-item">
+                    <input type="checkbox" id="vitalsSt able">
+                    <div class="discharge-content">
+                        <h4>Vital Signs Stable</h4>
+                        <p>BP, HR, RR, SpO₂, temp within acceptable ranges</p>
+                    </div>
+                </label>
+
+                <label class="discharge-item">
+                    <input type="checkbox" id="painControlled">
+                    <div class="discharge-content">
+                        <h4>Pain Adequately Controlled</h4>
+                        <p>Pain score ≤4 or patient satisfaction with pain control</p>
+                    </div>
+                </label>
+
+                <label class="discharge-item">
+                    <input type="checkbox" id="nauseaControlled">
+                    <div class="discharge-content">
+                        <h4>Nausea/Vomiting Controlled</h4>
+                        <p>No active nausea or vomiting, or controlled with medication</p>
+                    </div>
+                </label>
+
+                <label class="discharge-item">
+                    <input type="checkbox" id="voided">
+                    <div class="discharge-content">
+                        <h4>Voided (if applicable)</h4>
+                        <p>Patient able to void or catheter management plan in place</p>
+                    </div>
+                </label>
+
+                <label class="discharge-item">
+                    <input type="checkbox" id="ambulated">
+                    <div class="discharge-content">
+                        <h4>Ambulated (if required)</h4>
+                        <p>Patient able to walk with assistance or per protocol</p>
+                    </div>
+                </label>
+
+                <label class="discharge-item">
+                    <input type="checkbox" id="instructionsGiven">
+                    <div class="discharge-content">
+                        <h4>Discharge Instructions Given</h4>
+                        <p>Patient/family understands home care, medications, follow-up</p>
+                    </div>
+                </label>
+
+                <label class="discharge-item">
+                    <input type="checkbox" id="responsibleAdult">
+                    <div class="discharge-content">
+                        <h4>Responsible Adult Present</h4>
+                        <p>Patient has ride home and adult supervision for 24 hours</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Nursing Notes -->
+        <div class="section-card">
+            <h3>PACU Nursing Notes</h3>
+            <div class="form-group">
+                <label>Recovery progress, interventions, complications, and patient response</label>
+                <textarea id="nursingNotes" rows="6" placeholder="Document patient's recovery course, any interventions performed, patient/family education, and overall condition at discharge..."></textarea>
+            </div>
+
+            <div class="form-grid" style="margin-top: 1.5rem;">
+                <div class="form-group">
+                    <label>RN Name</label>
+                    <input type="text" id="nurseName" placeholder="Nurse Name">
+                </div>
+                <div class="form-group">
+                    <label>Discharge Time</label>
+                    <input type="time" id="dischargeTime">
+                </div>
+                <div class="form-group">
+                    <label>Discharged To</label>
+                    <select id="dischargedTo">
+                        <option>Home with family</option>
+                        <option>Inpatient unit</option>
+                        <option>ICU</option>
+                        <option>Transfer to another facility</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+        <button onclick="savePACUDischarge()" class="btn btn-primary">Complete Discharge</button>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTM5MTE0ODMsImV4cCI6MjAyOTQ4NzQ4M30.zAkrBNQhU4_yqvj6PaSV5eKgqd5CyLFzFhZA7Y4XQ6o';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const encounterId = urlParams.get('encounter_id');
+        const patientId = urlParams.get('patient_id');
+        const token = urlParams.get('token');
+
+        let selectedPain = null;
+        let aldreteScore = 0;
+        let pacuArrival = new Date();
+
+        // Load patient data
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!encounterId || !patientId || !token) {
+                alert('Invalid access.');
+                window.location.href = '/app.html';
+                return;
+            }
+
+            const { data: patient, error } = await supabase
+                .from('surgery_encounter_view')
+                .select('*')
+                .eq('encounter_id', encounterId)
+                .single();
+
+            if (error || !patient) return;
+
+            document.getElementById('patientName').textContent = `${patient.first_name} ${patient.last_name}`;
+            document.getElementById('patientMRN').textContent = patient.mrn || '--';
+            document.getElementById('procedureName').textContent = patient.encounter_type || 'Surgery';
+            
+            if (patient.photo_url) {
+                document.getElementById('patientPhoto').src = patient.photo_url;
+            }
+
+            // Set arrival time
+            document.getElementById('arrivalTime').textContent = pacuArrival.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+
+            // Update PACU time every minute
+            setInterval(updatePACUTime, 60000);
+            updatePACUTime();
+        });
+
+        function updatePACUTime() {
+            const now = new Date();
+            const minutes = Math.floor((now - pacuArrival) / 60000);
+            document.getElementById('pacuTime').textContent = minutes;
+        }
+
+        function updateVital(type, value) {
+            const valueElement = document.getElementById(type + 'Value');
+            const box = document.getElementById(type + 'Box');
+            
+            valueElement.textContent = value;
+
+            // Check for abnormals
+            let abnormal = false;
+            if (type === 'hr' && (value < 50 || value > 120)) abnormal = true;
+            if (type === 'spo2' && value < 92) abnormal = true;
+            if (type === 'rr' && (value < 12 || value > 20)) abnormal = true;
+            if (type === 'temp' && (value < 36 || value > 38)) abnormal = true;
+
+            if (abnormal) {
+                box.classList.add('abnormal');
+                document.getElementById('recoveryStatus').className = 'recovery-status monitoring';
+                document.getElementById('recoveryStatus').textContent = 'Monitoring';
+            } else {
+                box.classList.remove('abnormal');
+            }
+        }
+
+        function selectPain(score) {
+            document.querySelectorAll('.pain-number').forEach(n => n.classList.remove('selected'));
+            event.target.classList.add('selected');
+            selectedPain = score;
+        }
+
+        function calculateAldrete() {
+            const activity = parseInt(document.querySelector('input[name="activity"]:checked')?.value || 0);
+            const respiration = parseInt(document.querySelector('input[name="respiration"]:checked')?.value || 0);
+            const circulation = parseInt(document.querySelector('input[name="circulation"]:checked')?.value || 0);
+            const consciousness = parseInt(document.querySelector('input[name="consciousness"]:checked')?.value || 0);
+            const oxygen = parseInt(document.querySelector('input[name="oxygen"]:checked')?.value || 0);
+
+            aldreteScore = activity + respiration + circulation + consciousness + oxygen;
+
+            document.getElementById('aldreteTotal').textContent = aldreteScore;
+            const status = document.getElementById('aldreteStatus');
+            const checkbox = document.getElementById('aldrete9');
+
+            if (aldreteScore >= 9) {
+                status.className = 'aldrete-status ready';
+                status.textContent = '✅ Ready for Discharge';
+                checkbox.disabled = false;
+                checkbox.checked = true;
+            } else {
+                status.className = 'aldrete-status not-ready';
+                status.textContent = 'Score ≥9 required for discharge';
+                checkbox.disabled = true;
+                checkbox.checked = false;
+            }
+        }
+
+        function recordEvent(eventType) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
+            document.getElementById(eventType + 'Time').textContent = timeString;
+        }
+
+        async function savePACUDischarge() {
+            if (aldreteScore < 9) {
+                alert('Aldrete score must be ≥9 for discharge. Current score: ' + aldreteScore);
+                return;
+            }
+
+            const saveData = {
+                org_id: '00000000-0000-0000-0000-000000000001',
+                patient_id: parseInt(patientId),
+                encounter_id: parseInt(encounterId),
+                pacu_arrival: pacuArrival.toISOString(),
+                aldrete_score: aldreteScore,
+                pain_score: selectedPain,
+                vital_signs: {
+                    hr: document.getElementById('hrInput').value,
+                    bp: document.getElementById('bpInput').value,
+                    rr: document.getElementById('rrInput').value,
+                    spo2: document.getElementById('spo2Input').value,
+                    temp: document.getElementById('tempInput').value
+                },
+                nursing_notes: document.getElementById('nursingNotes').value,
+                discharge_time: document.getElementById('dischargeTime').value,
+                discharged_to: document.getElementById('dischargedTo').value,
+                nurse_name: document.getElementById('nurseName').value,
+                created_at: new Date().toISOString()
+            };
+
+            const { error } = await supabase
+                .from('post_op_visit')
+                .insert(saveData);
+
+            if (error) {
+                alert('Error: ' + error.message);
+            } else {
+                alert('✅ PACU discharge completed!');
+                window.location.href = '/dashboard.html?encounter_id=' + encounterId + '&patient_id=' + patientId + '&token=' + token;
+            }
+        }
+    </script>
+</body>
+</html>
