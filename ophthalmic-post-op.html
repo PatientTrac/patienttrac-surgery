@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ophthalmic Post-Op | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --panel-bg: #0f1e35;
+            --panel-border: rgba(20, 184, 166, 0.25);
+            --teal: #14b8a6;
+            --teal-glow: rgba(20, 184, 166, 0.4);
+            --teal-soft: rgba(20, 184, 166, 0.12);
+            --green: #10b981;
+            --gold: #c9a96e;
+            --cyan: #00d4ff;
+            --amber: #f59e0b;
+            --red-alert: #ef4444;
+            --text-primary: #e6ecf5;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --input-bg: rgba(15, 30, 53, 0.6);
+            --input-border: rgba(148, 163, 184, 0.2);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--darker-bg);
+            background-image:
+                radial-gradient(ellipse at top left, rgba(20, 184, 166, 0.08), transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(16, 185, 129, 0.06), transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* PATIENT BANNER */
+        .patient-banner {
+            position: sticky; top: 0; z-index: 100;
+            background: linear-gradient(180deg, var(--darker-bg) 0%, rgba(10, 22, 40, 0.96) 100%);
+            border-bottom: 1px solid var(--panel-border);
+            backdrop-filter: blur(12px);
+            padding: 14px 24px;
+            display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+        }
+        .banner-brand { display: flex; align-items: center; gap: 10px; padding-right: 20px; border-right: 1px solid var(--input-border); }
+        .brand-mark {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            border-radius: 6px;
+            display: grid; place-items: center;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 18px;
+            box-shadow: 0 0 16px var(--teal-glow);
+        }
+        .brand-text {
+            font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 14px;
+            letter-spacing: 1.5px; text-transform: uppercase;
+        }
+        .brand-text .accent { color: var(--teal); }
+        .patient-info { display: flex; gap: 28px; flex: 1; flex-wrap: wrap; }
+        .info-cell { display: flex; flex-direction: column; gap: 2px; }
+        .info-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+        .info-value { font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 16px; }
+        .info-value.teal { color: var(--teal); }
+        .module-badge {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 13px;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 6px 14px;
+            background: var(--teal-soft); border: 1px solid var(--teal); color: var(--teal);
+            border-radius: 4px;
+        }
+
+        /* LAYOUT */
+        .container { max-width: 1280px; margin: 0 auto; padding: 28px 24px 80px; }
+        .module-header { margin-bottom: 24px; }
+        .module-title {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 32px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .module-title .eye-dot {
+            width: 12px; height: 12px;
+            background: var(--teal); border-radius: 50%;
+            box-shadow: 0 0 12px var(--teal-glow);
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.15); }
+        }
+        .module-subtitle {
+            font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-dim);
+            letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex; gap: 2px; margin-bottom: 24px;
+            border-bottom: 1px solid var(--input-border); overflow-x: auto;
+        }
+        .tab-btn {
+            background: transparent; border: none;
+            color: var(--text-secondary);
+            font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 14px;
+            letter-spacing: 1px; text-transform: uppercase;
+            padding: 14px 20px; cursor: pointer; white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .tab-btn:hover { color: var(--text-primary); background: rgba(20, 184, 166, 0.04); }
+        .tab-btn.active {
+            color: var(--teal); border-bottom-color: var(--teal); background: var(--teal-soft);
+        }
+        .tab-btn .num { font-family: 'DM Mono', monospace; font-size: 11px; opacity: 0.6; }
+        .tab-panel { display: none; animation: fadeIn 0.25s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PANELS */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 24px; margin-bottom: 20px;
+        }
+        .panel-title {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 18px;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 18px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--input-border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .panel-title .icon { margin-right: 8px; }
+
+        /* FORM ELEMENTS */
+        .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px 20px; }
+        .field-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .field-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .field-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+        @media (max-width: 768px) {
+            .field-grid.cols-2, .field-grid.cols-3, .field-grid.cols-4 { grid-template-columns: 1fr; }
+        }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field.span-2 { grid-column: span 2; }
+        .field.span-full { grid-column: 1 / -1; }
+        .field-label {
+            font-family: 'DM Mono', monospace; font-size: 11px;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--text-secondary);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .field-label .req { color: var(--teal); }
+        .field-label .hint { color: var(--text-dim); text-transform: none; letter-spacing: 0; font-size: 10px; }
+        .field-input, .field-select, .field-textarea {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px; color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif; font-size: 14px;
+            padding: 10px 12px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .field-input:focus, .field-select:focus, .field-textarea:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+        }
+        .field-textarea { resize: vertical; min-height: 80px; }
+        .field-select option { background: var(--panel-bg); color: var(--text-primary); }
+
+        /* RADIO/CHECKBOX */
+        .choice-group { display: flex; flex-wrap: wrap; gap: 8px; }
+        .choice-pill {
+            position: relative;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            font-size: 13px; color: var(--text-secondary); cursor: pointer;
+            transition: all 0.15s;
+        }
+        .choice-pill input { position: absolute; opacity: 0; pointer-events: none; }
+        .choice-pill:hover { border-color: var(--teal); color: var(--text-primary); }
+        .choice-pill:has(input:checked) {
+            background: var(--teal-soft); border-color: var(--teal); color: var(--teal);
+        }
+
+        /* EYE SELECTOR (special) */
+        .eye-selector {
+            display: flex; gap: 12px; align-items: center; padding: 14px 18px;
+            background: var(--input-bg); border: 1px solid var(--input-border);
+            border-radius: 6px; margin-bottom: 16px;
+        }
+        .eye-selector-label { font-family: 'DM Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+        .eye-pill {
+            position: relative;
+            padding: 10px 22px; border-radius: 4px;
+            border: 1px solid var(--input-border); background: var(--panel-bg);
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; letter-spacing: 1px; font-size: 14px;
+            color: var(--text-secondary); cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.15s;
+        }
+        .eye-pill input { position: absolute; opacity: 0; }
+        .eye-pill:has(input:checked) {
+            background: var(--teal); color: var(--darker-bg); border-color: var(--teal);
+            box-shadow: 0 0 12px var(--teal-glow);
+        }
+
+        /* ALERTS */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            border-left: 3px solid;
+            font-size: 13px;
+            margin: 12px 0;
+            display: flex; gap: 10px; align-items: flex-start;
+        }
+        .alert.info { background: rgba(0, 212, 255, 0.08); border-color: var(--cyan); color: var(--cyan); }
+        .alert.warn { background: rgba(245, 158, 11, 0.08); border-color: var(--amber); color: var(--amber); }
+        .alert.danger { background: rgba(239, 68, 68, 0.1); border-color: var(--red-alert); color: var(--red-alert); }
+        .alert.ok { background: rgba(16, 185, 129, 0.08); border-color: var(--green); color: var(--green); }
+        .alert .alert-icon { font-size: 16px; flex-shrink: 0; }
+
+        /* METRIC */
+        .metric-card {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 14px 16px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .metric-card.highlight { background: var(--teal-soft); border-color: var(--teal); }
+        .metric-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+        .metric-value { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 24px; }
+        .metric-card.highlight .metric-value { color: var(--teal); }
+        .metric-unit { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+
+        /* VA TREND TABLE */
+        .va-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .va-table th {
+            text-align: left; padding: 10px 12px;
+            font-family: 'DM Mono', monospace; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim);
+            border-bottom: 1px solid var(--input-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .va-table td { padding: 8px 12px; border-bottom: 1px solid var(--input-border); }
+        .va-table input, .va-table select {
+            background: transparent; border: 1px solid transparent;
+            color: var(--text-primary);
+            font-family: 'DM Mono', monospace; font-size: 13px;
+            padding: 4px 8px; border-radius: 3px; width: 100%;
+        }
+        .va-table input:hover, .va-table select:hover { border-color: var(--input-border); }
+        .va-table input:focus, .va-table select:focus { outline: none; border-color: var(--teal); background: var(--input-bg); }
+        .va-table select option { background: var(--panel-bg); }
+
+        .add-row-btn {
+            background: transparent; border: 1px dashed var(--input-border);
+            color: var(--text-secondary);
+            font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 12px;
+            letter-spacing: 1px; text-transform: uppercase;
+            padding: 8px 14px; border-radius: 4px;
+            cursor: pointer; margin-top: 10px;
+            transition: all 0.15s;
+        }
+        .add-row-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+        /* BUTTONS */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--teal), #0d9488);
+            border: none; color: white;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 14px;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 14px 32px; border-radius: 4px; cursor: pointer;
+            box-shadow: 0 4px 12px var(--teal-glow);
+            transition: transform 0.1s, box-shadow 0.15s;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px var(--teal-glow); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--input-border);
+            color: var(--text-secondary);
+            font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 13px;
+            letter-spacing: 1px; text-transform: uppercase;
+            padding: 10px 20px; border-radius: 4px; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+
+        /* SAVE BAR */
+        .save-bar {
+            position: sticky; bottom: 0;
+            background: linear-gradient(0deg, var(--darker-bg) 60%, rgba(6, 14, 28, 0));
+            padding: 20px 0 12px; margin-top: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 16px; flex-wrap: wrap;
+        }
+        .save-status {
+            font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 1.5px;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px 16px 80px; }
+            .patient-banner { padding: 12px 16px; gap: 14px; }
+            .module-title { font-size: 24px; }
+            .panel { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- PATIENT BANNER -->
+<div class="patient-banner">
+    <div class="banner-brand">
+        <div class="brand-mark">P</div>
+        <div class="brand-text">PatientTrac<span class="accent">Surg</span></div>
+    </div>
+    <div class="patient-info">
+        <div class="info-cell">
+            <span class="info-label">Patient</span>
+            <span class="info-value" id="banner-patient-name">—</span>
+        </div>
+        <div class="info-cell">
+            <span class="info-label">MRN</span>
+            <span class="info-value" id="banner-mrn">—</span>
+        </div>
+        <div class="info-cell">
+            <span class="info-label">DOB / Age</span>
+            <span class="info-value" id="banner-dob">—</span>
+        </div>
+        <div class="info-cell">
+            <span class="info-label">Procedure</span>
+            <span class="info-value teal" id="banner-procedure">Cataract / IOL</span>
+        </div>
+        <div class="info-cell">
+            <span class="info-label">Procedure ID</span>
+            <span class="info-value" id="banner-procedure-id">—</span>
+        </div>
+    </div>
+    <div class="module-badge">Post-Op Visit</div>
+</div>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="module-header">
+        <h1 class="module-title">
+            <span class="eye-dot"></span>
+            Ophthalmic Post-Op Documentation
+        </h1>
+        <div class="module-subtitle">VA · Refraction · Slit Lamp · Complications · Follow-up</div>
+    </div>
+
+    <!-- EYE SELECTOR (always visible — applies to all tabs) -->
+    <div class="eye-selector">
+        <span class="eye-selector-label">Operative Eye:</span>
+        <label class="eye-pill"><input type="radio" name="eye" value="OD" checked> OD (Right)</label>
+        <label class="eye-pill"><input type="radio" name="eye" value="OS"> OS (Left)</label>
+        <label class="eye-pill"><input type="radio" name="eye" value="OU"> OU (Both)</label>
+        <span style="margin-left: auto; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px;">
+            Visit:
+        </span>
+        <select id="visit_type" class="field-select" style="width: auto; padding: 8px 12px;">
+            <option value="day_1">Day 1</option>
+            <option value="week_1">Week 1</option>
+            <option value="month_1">Month 1</option>
+            <option value="month_3">Month 3</option>
+            <option value="month_6">Month 6</option>
+            <option value="annual">Annual</option>
+            <option value="problem">Problem visit</option>
+        </select>
+    </div>
+
+    <!-- TABS -->
+    <nav class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="va"><span class="num">01</span>Visual Acuity</button>
+        <button class="tab-btn" data-tab="refraction"><span class="num">02</span>Refractive Outcome</button>
+        <button class="tab-btn" data-tab="exam"><span class="num">03</span>Slit Lamp Exam</button>
+        <button class="tab-btn" data-tab="complications"><span class="num">04</span>Complications</button>
+        <button class="tab-btn" data-tab="followup"><span class="num">05</span>Follow-up &amp; Drops</button>
+    </nav>
+
+    <!-- ===== TAB 1: VISUAL ACUITY ===== -->
+    <section class="tab-panel active" id="tab-va" role="tabpanel">
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">👁️</span>Today's Visual Acuity</span></div>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">UCVA <span class="hint">uncorrected</span></label>
+                    <select class="field-select" id="va_uncorrected" onchange="calcLogMAR()">
+                        <option value="">Select…</option>
+                        <option value="20/15">20/15</option>
+                        <option value="20/20">20/20</option>
+                        <option value="20/25">20/25</option>
+                        <option value="20/30">20/30</option>
+                        <option value="20/40">20/40</option>
+                        <option value="20/50">20/50</option>
+                        <option value="20/60">20/60</option>
+                        <option value="20/70">20/70</option>
+                        <option value="20/80">20/80</option>
+                        <option value="20/100">20/100</option>
+                        <option value="20/200">20/200</option>
+                        <option value="20/400">20/400</option>
+                        <option value="CF">Count Fingers (CF)</option>
+                        <option value="HM">Hand Motion (HM)</option>
+                        <option value="LP">Light Perception (LP)</option>
+                        <option value="NLP">No Light Perception (NLP)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">BCVA <span class="hint">best corrected</span></label>
+                    <select class="field-select" id="va_corrected" onchange="calcLogMAR()">
+                        <option value="">Select…</option>
+                        <option value="20/15">20/15</option>
+                        <option value="20/20">20/20</option>
+                        <option value="20/25">20/25</option>
+                        <option value="20/30">20/30</option>
+                        <option value="20/40">20/40</option>
+                        <option value="20/50">20/50</option>
+                        <option value="20/60">20/60</option>
+                        <option value="20/70">20/70</option>
+                        <option value="20/80">20/80</option>
+                        <option value="20/100">20/100</option>
+                        <option value="20/200">20/200</option>
+                        <option value="20/400">20/400</option>
+                        <option value="CF">CF</option>
+                        <option value="HM">HM</option>
+                        <option value="LP">LP</option>
+                        <option value="NLP">NLP</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">IOP <span class="hint">mmHg</span></label>
+                    <input type="number" class="field-input" id="iop" min="0" max="80" placeholder="e.g. 14">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px;">
+                <div class="metric-card" id="ucva_logmar_card">
+                    <span class="metric-label">UCVA LogMAR</span>
+                    <span class="metric-value" id="ucva_logmar">—</span>
+                </div>
+                <div class="metric-card" id="bcva_logmar_card">
+                    <span class="metric-label">BCVA LogMAR</span>
+                    <span class="metric-value" id="bcva_logmar">—</span>
+                </div>
+                <div class="metric-card highlight" id="va_outcome_card">
+                    <span class="metric-label">Outcome</span>
+                    <span class="metric-value" id="va_outcome">—</span>
+                </div>
+            </div>
+            <div class="alert info" id="va_alert" style="display:none;">
+                <span class="alert-icon">ℹ️</span>
+                <span id="va_alert_text"></span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">📈</span>VA Trend Across Visits</span></div>
+            <div class="alert info">
+                <span class="alert-icon">ℹ️</span>
+                <span>Optional — track all post-op visits in chronological order. Auto-saves with the form.</span>
+            </div>
+            <table class="va-table" id="va-trend-table">
+                <thead>
+                    <tr>
+                        <th>Visit</th>
+                        <th>Date</th>
+                        <th>UCVA</th>
+                        <th>BCVA</th>
+                        <th>IOP</th>
+                        <th>Notes</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="va-trend-tbody"></tbody>
+            </table>
+            <button type="button" class="add-row-btn" onclick="addTrendRow()">+ Add Visit</button>
+        </div>
+    </section>
+
+    <!-- ===== TAB 2: REFRACTIVE OUTCOME ===== -->
+    <section class="tab-panel" id="tab-refraction" role="tabpanel">
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🎯</span>Pre-Op Target Refraction</span></div>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">Target Sphere <span class="hint">D</span></label>
+                    <input type="number" step="0.25" class="field-input" id="target_sphere" placeholder="e.g. -0.50" oninput="calcRefractiveSurprise()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Target Cylinder <span class="hint">D</span></label>
+                    <input type="number" step="0.25" class="field-input" id="target_cylinder" placeholder="e.g. -0.75" oninput="calcRefractiveSurprise()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Target Spherical Equivalent <span class="hint">auto</span></label>
+                    <input type="text" class="field-input" id="target_se" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">📐</span>Today's Manifest Refraction</span></div>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">Sphere</label>
+                    <input type="number" step="0.25" class="field-input" id="actual_sphere" placeholder="e.g. -0.25" oninput="calcRefractiveSurprise()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Cylinder</label>
+                    <input type="number" step="0.25" class="field-input" id="actual_cylinder" placeholder="e.g. -0.50" oninput="calcRefractiveSurprise()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Axis</label>
+                    <input type="number" min="0" max="180" class="field-input" id="actual_axis" placeholder="e.g. 90">
+                </div>
+                <div class="field">
+                    <label class="field-label">Manifest Refraction <span class="hint">summary</span></label>
+                    <input type="text" class="field-input" id="manifest_refraction" placeholder="-0.25 -0.50 x 90">
+                </div>
+                <div class="field">
+                    <label class="field-label">Spherical Equivalent <span class="hint">auto</span></label>
+                    <input type="text" class="field-input" id="actual_se" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">⚖️</span>Refractive Surprise Analysis</span></div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                <div class="metric-card" id="surprise_card">
+                    <span class="metric-label">Refractive Difference</span>
+                    <span class="metric-value" id="surprise_value">—</span>
+                </div>
+                <div class="metric-card" id="surprise_status_card">
+                    <span class="metric-label">Status</span>
+                    <span class="metric-value" id="surprise_status">—</span>
+                </div>
+            </div>
+            <div class="alert info" id="surprise_alert" style="display:none;">
+                <span class="alert-icon">💡</span>
+                <span id="surprise_alert_text"></span>
+            </div>
+            <div class="field" style="margin-top: 16px;">
+                <label class="field-label">If Surprise &gt; 0.5D — Suspected Cause</label>
+                <select class="field-select" id="surprise_cause">
+                    <option value="">Not applicable</option>
+                    <option value="biometry">Inaccurate biometry / axial length</option>
+                    <option value="iol_calc">IOL calculation formula error</option>
+                    <option value="capsule_rupture">Posterior capsule rupture / position shift</option>
+                    <option value="effective_lens_position">Unexpected effective lens position</option>
+                    <option value="post_keratoconus">Unrecognized keratoconus / irregular astigmatism</option>
+                    <option value="post_lasik">Post-LASIK calculation error</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="field" style="margin-top: 12px;">
+                <label class="field-label">Treatment Plan</label>
+                <select class="field-select" id="surprise_treatment">
+                    <option value="">None — within target</option>
+                    <option value="observation">Observation</option>
+                    <option value="glasses">Glasses correction</option>
+                    <option value="lasik_touchup">LASIK touch-up</option>
+                    <option value="prk_touchup">PRK touch-up</option>
+                    <option value="piggyback_iol">Piggyback IOL</option>
+                    <option value="iol_exchange">IOL exchange</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">👓</span>Glasses Prescription</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Glasses Needed?</label>
+                    <select class="field-select" id="glasses_needed">
+                        <option value="false">Not currently</option>
+                        <option value="true">Yes — Rx provided</option>
+                        <option value="future">Plan to prescribe at future visit</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Reading Add</label>
+                    <input type="number" step="0.25" min="0" class="field-input" id="reading_add" placeholder="e.g. +2.50">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TAB 3: SLIT LAMP EXAM ===== -->
+    <section class="tab-panel" id="tab-exam" role="tabpanel">
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🔬</span>Anterior Segment</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Cornea Status</label>
+                    <select class="field-select" id="cornea_status">
+                        <option value="clear">Clear</option>
+                        <option value="trace_edema">Trace edema</option>
+                        <option value="mild_edema">Mild edema</option>
+                        <option value="moderate_edema">Moderate edema</option>
+                        <option value="severe_edema">Severe edema (consult)</option>
+                        <option value="striae">Descemet's striae</option>
+                        <option value="pigment">Pigment on endothelium</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Anterior Chamber</label>
+                    <select class="field-select" id="ac_status">
+                        <option value="deep_quiet">Deep & quiet</option>
+                        <option value="rare_cell">Rare cell (trace)</option>
+                        <option value="1plus_cell">1+ cell</option>
+                        <option value="2plus_cell">2+ cell</option>
+                        <option value="3plus_cell">3+ cell (concerning)</option>
+                        <option value="hyphema">Hyphema</option>
+                        <option value="hypopyon">Hypopyon (ENDOPHTHALMITIS — urgent)</option>
+                        <option value="shallow">Shallow</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Wound Status</label>
+                    <select class="field-select" id="wound_status">
+                        <option value="sealed">Sealed</option>
+                        <option value="seidel_negative">Seidel negative</option>
+                        <option value="seidel_positive">Seidel positive (leak)</option>
+                        <option value="sutured">Sutured</option>
+                        <option value="dehisced">Wound dehiscence</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Conjunctiva</label>
+                    <select class="field-select" id="conjunctiva">
+                        <option value="white_quiet">White & quiet</option>
+                        <option value="trace_injection">Trace injection</option>
+                        <option value="mild_injection">Mild injection</option>
+                        <option value="moderate_injection">Moderate injection</option>
+                        <option value="chemosis">Chemosis</option>
+                        <option value="subconj_heme">Subconjunctival hemorrhage</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">💎</span>IOL Position &amp; Capsule</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">IOL Position <span class="req">*</span></label>
+                    <select class="field-select" id="iol_position">
+                        <option value="centered">Well centered, in bag</option>
+                        <option value="mild_decentered">Mildly decentered (&lt;0.5mm)</option>
+                        <option value="moderate_decentered">Moderately decentered (0.5–1mm)</option>
+                        <option value="severe_decentered">Severely decentered (&gt;1mm)</option>
+                        <option value="dislocated">Dislocated</option>
+                        <option value="sulcus">In sulcus</option>
+                        <option value="capsule_rupture">Capsule rupture, sulcus placement</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">IOL Tilt</label>
+                    <select class="field-select" id="iol_tilt">
+                        <option value="none">None — flat</option>
+                        <option value="mild">Mild</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="severe">Severe (consider repositioning)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Posterior Capsule Status</label>
+                    <select class="field-select" id="pc_status" onchange="updateYagPlan()">
+                        <option value="clear">Clear</option>
+                        <option value="trace_pco">Trace PCO</option>
+                        <option value="mild_pco">Mild PCO</option>
+                        <option value="moderate_pco">Moderate PCO (visually significant)</option>
+                        <option value="severe_pco">Severe PCO (YAG indicated)</option>
+                        <option value="open">Open / YAG already done</option>
+                        <option value="ruptured">Ruptured (intra-op)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">YAG Capsulotomy Plan</label>
+                    <select class="field-select" id="yag_plan">
+                        <option value="not_indicated">Not indicated</option>
+                        <option value="schedule">Schedule YAG</option>
+                        <option value="done_today">Performed today</option>
+                        <option value="prior">Done at prior visit</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="alert info" id="yag_advisory" style="display:none;">
+                <span class="alert-icon">💡</span>
+                <span id="yag_advisory_text"></span>
+            </div>
+
+            <div id="yag_details" style="display:none; margin-top: 16px;">
+                <div class="field-grid cols-3">
+                    <div class="field">
+                        <label class="field-label">YAG Energy <span class="hint">mJ</span></label>
+                        <input type="number" step="0.1" class="field-input" id="yag_energy" placeholder="e.g. 1.2">
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Total Pulses</label>
+                        <input type="number" class="field-input" id="yag_pulses" placeholder="e.g. 25">
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Total Energy <span class="hint">mJ</span></label>
+                        <input type="number" step="0.1" class="field-input" id="yag_total" placeholder="e.g. 30">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🔍</span>Posterior Segment</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Vitreous</label>
+                    <select class="field-select" id="vitreous">
+                        <option value="clear">Clear</option>
+                        <option value="syneresis">Syneresis</option>
+                        <option value="pvd">Posterior vitreous detachment</option>
+                        <option value="vitreous_heme">Vitreous hemorrhage</option>
+                        <option value="vitreous_to_wound">Vitreous to wound</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Macula</label>
+                    <select class="field-select" id="macula">
+                        <option value="flat">Flat &amp; intact</option>
+                        <option value="cme">Cystoid Macular Edema</option>
+                        <option value="erm">Epiretinal membrane</option>
+                        <option value="hole">Macular hole</option>
+                        <option value="amd_dry">AMD — dry</option>
+                        <option value="amd_wet">AMD — wet</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Optic Nerve</label>
+                    <input type="text" class="field-input" id="optic_nerve" placeholder="e.g. C/D 0.4, sharp">
+                </div>
+                <div class="field">
+                    <label class="field-label">Periphery</label>
+                    <input type="text" class="field-input" id="periphery" placeholder="e.g. attached, no holes/tears">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">📊</span>OCT Findings <span style="font-size: 13px; color: var(--text-dim); font-family: 'DM Mono', monospace; text-transform: none; letter-spacing: 0;">if performed</span></span></div>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">Central Foveal Thickness <span class="hint">μm</span></label>
+                    <input type="number" class="field-input" id="cft" min="100" max="1000" placeholder="e.g. 250">
+                </div>
+                <div class="field">
+                    <label class="field-label">Macular Volume <span class="hint">mm³</span></label>
+                    <input type="number" step="0.01" class="field-input" id="macular_volume" placeholder="e.g. 8.50">
+                </div>
+                <div class="field">
+                    <label class="field-label">OCT Quality</label>
+                    <select class="field-select" id="oct_quality">
+                        <option value="">Not performed</option>
+                        <option value="good">Good</option>
+                        <option value="fair">Fair</option>
+                        <option value="poor">Poor — repeat</option>
+                    </select>
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">OCT Findings / Notes</label>
+                    <textarea class="field-textarea" id="oct_notes" placeholder="Subretinal fluid, intraretinal fluid, drusen, etc."></textarea>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TAB 4: COMPLICATIONS ===== -->
+    <section class="tab-panel" id="tab-complications" role="tabpanel">
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">⚠️</span>Active Complications</span></div>
+            <div class="alert info">
+                <span class="alert-icon">ℹ️</span>
+                <span>Check all that apply. Endophthalmitis (hypopyon) is a true emergency — treat immediately.</span>
+            </div>
+            <div class="field-grid cols-2">
+                <label class="choice-pill"><input type="checkbox" id="comp_endophthalmitis"><span>🚨 Endophthalmitis (urgent)</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_cme"><span>Cystoid Macular Edema (CME)</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_pco"><span>Posterior Capsule Opacification</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_elevated_iop"><span>Elevated IOP</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_corneal_edema"><span>Corneal Edema</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_wound_leak"><span>Wound Leak</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_iol_dislocation"><span>IOL Dislocation</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_retinal_detachment"><span>Retinal Detachment</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_hyphema"><span>Hyphema</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_uveitis"><span>Uveitis / Iritis</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_dry_eye"><span>Dry Eye Syndrome</span></label>
+                <label class="choice-pill"><input type="checkbox" id="comp_dysphotopsia"><span>Dysphotopsia</span></label>
+            </div>
+            <div class="field" style="margin-top: 16px;">
+                <label class="field-label">Complications Detail</label>
+                <textarea class="field-textarea" id="complications_detail" rows="3" placeholder="Describe findings, severity, treatment plan…"></textarea>
+            </div>
+        </div>
+
+        <div class="panel" id="cme_panel" style="display:none;">
+            <div class="panel-title"><span><span class="icon">💧</span>CME Management</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">CME Severity</label>
+                    <select class="field-select" id="cme_severity">
+                        <option value="mild">Mild — observation</option>
+                        <option value="moderate">Moderate — topical NSAID + steroid</option>
+                        <option value="severe">Severe — intravitreal injection</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">CME Treatment</label>
+                    <select class="field-select" id="cme_treatment">
+                        <option value="">Select…</option>
+                        <option value="ketorolac">Ketorolac 0.5% QID</option>
+                        <option value="bromfenac">Bromfenac BID</option>
+                        <option value="prednisolone">Prednisolone acetate 1% QID</option>
+                        <option value="combo_topical">Combo topical (NSAID + steroid)</option>
+                        <option value="intravitreal_steroid">Intravitreal triamcinolone</option>
+                        <option value="anti_vegf">Anti-VEGF injection</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="iop_panel" style="display:none;">
+            <div class="panel-title"><span><span class="icon">📈</span>Elevated IOP Management</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Treatment</label>
+                    <select class="field-select" id="iop_treatment">
+                        <option value="">Select…</option>
+                        <option value="timolol">Timolol 0.5% BID</option>
+                        <option value="dorzolamide">Dorzolamide TID</option>
+                        <option value="brimonidine">Brimonidine TID</option>
+                        <option value="latanoprost">Latanoprost qHS</option>
+                        <option value="combo">Combination drops</option>
+                        <option value="oral_carbonic">Oral acetazolamide</option>
+                        <option value="surgical">Surgical intervention</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Recheck Interval</label>
+                    <select class="field-select" id="iop_recheck">
+                        <option value="2_days">2 days</option>
+                        <option value="1_week">1 week</option>
+                        <option value="2_weeks">2 weeks</option>
+                        <option value="1_month">1 month</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🔄</span>Enhancement / Revision Needed?</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Enhancement Required</label>
+                    <select class="field-select" id="enhancement_required" onchange="toggleEnhancement()">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Enhancement Type</label>
+                    <select class="field-select" id="enhancement_type">
+                        <option value="">Not applicable</option>
+                        <option value="lasik">LASIK touch-up</option>
+                        <option value="prk">PRK touch-up</option>
+                        <option value="piggyback_iol">Piggyback IOL</option>
+                        <option value="iol_exchange">IOL exchange</option>
+                        <option value="iol_reposition">IOL repositioning</option>
+                        <option value="yag">YAG capsulotomy</option>
+                        <option value="suture_removal">Suture removal</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TAB 5: FOLLOW-UP & DROPS ===== -->
+    <section class="tab-panel" id="tab-followup" role="tabpanel">
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">💊</span>Eye Drop Regimen</span></div>
+            <div class="alert info">
+                <span class="alert-icon">ℹ️</span>
+                <span>Standard taper: Pred Forte QID × 1wk → TID × 1wk → BID × 1wk → QD × 1wk → off. NSAID continues 4 weeks.</span>
+            </div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Steroid Drop</label>
+                    <select class="field-select" id="steroid_drop">
+                        <option value="">Not prescribed</option>
+                        <option value="pred_forte">Pred Forte 1%</option>
+                        <option value="durezol">Durezol 0.05%</option>
+                        <option value="lotemax">Lotemax 0.5%</option>
+                        <option value="dexamethasone">Dexamethasone 0.1%</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Steroid Frequency</label>
+                    <select class="field-select" id="steroid_freq">
+                        <option value="qid">QID (4×/day)</option>
+                        <option value="tid">TID (3×/day)</option>
+                        <option value="bid">BID (2×/day)</option>
+                        <option value="qd">QD (1×/day)</option>
+                        <option value="off">Discontinued</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Antibiotic</label>
+                    <select class="field-select" id="abx_drop">
+                        <option value="">Not prescribed</option>
+                        <option value="ofloxacin">Ofloxacin 0.3%</option>
+                        <option value="moxifloxacin">Moxifloxacin 0.5%</option>
+                        <option value="besivance">Besivance</option>
+                        <option value="vigamox">Vigamox</option>
+                        <option value="off">Completed (1 week course)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">NSAID</label>
+                    <select class="field-select" id="nsaid_drop">
+                        <option value="">Not prescribed</option>
+                        <option value="ketorolac">Ketorolac 0.5% QID</option>
+                        <option value="bromfenac">Bromfenac BID</option>
+                        <option value="nepafenac">Nepafenac TID</option>
+                        <option value="off">Completed (4 week course)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Dry Eye / Lubricant</label>
+                    <input type="text" class="field-input" id="lubricant" placeholder="e.g. Refresh PF QID PRN">
+                </div>
+                <div class="field">
+                    <label class="field-label">IOP-Lowering Drop <span class="hint">if needed</span></label>
+                    <input type="text" class="field-input" id="iop_drop" placeholder="e.g. Timolol BID">
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">Compliance Rating</label>
+                    <select class="field-select" id="compliance">
+                        <option value="excellent">Excellent — never misses</option>
+                        <option value="good">Good — occasional miss</option>
+                        <option value="fair">Fair — frequently misses</option>
+                        <option value="poor">Poor — counseled extensively</option>
+                        <option value="not_assessed">Not assessed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">📅</span>Follow-up Schedule</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Next Visit Date</label>
+                    <input type="date" class="field-input" id="next_visit_date">
+                </div>
+                <div class="field">
+                    <label class="field-label">Follow-up Interval</label>
+                    <select class="field-select" id="followup_interval" onchange="autoNextVisit()">
+                        <option value="">Select…</option>
+                        <option value="1">1 week</option>
+                        <option value="2">2 weeks</option>
+                        <option value="4">1 month</option>
+                        <option value="8">2 months</option>
+                        <option value="12">3 months</option>
+                        <option value="26">6 months</option>
+                        <option value="52">1 year</option>
+                        <option value="prn">PRN</option>
+                    </select>
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">Patient Counseling Provided</label>
+                    <div class="choice-group">
+                        <label class="choice-pill"><input type="checkbox" name="counsel" value="warning_signs"><span>Warning signs (pain, vision loss, redness)</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="counsel" value="drop_compliance"><span>Drop compliance critical</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="counsel" value="activity_restrictions"><span>Activity restrictions</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="counsel" value="eye_protection"><span>Eye protection (shield, sunglasses)</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="counsel" value="when_to_call"><span>When to call clinic</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="counsel" value="glasses_timing"><span>Glasses Rx timing</span></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">😊</span>Patient Satisfaction</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Satisfaction Score (1–10)</label>
+                    <input type="number" min="1" max="10" class="field-input" id="satisfaction_score">
+                </div>
+                <div class="field">
+                    <label class="field-label">Subjective Vision Quality</label>
+                    <select class="field-select" id="vision_quality">
+                        <option value="excellent">Excellent</option>
+                        <option value="good">Good</option>
+                        <option value="fair">Fair</option>
+                        <option value="poor">Poor</option>
+                    </select>
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">Patient Comments</label>
+                    <textarea class="field-textarea" id="satisfaction_notes" placeholder="Subjective complaints, halos, glare, dysphotopsia, etc."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">📝</span>Assessment &amp; Plan</span></div>
+            <div class="field-grid cols-2">
+                <div class="field span-full">
+                    <label class="field-label">Assessment</label>
+                    <textarea class="field-textarea" id="assessment" rows="3" placeholder="Clinical impression…"></textarea>
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">Plan</label>
+                    <textarea class="field-textarea" id="plan" rows="3" placeholder="Treatment / next steps…"></textarea>
+                </div>
+                <div class="field">
+                    <label class="field-label">Provider Name</label>
+                    <input type="text" class="field-input" id="provider_name" placeholder="Provider name">
+                </div>
+                <div class="field">
+                    <label class="field-label">Visit Date</label>
+                    <input type="date" class="field-input" id="visit_date">
+                </div>
+            </div>
+        </div>
+
+        <!-- SAVE BAR -->
+        <div class="save-bar">
+            <span class="save-status" id="save-status">Last saved: never</span>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" class="btn-secondary" onclick="window.history.back()">Cancel</button>
+                <button type="button" class="btn-primary" id="save-btn" onclick="saveRecord()">Save Post-Op Visit</button>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ====== SCRIPT ====== -->
+<script>
+    const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+    const SUPABASE_ANON_KEY = window.__PT_ANON_KEY || ''; // inject before deploy
+    const supabase = (SUPABASE_ANON_KEY && window.supabase)
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
+
+    let patientData = {
+        org_id: null,
+        patient_id: null,    // integer
+        encounter_id: null,  // integer
+        procedure_id: null,  // integer — FK to ophthalmic_procedure (required)
+        provider_id: null
+    };
+
+    function toIntOrNull(v) {
+        if (v === null || v === undefined || v === '') return null;
+        const n = parseInt(v, 10);
+        return isNaN(n) ? null : n;
+    }
+
+    // Snellen → LogMAR map
+    const SNELLEN_LOGMAR = {
+        '20/15': -0.12, '20/20': 0.00, '20/25': 0.10, '20/30': 0.18,
+        '20/40': 0.30,  '20/50': 0.40, '20/60': 0.48, '20/70': 0.54,
+        '20/80': 0.60,  '20/100': 0.70, '20/200': 1.00, '20/400': 1.30,
+        'CF': 1.85, 'HM': 2.30, 'LP': 2.70, 'NLP': 3.00
+    };
+
+    // ===== URL PARAMS =====
+    function loadFromUrl() {
+        const p = new URLSearchParams(window.location.search);
+        patientData.patient_id   = toIntOrNull(p.get('patient_id'));
+        patientData.procedure_id = toIntOrNull(p.get('procedure_id'));
+        patientData.encounter_id = toIntOrNull(p.get('encounter_id'));
+        patientData.provider_id  = toIntOrNull(p.get('provider_id'));
+        patientData.org_id       = p.get('org_id') || '00000000-0000-0000-0000-000000000001';
+
+        if (patientData.procedure_id != null) {
+            document.getElementById('banner-procedure-id').textContent = '#' + patientData.procedure_id;
+        }
+        if (patientData.patient_id != null) loadPatient();
+    }
+
+    async function loadPatient() {
+        if (!supabase || patientData.patient_id == null) return;
+        try {
+            const { data, error } = await supabase
+                .schema('cr')
+                .from('patient')
+                .select('first_name,last_name,patient_ext_ref,birth')
+                .eq('patient_id', patientData.patient_id)
+                .single();
+            if (error) throw error;
+            if (data) {
+                document.getElementById('banner-patient-name').textContent =
+                    `${data.first_name || ''} ${data.last_name || ''}`.trim() || '—';
+                document.getElementById('banner-mrn').textContent = data.patient_ext_ref || '—';
+                if (data.birth) {
+                    const dob = new Date(data.birth);
+                    const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 86400000));
+                    document.getElementById('banner-dob').textContent =
+                        `${dob.toLocaleDateString()} (${age} y)`;
+                }
+            }
+        } catch (e) { console.warn('Patient load failed:', e.message); }
+    }
+
+    // ===== TABS =====
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    // ===== LOGMAR + VA OUTCOME =====
+    function calcLogMAR() {
+        const ucva = document.getElementById('va_uncorrected').value;
+        const bcva = document.getElementById('va_corrected').value;
+        const ucvaLog = SNELLEN_LOGMAR[ucva];
+        const bcvaLog = SNELLEN_LOGMAR[bcva];
+
+        document.getElementById('ucva_logmar').textContent = (ucvaLog !== undefined) ? ucvaLog.toFixed(2) : '—';
+        document.getElementById('bcva_logmar').textContent = (bcvaLog !== undefined) ? bcvaLog.toFixed(2) : '—';
+
+        const outcomeEl = document.getElementById('va_outcome');
+        const outcomeCard = document.getElementById('va_outcome_card');
+        const alertEl = document.getElementById('va_alert');
+        const alertText = document.getElementById('va_alert_text');
+
+        if (bcvaLog === undefined && ucvaLog === undefined) {
+            outcomeEl.textContent = '—'; alertEl.style.display = 'none'; return;
+        }
+        const bestLog = bcvaLog !== undefined ? bcvaLog : ucvaLog;
+        if (bestLog <= 0) {
+            outcomeEl.textContent = '20/20+';
+            outcomeCard.classList.add('highlight');
+            alertEl.style.display = 'flex'; alertEl.className = 'alert ok';
+            alertText.textContent = 'Excellent visual outcome — at or better than 20/20.';
+        } else if (bestLog <= 0.30) {
+            outcomeEl.textContent = 'Good';
+            outcomeCard.classList.add('highlight');
+            alertEl.style.display = 'flex'; alertEl.className = 'alert ok';
+            alertText.textContent = 'Good visual outcome — 20/40 or better.';
+        } else if (bestLog <= 0.70) {
+            outcomeEl.textContent = 'Fair';
+            outcomeCard.classList.remove('highlight');
+            alertEl.style.display = 'flex'; alertEl.className = 'alert warn';
+            alertText.textContent = 'Suboptimal — workup for retinal pathology, dry eye, or refractive surprise.';
+        } else {
+            outcomeEl.textContent = 'Poor';
+            outcomeCard.classList.remove('highlight');
+            alertEl.style.display = 'flex'; alertEl.className = 'alert danger';
+            alertText.textContent = 'Significantly reduced acuity — comprehensive workup required.';
+        }
+    }
+
+    // ===== VA TREND TABLE =====
+    function addTrendRow(prefill = {}) {
+        const tbody = document.getElementById('va-trend-tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><select>
+                <option value="day_1">Day 1</option>
+                <option value="week_1">Week 1</option>
+                <option value="month_1">Month 1</option>
+                <option value="month_3">Month 3</option>
+                <option value="month_6">Month 6</option>
+                <option value="annual">Annual</option>
+            </select></td>
+            <td><input type="date"></td>
+            <td><input type="text" placeholder="20/30"></td>
+            <td><input type="text" placeholder="20/20"></td>
+            <td><input type="number" placeholder="14"></td>
+            <td><input type="text" placeholder="notes"></td>
+            <td><button type="button" class="add-row-btn" style="margin: 0; padding: 4px 8px;" onclick="this.closest('tr').remove()">×</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    // ===== REFRACTIVE SURPRISE =====
+    function calcRefractiveSurprise() {
+        const tSph = parseFloat(document.getElementById('target_sphere').value);
+        const tCyl = parseFloat(document.getElementById('target_cylinder').value);
+        const aSph = parseFloat(document.getElementById('actual_sphere').value);
+        const aCyl = parseFloat(document.getElementById('actual_cylinder').value);
+
+        const targetSE = (!isNaN(tSph) ? tSph : 0) + (!isNaN(tCyl) ? tCyl : 0) / 2;
+        const actualSE = (!isNaN(aSph) ? aSph : 0) + (!isNaN(aCyl) ? aCyl : 0) / 2;
+
+        if (!isNaN(tSph) || !isNaN(tCyl)) document.getElementById('target_se').value = targetSE.toFixed(2) + ' D';
+        if (!isNaN(aSph) || !isNaN(aCyl)) document.getElementById('actual_se').value = actualSE.toFixed(2) + ' D';
+
+        // Manifest refraction summary
+        if (!isNaN(aSph) && !isNaN(aCyl)) {
+            const axis = document.getElementById('actual_axis').value || '180';
+            document.getElementById('manifest_refraction').value =
+                `${aSph >= 0 ? '+' : ''}${aSph.toFixed(2)} ${aCyl >= 0 ? '+' : ''}${aCyl.toFixed(2)} x ${axis}`;
+        }
+
+        if (isNaN(tSph) || isNaN(aSph)) {
+            document.getElementById('surprise_value').textContent = '—';
+            document.getElementById('surprise_status').textContent = '—';
+            document.getElementById('surprise_alert').style.display = 'none';
+            return;
+        }
+
+        const diff = actualSE - targetSE;
+        const absDiff = Math.abs(diff);
+        document.getElementById('surprise_value').innerHTML =
+            `${diff >= 0 ? '+' : ''}${diff.toFixed(2)} <span class="metric-unit">D</span>`;
+
+        const statusEl = document.getElementById('surprise_status');
+        const card = document.getElementById('surprise_card');
+        const statusCard = document.getElementById('surprise_status_card');
+        const alertEl = document.getElementById('surprise_alert');
+        const alertText = document.getElementById('surprise_alert_text');
+
+        if (absDiff <= 0.50) {
+            statusEl.textContent = 'On Target';
+            card.classList.add('highlight'); statusCard.classList.add('highlight');
+            alertEl.style.display = 'flex'; alertEl.className = 'alert ok';
+            alertText.textContent = `Refraction within ${absDiff.toFixed(2)}D of target — excellent.`;
+        } else if (absDiff <= 1.00) {
+            statusEl.textContent = 'Mild Surprise';
+            card.classList.remove('highlight'); statusCard.classList.remove('highlight');
+            alertEl.style.display = 'flex'; alertEl.className = 'alert warn';
+            alertText.textContent = `${diff > 0 ? 'Hyperopic' : 'Myopic'} surprise of ${absDiff.toFixed(2)}D — review IOL calculation, consider observation or glasses.`;
+        } else {
+            statusEl.textContent = 'Significant Surprise';
+            card.classList.remove('highlight'); statusCard.classList.remove('highlight');
+            alertEl.style.display = 'flex'; alertEl.className = 'alert danger';
+            alertText.textContent = `${diff > 0 ? 'Hyperopic' : 'Myopic'} surprise of ${absDiff.toFixed(2)}D — significant. Consider piggyback IOL, IOL exchange, or LASIK touch-up.`;
+        }
+    }
+
+    // ===== YAG ADVISORY =====
+    function updateYagPlan() {
+        const pc = document.getElementById('pc_status').value;
+        const advisory = document.getElementById('yag_advisory');
+        const text = document.getElementById('yag_advisory_text');
+        if (pc === 'moderate_pco') {
+            advisory.style.display = 'flex';
+            text.textContent = 'Moderate PCO with VA impact — discuss YAG with patient. Typically wait 6+ months post-op.';
+        } else if (pc === 'severe_pco') {
+            advisory.style.display = 'flex';
+            text.textContent = 'Severe PCO — YAG capsulotomy indicated. Standard energy 1.0–1.5 mJ.';
+        } else {
+            advisory.style.display = 'none';
+        }
+
+        const yagPlan = document.getElementById('yag_plan').value;
+        document.getElementById('yag_details').style.display =
+            (yagPlan === 'done_today') ? 'block' : 'none';
+    }
+    document.getElementById('yag_plan').addEventListener('change', updateYagPlan);
+
+    // ===== AUTO NEXT VISIT =====
+    function autoNextVisit() {
+        const weeks = parseInt(document.getElementById('followup_interval').value);
+        if (isNaN(weeks)) return;
+        const next = new Date();
+        next.setDate(next.getDate() + weeks * 7);
+        document.getElementById('next_visit_date').value = next.toISOString().slice(0, 10);
+    }
+
+    // ===== ENHANCEMENT TOGGLE =====
+    function toggleEnhancement() {
+        // currently no-op; enhancement_type stays visible regardless
+    }
+
+    // ===== COMPLICATION PANELS =====
+    document.getElementById('comp_cme').addEventListener('change', e => {
+        document.getElementById('cme_panel').style.display = e.target.checked ? 'block' : 'none';
+    });
+    document.getElementById('comp_elevated_iop').addEventListener('change', e => {
+        document.getElementById('iop_panel').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    // ===== SAVE =====
+    async function saveRecord() {
+        const btn = document.getElementById('save-btn');
+        const status = document.getElementById('save-status');
+        btn.disabled = true; btn.textContent = 'Saving…';
+
+        // ---- Collect VA trend rows ----
+        const vaTrend = [];
+        document.querySelectorAll('#va-trend-tbody tr').forEach(tr => {
+            const visitSel = tr.querySelector('select');
+            const inputs = tr.querySelectorAll('input');
+            const row = {
+                visit:  visitSel.value,
+                date:   inputs[0].value,
+                ucva:   inputs[1].value,
+                bcva:   inputs[2].value,
+                iop:    inputs[3].value,
+                notes:  inputs[4].value
+            };
+            if (Object.values(row).slice(1).some(v => v && String(v).trim())) vaTrend.push(row);
+        });
+
+        // ---- Get selected eye ----
+        const eye = document.querySelector('input[name="eye"]:checked')?.value || 'OD';
+
+        // ---- Build extras_json ====
+        const extras = {
+            schema_version: 1,
+            captured_at: new Date().toISOString(),
+
+            visual_acuity: {
+                ucva_logmar: SNELLEN_LOGMAR[document.getElementById('va_uncorrected').value],
+                bcva_logmar: SNELLEN_LOGMAR[document.getElementById('va_corrected').value],
+                outcome:     document.getElementById('va_outcome').textContent,
+                trend:       vaTrend
+            },
+
+            refraction: {
+                target_sphere:    parseFloat(document.getElementById('target_sphere').value) || null,
+                target_cylinder:  parseFloat(document.getElementById('target_cylinder').value) || null,
+                actual_axis:      toIntOrNull(document.getElementById('actual_axis').value),
+                surprise_d:       (() => {
+                    const t = parseFloat(document.getElementById('target_sphere').value) + (parseFloat(document.getElementById('target_cylinder').value) || 0)/2;
+                    const a = parseFloat(document.getElementById('actual_sphere').value)   + (parseFloat(document.getElementById('actual_cylinder').value)   || 0)/2;
+                    return (isNaN(t) || isNaN(a)) ? null : +(a - t).toFixed(2);
+                })(),
+                surprise_cause:    document.getElementById('surprise_cause').value || null,
+                surprise_treatment:document.getElementById('surprise_treatment').value || null,
+                reading_add:       parseFloat(document.getElementById('reading_add').value) || null
+            },
+
+            slit_lamp: {
+                wound_status:    document.getElementById('wound_status').value,
+                conjunctiva:     document.getElementById('conjunctiva').value,
+                ac_status:       document.getElementById('ac_status').value,
+                iol_tilt:        document.getElementById('iol_tilt').value,
+                vitreous:        document.getElementById('vitreous').value,
+                macula:          document.getElementById('macula').value,
+                optic_nerve:     document.getElementById('optic_nerve').value || null,
+                periphery:       document.getElementById('periphery').value || null
+            },
+
+            yag: {
+                plan:      document.getElementById('yag_plan').value,
+                energy:    parseFloat(document.getElementById('yag_energy').value) || null,
+                pulses:    toIntOrNull(document.getElementById('yag_pulses').value),
+                total_mj:  parseFloat(document.getElementById('yag_total').value) || null
+            },
+
+            oct: {
+                cft:             toIntOrNull(document.getElementById('cft').value),
+                macular_volume:  parseFloat(document.getElementById('macular_volume').value) || null,
+                quality:         document.getElementById('oct_quality').value || null,
+                notes:           document.getElementById('oct_notes').value || null
+            },
+
+            cme: {
+                severity:  document.getElementById('cme_severity').value || null,
+                treatment: document.getElementById('cme_treatment').value || null
+            },
+
+            iop_management: {
+                treatment: document.getElementById('iop_treatment').value || null,
+                recheck:   document.getElementById('iop_recheck').value || null
+            },
+
+            drops: {
+                steroid:        document.getElementById('steroid_drop').value || null,
+                steroid_freq:   document.getElementById('steroid_freq').value || null,
+                antibiotic:     document.getElementById('abx_drop').value || null,
+                nsaid:          document.getElementById('nsaid_drop').value || null,
+                lubricant:      document.getElementById('lubricant').value || null,
+                iop_drop:       document.getElementById('iop_drop').value || null,
+                compliance:     document.getElementById('compliance').value
+            },
+
+            followup: {
+                interval_weeks: toIntOrNull(document.getElementById('followup_interval').value),
+                counseling:     Array.from(document.querySelectorAll('input[name="counsel"]:checked')).map(c => c.value)
+            },
+
+            satisfaction: {
+                vision_quality: document.getElementById('vision_quality').value || null,
+                notes:          document.getElementById('satisfaction_notes').value || null
+            },
+
+            assessment: document.getElementById('assessment').value || null,
+            plan:       document.getElementById('plan').value || null,
+            provider:   document.getElementById('provider_name').value || null
+        };
+
+        // ---- Discrete columns matching real schema ----
+        const record = {
+            org_id:                            patientData.org_id,
+            patient_id:                        patientData.patient_id,
+            encounter_id:                      patientData.encounter_id,
+            procedure_id:                      patientData.procedure_id,
+            visit_date:                        document.getElementById('visit_date').value || new Date().toISOString().slice(0, 10),
+            visit_type:                        document.getElementById('visit_type').value,
+            eye:                               eye,
+            va_uncorrected:                    document.getElementById('va_uncorrected').value || null,
+            va_corrected:                      document.getElementById('va_corrected').value || null,
+            iop:                               toIntOrNull(document.getElementById('iop').value),
+            cornea_status:                     document.getElementById('cornea_status').value || null,
+            anterior_chamber_status:           document.getElementById('ac_status').value || null,
+            iol_position:                      document.getElementById('iol_position').value || null,
+            posterior_capsule_status:          document.getElementById('pc_status').value || null,
+            manifest_refraction:               document.getElementById('manifest_refraction').value || null,
+            spherical_equivalent:              parseFloat(document.getElementById('actual_se').value) || null,
+            endophthalmitis:                   document.getElementById('comp_endophthalmitis').checked,
+            cystoid_macular_edema:             document.getElementById('comp_cme').checked,
+            posterior_capsule_opacification:   document.getElementById('comp_pco').checked,
+            elevated_iop:                      document.getElementById('comp_elevated_iop').checked,
+            corneal_edema:                     document.getElementById('comp_corneal_edema').checked,
+            complications_detail:              document.getElementById('complications_detail').value || null,
+            satisfaction_score:                toIntOrNull(document.getElementById('satisfaction_score').value),
+            satisfaction_notes:                document.getElementById('satisfaction_notes').value || null,
+            enhancement_required:              document.getElementById('enhancement_required').value === 'true',
+            enhancement_type:                  document.getElementById('enhancement_type').value || null,
+            extras_json:                       extras
+        };
+
+        // ---- Validate required fields ----
+        if (record.patient_id == null) {
+            alert('Cannot save: patient_id is required (pass ?patient_id=N).');
+            btn.disabled = false; btn.textContent = 'Save Post-Op Visit';
+            return;
+        }
+        if (record.procedure_id == null) {
+            alert('Cannot save: procedure_id is required (pass ?procedure_id=N — the ophthalmic procedure this visit follows).');
+            btn.disabled = false; btn.textContent = 'Save Post-Op Visit';
+            return;
+        }
+
+        if (!supabase) {
+            console.warn('Supabase not initialized — record:', record);
+            status.textContent = 'Saved locally (Supabase not configured)';
+            localStorage.setItem('ophth_post_op_draft', JSON.stringify(record));
+            btn.disabled = false; btn.textContent = 'Save Post-Op Visit';
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .schema('cr')
+                .from('ophthalmic_post_op')
+                .insert([record]);
+            if (error) throw error;
+            status.textContent = 'Saved: ' + new Date().toLocaleString();
+            btn.textContent = 'Saved ✓';
+            setTimeout(() => { btn.disabled = false; btn.textContent = 'Save Post-Op Visit'; }, 2000);
+        } catch (e) {
+            console.error('Save failed:', e);
+            alert('Save failed: ' + (e.message || e));
+            btn.disabled = false; btn.textContent = 'Save Post-Op Visit';
+        }
+    }
+
+    // ===== INIT =====
+    loadFromUrl();
+    document.getElementById('visit_date').value = new Date().toISOString().slice(0, 10);
+    addTrendRow(); // start with one empty trend row
+</script>
+
+</body>
+</html>

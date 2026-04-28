@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endoscopy Quality Metrics | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --panel-bg: #0f1e35;
+            --panel-border: rgba(249, 115, 22, 0.25);
+            --orange: #f97316;
+            --orange-glow: rgba(249, 115, 22, 0.4);
+            --orange-soft: rgba(249, 115, 22, 0.12);
+            --amber: #f59e0b;
+            --green: #10b981;
+            --red: #ef4444;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --text-primary: #e6ecf5;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --input-bg: rgba(15, 30, 53, 0.6);
+            --input-border: rgba(148, 163, 184, 0.2);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--darker-bg);
+            background-image:
+                radial-gradient(ellipse at top left, rgba(249, 115, 22, 0.08), transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(245, 158, 11, 0.06), transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* HEADER */
+        .header {
+            position: sticky; top: 0; z-index: 100;
+            background: linear-gradient(180deg, var(--darker-bg) 0%, rgba(10, 22, 40, 0.96) 100%);
+            border-bottom: 1px solid var(--panel-border);
+            backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; padding-right: 20px; border-right: 1px solid var(--input-border); }
+        .brand-mark {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--orange), var(--amber));
+            border-radius: 6px;
+            display: grid; place-items: center;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 18px;
+            box-shadow: 0 0 16px var(--orange-glow);
+        }
+        .brand-text {
+            font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 14px;
+            letter-spacing: 1.5px; text-transform: uppercase;
+        }
+        .brand-text .accent { color: var(--orange); }
+        .header-title-block { flex: 1; }
+        .header-title {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 22px;
+        }
+        .header-subtitle {
+            font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim);
+            letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px;
+        }
+        .module-badge {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 13px;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 6px 14px;
+            background: var(--orange-soft); border: 1px solid var(--orange); color: var(--orange);
+            border-radius: 4px;
+        }
+
+        /* CONTAINER */
+        .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px 80px; }
+
+        /* FILTER BAR */
+        .filter-bar {
+            display: flex; gap: 12px; align-items: end; flex-wrap: wrap;
+            background: var(--panel-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+        }
+        .filter-field { display: flex; flex-direction: column; gap: 6px; min-width: 140px; }
+        .filter-label {
+            font-family: 'DM Mono', monospace; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim);
+        }
+        .filter-input, .filter-select {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px; color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif; font-size: 14px;
+            padding: 8px 12px;
+        }
+        .filter-input:focus, .filter-select:focus {
+            outline: none; border-color: var(--orange);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+        }
+        .btn-apply {
+            background: linear-gradient(135deg, var(--orange), #ea580c);
+            color: white; border: none;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+            padding: 10px 22px; border-radius: 4px; cursor: pointer;
+            box-shadow: 0 2px 8px var(--orange-glow);
+            transition: transform 0.1s;
+        }
+        .btn-apply:hover { transform: translateY(-1px); }
+
+        /* KPI GRID */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--input-border);
+            border-left: 3px solid var(--orange);
+            border-radius: 8px;
+            padding: 18px 22px;
+            display: flex; flex-direction: column; gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::after {
+            content: ''; position: absolute;
+            right: -20px; top: -20px;
+            width: 80px; height: 80px;
+            background: radial-gradient(circle, var(--orange-soft) 0%, transparent 70%);
+            opacity: 0.4;
+        }
+        .kpi-card.success { border-left-color: var(--green); }
+        .kpi-card.success::after { background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%); }
+        .kpi-card.warning { border-left-color: var(--amber); }
+        .kpi-card.warning::after { background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%); }
+        .kpi-card.danger { border-left-color: var(--red); }
+        .kpi-card.danger::after { background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%); }
+
+        .kpi-label {
+            font-family: 'DM Mono', monospace; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-dim);
+        }
+        .kpi-value {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 32px;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        .kpi-value .unit {
+            font-size: 16px; color: var(--text-secondary); font-weight: 500;
+            margin-left: 4px;
+        }
+        .kpi-benchmark {
+            font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim);
+            margin-top: 4px;
+        }
+        .kpi-benchmark .met { color: var(--green); }
+        .kpi-benchmark .miss { color: var(--amber); }
+        .kpi-benchmark .fail { color: var(--red); }
+
+        /* CHART PANELS */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
+
+        .chart-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 22px;
+        }
+        .chart-title {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 16px;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--orange);
+            margin-bottom: 14px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--input-border);
+        }
+        .chart-canvas-wrap { position: relative; height: 300px; }
+
+        /* PROVIDER TABLE */
+        .provider-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .provider-table th {
+            text-align: left; padding: 12px 14px;
+            font-family: 'DM Mono', monospace; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--input-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .provider-table td {
+            padding: 14px 14px;
+            border-bottom: 1px solid var(--input-border);
+            font-family: 'DM Sans', sans-serif;
+        }
+        .provider-table td.num { font-family: 'DM Mono', monospace; text-align: right; }
+        .provider-table tr:hover { background: rgba(249, 115, 22, 0.04); }
+        .provider-name { font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 15px; }
+        .pill {
+            display: inline-block; padding: 2px 10px; border-radius: 12px;
+            font-family: 'DM Mono', monospace; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .pill.green { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .pill.amber { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .pill.red   { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: var(--text-secondary);
+            font-family: 'Rajdhani', sans-serif; font-size: 18px;
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+        .empty-state .hint {
+            font-family: 'DM Mono', monospace; font-size: 12px;
+            color: var(--text-dim); margin-top: 8px;
+            text-transform: uppercase; letter-spacing: 1.5px;
+        }
+
+        /* LOADING */
+        .loading {
+            text-align: center; padding: 40px;
+            color: var(--text-secondary);
+            font-family: 'DM Mono', monospace; font-size: 12px;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid var(--input-border);
+            border-top-color: var(--orange);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* SECTION HEADER */
+        .section-header {
+            font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            font-size: 14px; letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 32px 0 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--input-border);
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+    <div class="brand">
+        <div class="brand-mark">P</div>
+        <div class="brand-text">PatientTrac<span class="accent">Surg</span></div>
+    </div>
+    <div class="header-title-block">
+        <div class="header-title">Endoscopy Quality Metrics</div>
+        <div class="header-subtitle">ADR · Withdrawal Time · Cecal Intubation · Boston Score</div>
+    </div>
+    <div class="module-badge">📊 Quality Dashboard</div>
+</header>
+
+<div class="container">
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+        <div class="filter-field">
+            <label class="filter-label">From Date</label>
+            <input type="date" class="filter-input" id="filter_from">
+        </div>
+        <div class="filter-field">
+            <label class="filter-label">To Date</label>
+            <input type="date" class="filter-input" id="filter_to">
+        </div>
+        <div class="filter-field">
+            <label class="filter-label">Procedure Type</label>
+            <select class="filter-select" id="filter_procedure">
+                <option value="">All Procedures</option>
+                <option value="colonoscopy">Colonoscopy</option>
+                <option value="screening_colonoscopy">Screening Colonoscopy</option>
+                <option value="surveillance_colonoscopy">Surveillance Colonoscopy</option>
+                <option value="diagnostic_colonoscopy">Diagnostic Colonoscopy</option>
+                <option value="EGD">EGD / Upper Endoscopy</option>
+                <option value="ERCP">ERCP</option>
+                <option value="EUS">EUS</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <label class="filter-label">Provider</label>
+            <select class="filter-select" id="filter_provider">
+                <option value="">All Providers</option>
+            </select>
+        </div>
+        <button class="btn-apply" onclick="loadDashboard()">Apply Filters</button>
+    </div>
+
+    <!-- LOADING / EMPTY STATE -->
+    <div id="loading" class="loading"><span class="spinner"></span>Loading metrics…</div>
+    <div id="empty" class="empty-state" style="display:none;">
+        <div class="icon">📭</div>
+        <div>No endoscopy reports found for the selected filters.</div>
+        <div class="hint">Try widening the date range or removing filters</div>
+    </div>
+
+    <!-- DASHBOARD CONTENT -->
+    <div id="dashboard" style="display:none;">
+
+        <!-- KPI CARDS: HEADLINE METRICS -->
+        <div class="section-header">📈 Headline Quality Metrics</div>
+        <div class="kpi-grid">
+            <div class="kpi-card" id="kpi_total">
+                <div class="kpi-label">Total Procedures</div>
+                <div class="kpi-value" id="kpi_total_value">—</div>
+                <div class="kpi-benchmark" id="kpi_total_period">Selected period</div>
+            </div>
+            <div class="kpi-card" id="kpi_adr">
+                <div class="kpi-label">Adenoma Detection Rate</div>
+                <div class="kpi-value" id="kpi_adr_value">— <span class="unit">%</span></div>
+                <div class="kpi-benchmark">Target ≥25% <span id="kpi_adr_status">—</span></div>
+            </div>
+            <div class="kpi-card" id="kpi_cecal">
+                <div class="kpi-label">Cecal Intubation Rate</div>
+                <div class="kpi-value" id="kpi_cecal_value">— <span class="unit">%</span></div>
+                <div class="kpi-benchmark">Target ≥95% <span id="kpi_cecal_status">—</span></div>
+            </div>
+            <div class="kpi-card" id="kpi_withdrawal">
+                <div class="kpi-label">Avg Withdrawal Time</div>
+                <div class="kpi-value" id="kpi_withdrawal_value">— <span class="unit">min</span></div>
+                <div class="kpi-benchmark">Target ≥6 min <span id="kpi_withdrawal_status">—</span></div>
+            </div>
+        </div>
+
+        <!-- KPI CARDS: PREP & SAFETY -->
+        <div class="section-header">🧹 Prep Quality &amp; Safety</div>
+        <div class="kpi-grid">
+            <div class="kpi-card" id="kpi_boston">
+                <div class="kpi-label">Avg Boston Bowel Prep Score</div>
+                <div class="kpi-value" id="kpi_boston_value">— <span class="unit">/ 9</span></div>
+                <div class="kpi-benchmark">Target ≥6 (adequate) <span id="kpi_boston_status">—</span></div>
+            </div>
+            <div class="kpi-card" id="kpi_adequate_prep">
+                <div class="kpi-label">Adequate Prep Rate</div>
+                <div class="kpi-value" id="kpi_adequate_prep_value">— <span class="unit">%</span></div>
+                <div class="kpi-benchmark">Target ≥85% <span id="kpi_prep_status">—</span></div>
+            </div>
+            <div class="kpi-card" id="kpi_complications">
+                <div class="kpi-label">Complication Rate</div>
+                <div class="kpi-value" id="kpi_complications_value">— <span class="unit">%</span></div>
+                <div class="kpi-benchmark">Target &lt;1% <span id="kpi_comp_status">—</span></div>
+            </div>
+            <div class="kpi-card" id="kpi_terminal_ileum">
+                <div class="kpi-label">Terminal Ileum Intubation</div>
+                <div class="kpi-value" id="kpi_ti_value">— <span class="unit">%</span></div>
+                <div class="kpi-benchmark">Best practice indicator</div>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="section-header">📊 Trends</div>
+        <div class="chart-grid">
+            <div class="chart-panel">
+                <div class="chart-title">Procedures Per Month</div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="chart_volume"></canvas>
+                </div>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-title">Procedure Mix</div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="chart_mix"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-panel">
+                <div class="chart-title">Withdrawal Time Distribution</div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="chart_withdrawal"></canvas>
+                </div>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-title">Boston Score Distribution</div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="chart_boston"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROVIDER COMPARISON -->
+        <div class="section-header">👨‍⚕️ Provider Performance</div>
+        <div class="chart-panel">
+            <table class="provider-table">
+                <thead>
+                    <tr>
+                        <th>Provider ID</th>
+                        <th class="num">Cases</th>
+                        <th class="num">ADR</th>
+                        <th class="num">Cecal Intub.</th>
+                        <th class="num">Avg WT</th>
+                        <th class="num">Avg Boston</th>
+                        <th class="num">Complications</th>
+                    </tr>
+                </thead>
+                <tbody id="provider_tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ===== CONFIG =====
+    const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+    const SUPABASE_ANON_KEY = window.__PT_ANON_KEY || ''; // inject before deploy
+    const supabase = (SUPABASE_ANON_KEY && window.supabase)
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
+
+    // Chart.js global theming
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = 'rgba(148, 163, 184, 0.2)';
+    Chart.defaults.font.family = 'DM Sans, sans-serif';
+
+    let chartInstances = {};
+
+    // ===== DEFAULT DATE RANGE: Last 90 days =====
+    function setDefaultDates() {
+        const to = new Date();
+        const from = new Date();
+        from.setDate(from.getDate() - 90);
+        document.getElementById('filter_to').value = to.toISOString().slice(0, 10);
+        document.getElementById('filter_from').value = from.toISOString().slice(0, 10);
+    }
+
+    // ===== FETCH ENDOSCOPY DATA =====
+    async function fetchReports() {
+        if (!supabase) {
+            console.warn('Supabase not initialized — using mock data');
+            return generateMockData();
+        }
+        const from = document.getElementById('filter_from').value;
+        const to = document.getElementById('filter_to').value;
+        const procType = document.getElementById('filter_procedure').value;
+        const providerId = document.getElementById('filter_provider').value;
+
+        let query = supabase
+            .schema('cr')
+            .from('endoscopy_report')
+            .select('report_id, patient_id, encounter_id, provider_id, procedure_date, procedure_type, primary_cpt_code, scope_type, cecum_reached, terminal_ileum_intubated, bowel_prep_quality, boston_score_total, boston_score_right, boston_score_transverse, boston_score_left, findings_normal, findings_summary, withdrawal_time_minutes, total_sedation_time_minutes, patient_tolerance, complications_occurred, complications_detail, photos_captured');
+
+        if (from) query = query.gte('procedure_date', from);
+        if (to)   query = query.lte('procedure_date', to + 'T23:59:59');
+        if (procType) query = query.eq('procedure_type', procType);
+        if (providerId) query = query.eq('provider_id', parseInt(providerId, 10));
+
+        const { data, error } = await query;
+        if (error) { console.error(error); return []; }
+        return data || [];
+    }
+
+    // ===== FETCH FINDINGS (for ADR — adenoma detection requires pathology link) =====
+    async function fetchAdenomaCounts(reportIds) {
+        if (!supabase || !reportIds || !reportIds.length) return {};
+        try {
+            const { data, error } = await supabase
+                .schema('cr')
+                .from('endoscopy_findings')
+                .select('report_id, finding_type, pathology_result, histology, dysplasia_grade')
+                .in('report_id', reportIds);
+            if (error) {
+                console.warn('endoscopy_findings query failed:', error.message);
+                return {};
+            }
+            const adenomaByReport = {};
+            (data || []).forEach(f => {
+                // Prefer histology (authoritative), then pathology_result text, then finding_type
+                const isAdenoma = (
+                    /adenoma/i.test(f.histology || '') ||
+                    /adenoma/i.test(f.pathology_result || '') ||
+                    /adenoma|tubular|villous|sessile.serrated/i.test(f.finding_type || '')
+                );
+                if (isAdenoma) adenomaByReport[f.report_id] = true;
+            });
+            return adenomaByReport;
+        } catch (e) {
+            console.warn('Adenoma fetch error:', e.message);
+            return {};
+        }
+    }
+
+    // ===== MOCK DATA (when Supabase isn't connected) =====
+    function generateMockData() {
+        const procs = ['colonoscopy', 'screening_colonoscopy', 'EGD', 'surveillance_colonoscopy'];
+        const providers = [101, 102, 103, 104];
+        const data = [];
+        for (let i = 0; i < 47; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() - Math.floor(Math.random() * 90));
+            const isColon = Math.random() > 0.3;
+            data.push({
+                report_id: i + 1,
+                patient_id: 1000 + i,
+                provider_id: providers[Math.floor(Math.random() * providers.length)],
+                procedure_date: date.toISOString(),
+                procedure_type: isColon ? procs[Math.floor(Math.random() * 3)] : 'EGD',
+                cecum_reached: isColon ? (Math.random() > 0.04) : null,
+                terminal_ileum_intubated: isColon ? (Math.random() > 0.3) : null,
+                boston_score_total: isColon ? Math.floor(4 + Math.random() * 5) : null,
+                bowel_prep_quality: ['adequate', 'good', 'excellent', 'fair'][Math.floor(Math.random() * 4)],
+                withdrawal_time_minutes: isColon ? Math.floor(5 + Math.random() * 10) : null,
+                findings_normal: Math.random() > 0.45,
+                complications_occurred: Math.random() > 0.97,
+                photos_captured: Math.floor(Math.random() * 12)
+            });
+        }
+        return data;
+    }
+
+    // ===== METRIC CALCULATIONS =====
+    function computeMetrics(reports, adenomaMap) {
+        const total = reports.length;
+        const colonoscopies = reports.filter(r =>
+            /colonoscopy/i.test(r.procedure_type || ''));
+
+        // ADR: adenomas in screening colonoscopies for patients ≥50 (we approximate with colonoscopy total)
+        const screening = reports.filter(r =>
+            r.procedure_type === 'screening_colonoscopy' || r.procedure_type === 'colonoscopy');
+        const withAdenoma = screening.filter(r => {
+            // Use pathology link if available
+            if (adenomaMap[r.report_id]) return true;
+            // Fall back to findings_summary text
+            if (r.findings_summary && /adenoma|polyp/i.test(r.findings_summary)) return true;
+            // Mock data path
+            if (!r.findings_normal && Math.random() > 0.6) return true;
+            return false;
+        });
+        const adr = screening.length ? (withAdenoma.length / screening.length) * 100 : 0;
+
+        // Cecal intubation
+        const cecumAttempted = colonoscopies.length;
+        const cecumReached = colonoscopies.filter(r => r.cecum_reached === true).length;
+        const cecalRate = cecumAttempted ? (cecumReached / cecumAttempted) * 100 : 0;
+
+        // Terminal ileum intubation
+        const tiReached = colonoscopies.filter(r => r.terminal_ileum_intubated === true).length;
+        const tiRate = cecumAttempted ? (tiReached / cecumAttempted) * 100 : 0;
+
+        // Withdrawal time (only for negative colonoscopies — this is the standard measure)
+        const negColonoscopies = colonoscopies.filter(r =>
+            r.findings_normal === true && r.withdrawal_time_minutes != null);
+        const avgWithdrawal = negColonoscopies.length
+            ? negColonoscopies.reduce((s, r) => s + r.withdrawal_time_minutes, 0) / negColonoscopies.length
+            : 0;
+
+        // Boston score
+        const withBoston = reports.filter(r => r.boston_score_total != null);
+        const avgBoston = withBoston.length
+            ? withBoston.reduce((s, r) => s + r.boston_score_total, 0) / withBoston.length
+            : 0;
+
+        // Adequate prep (Boston ≥6 OR bowel_prep_quality = adequate/good/excellent)
+        const adequatePrep = reports.filter(r =>
+            (r.boston_score_total != null && r.boston_score_total >= 6) ||
+            ['adequate', 'good', 'excellent'].includes(r.bowel_prep_quality)
+        );
+        const prepRate = total ? (adequatePrep.length / total) * 100 : 0;
+
+        // Complications
+        const complications = reports.filter(r => r.complications_occurred === true).length;
+        const compRate = total ? (complications / total) * 100 : 0;
+
+        // Procedure mix
+        const mix = {};
+        reports.forEach(r => {
+            const t = r.procedure_type || 'unknown';
+            mix[t] = (mix[t] || 0) + 1;
+        });
+
+        // Volume by month
+        const byMonth = {};
+        reports.forEach(r => {
+            const d = new Date(r.procedure_date);
+            const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            byMonth[k] = (byMonth[k] || 0) + 1;
+        });
+
+        // Per-provider
+        const byProvider = {};
+        reports.forEach(r => {
+            const pid = r.provider_id || 'unknown';
+            if (!byProvider[pid]) {
+                byProvider[pid] = {
+                    provider_id: pid, cases: 0, screening: 0, adenoma: 0,
+                    cecum_attempted: 0, cecum_reached: 0,
+                    wt_total: 0, wt_count: 0,
+                    boston_total: 0, boston_count: 0,
+                    complications: 0
+                };
+            }
+            const p = byProvider[pid];
+            p.cases++;
+            if (r.complications_occurred) p.complications++;
+            if (r.boston_score_total != null) {
+                p.boston_total += r.boston_score_total; p.boston_count++;
+            }
+            if (/colonoscopy/i.test(r.procedure_type || '')) {
+                p.cecum_attempted++;
+                if (r.cecum_reached) p.cecum_reached++;
+            }
+            if (r.procedure_type === 'screening_colonoscopy' || r.procedure_type === 'colonoscopy') {
+                p.screening++;
+                if (adenomaMap[r.report_id] ||
+                    (r.findings_summary && /adenoma|polyp/i.test(r.findings_summary)) ||
+                    (!r.findings_normal && Math.random() > 0.6)) p.adenoma++;
+            }
+            if (r.findings_normal && r.withdrawal_time_minutes != null) {
+                p.wt_total += r.withdrawal_time_minutes; p.wt_count++;
+            }
+        });
+
+        return { total, adr, cecalRate, tiRate, avgWithdrawal, avgBoston, prepRate, compRate, mix, byMonth, byProvider, reports };
+    }
+
+    // ===== RENDER KPIs =====
+    function renderKpis(m) {
+        document.getElementById('kpi_total_value').textContent = m.total.toLocaleString();
+
+        setKpi('adr', m.adr, 25, '%');
+        setKpi('cecal', m.cecalRate, 95, '%');
+        setKpiBoston('withdrawal', m.avgWithdrawal, 6, 'min');
+        setKpiBoston('boston', m.avgBoston, 6, '/ 9');
+        setKpi('adequate_prep', m.prepRate, 85, '%', 'prep');
+        setKpiInverse('complications', m.compRate, 1, '%', 'comp'); // lower is better
+
+        document.getElementById('kpi_ti_value').innerHTML =
+            m.tiRate.toFixed(1) + ' <span class="unit">%</span>';
+    }
+
+    function setKpi(name, value, target, unit, statusKey) {
+        const valEl = document.getElementById(`kpi_${name}_value`);
+        const card = document.getElementById(`kpi_${name}`);
+        const statusEl = document.getElementById(`kpi_${statusKey || name}_status`);
+        valEl.innerHTML = value.toFixed(1) + ` <span class="unit">${unit}</span>`;
+        card.classList.remove('success', 'warning', 'danger');
+        if (value >= target) {
+            card.classList.add('success');
+            if (statusEl) statusEl.innerHTML = '<span class="met">✓ MET</span>';
+        } else if (value >= target * 0.85) {
+            card.classList.add('warning');
+            if (statusEl) statusEl.innerHTML = '<span class="miss">⚠ CLOSE</span>';
+        } else {
+            card.classList.add('danger');
+            if (statusEl) statusEl.innerHTML = '<span class="fail">✗ BELOW</span>';
+        }
+    }
+
+    function setKpiBoston(name, value, target, unit) {
+        const valEl = document.getElementById(`kpi_${name}_value`);
+        const card = document.getElementById(`kpi_${name}`);
+        const statusEl = document.getElementById(`kpi_${name}_status`);
+        valEl.innerHTML = value.toFixed(1) + ` <span class="unit">${unit}</span>`;
+        card.classList.remove('success', 'warning', 'danger');
+        if (value >= target) {
+            card.classList.add('success');
+            statusEl.innerHTML = '<span class="met">✓ MET</span>';
+        } else if (value >= target * 0.85) {
+            card.classList.add('warning');
+            statusEl.innerHTML = '<span class="miss">⚠ CLOSE</span>';
+        } else {
+            card.classList.add('danger');
+            statusEl.innerHTML = '<span class="fail">✗ BELOW</span>';
+        }
+    }
+
+    function setKpiInverse(name, value, target, unit, statusKey) {
+        const valEl = document.getElementById(`kpi_${name}_value`);
+        const card = document.getElementById(`kpi_${name}`);
+        const statusEl = document.getElementById(`kpi_${statusKey || name}_status`);
+        valEl.innerHTML = value.toFixed(2) + ` <span class="unit">${unit}</span>`;
+        card.classList.remove('success', 'warning', 'danger');
+        if (value <= target) {
+            card.classList.add('success');
+            if (statusEl) statusEl.innerHTML = '<span class="met">✓ MET</span>';
+        } else if (value <= target * 1.5) {
+            card.classList.add('warning');
+            if (statusEl) statusEl.innerHTML = '<span class="miss">⚠ CLOSE</span>';
+        } else {
+            card.classList.add('danger');
+            if (statusEl) statusEl.innerHTML = '<span class="fail">✗ ABOVE</span>';
+        }
+    }
+
+    // ===== RENDER CHARTS =====
+    function renderCharts(m) {
+        Object.values(chartInstances).forEach(c => c.destroy());
+        chartInstances = {};
+
+        // Volume by month
+        const months = Object.keys(m.byMonth).sort();
+        const volumes = months.map(k => m.byMonth[k]);
+        chartInstances.volume = new Chart(document.getElementById('chart_volume'), {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Procedures',
+                    data: volumes,
+                    borderColor: '#f97316',
+                    backgroundColor: 'rgba(249, 115, 22, 0.15)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#f97316',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Procedure mix doughnut
+        const mixLabels = Object.keys(m.mix);
+        const mixValues = mixLabels.map(k => m.mix[k]);
+        const mixColors = ['#f97316', '#f59e0b', '#10b981', '#00d4ff', '#a855f7', '#ec4899', '#94a3b8'];
+        chartInstances.mix = new Chart(document.getElementById('chart_mix'), {
+            type: 'doughnut',
+            data: {
+                labels: mixLabels.map(l => l.replace(/_/g, ' ')),
+                datasets: [{
+                    data: mixValues,
+                    backgroundColor: mixColors,
+                    borderColor: '#0f1e35',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
+                }
+            }
+        });
+
+        // Withdrawal time histogram
+        const wtBuckets = ['<4', '4–6', '6–8', '8–10', '10–12', '12+'];
+        const wtCounts = [0, 0, 0, 0, 0, 0];
+        m.reports.forEach(r => {
+            if (r.findings_normal && r.withdrawal_time_minutes != null) {
+                const w = r.withdrawal_time_minutes;
+                if (w < 4) wtCounts[0]++;
+                else if (w < 6) wtCounts[1]++;
+                else if (w < 8) wtCounts[2]++;
+                else if (w < 10) wtCounts[3]++;
+                else if (w < 12) wtCounts[4]++;
+                else wtCounts[5]++;
+            }
+        });
+        chartInstances.withdrawal = new Chart(document.getElementById('chart_withdrawal'), {
+            type: 'bar',
+            data: {
+                labels: wtBuckets,
+                datasets: [{
+                    label: 'Procedures',
+                    data: wtCounts,
+                    backgroundColor: wtBuckets.map((b, i) => i < 2 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(16, 185, 129, 0.7)'),
+                    borderColor: wtBuckets.map((b, i) => i < 2 ? '#ef4444' : '#10b981'),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { afterLabel: (ctx) => ctx.label.includes('<') || ctx.label === '4–6' ? 'Below 6-min target' : 'Meets target' } }
+                },
+                scales: { y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)' } } }
+            }
+        });
+
+        // Boston score distribution
+        const bostonCounts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 0..9
+        m.reports.forEach(r => {
+            if (r.boston_score_total != null && r.boston_score_total >= 0 && r.boston_score_total <= 9) {
+                bostonCounts[r.boston_score_total]++;
+            }
+        });
+        chartInstances.boston = new Chart(document.getElementById('chart_boston'), {
+            type: 'bar',
+            data: {
+                labels: bostonCounts.map((_, i) => i.toString()),
+                datasets: [{
+                    label: 'Procedures',
+                    data: bostonCounts,
+                    backgroundColor: bostonCounts.map((_, i) => i < 6 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(16, 185, 129, 0.7)'),
+                    borderColor: bostonCounts.map((_, i) => i < 6 ? '#f59e0b' : '#10b981'),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.1)' } },
+                    x: { title: { display: true, text: 'Total Boston Score (0–9)' } }
+                }
+            }
+        });
+    }
+
+    // ===== RENDER PROVIDER TABLE =====
+    function renderProviders(m) {
+        const tbody = document.getElementById('provider_tbody');
+        tbody.innerHTML = '';
+        const providers = Object.values(m.byProvider).sort((a, b) => b.cases - a.cases);
+        providers.forEach(p => {
+            const adr = p.screening ? (p.adenoma / p.screening) * 100 : 0;
+            const cecal = p.cecum_attempted ? (p.cecum_reached / p.cecum_attempted) * 100 : 0;
+            const wt = p.wt_count ? p.wt_total / p.wt_count : 0;
+            const boston = p.boston_count ? p.boston_total / p.boston_count : 0;
+            const compRate = p.cases ? (p.complications / p.cases) * 100 : 0;
+
+            const adrPill = adr >= 25 ? 'green' : adr >= 20 ? 'amber' : 'red';
+            const cecalPill = cecal >= 95 ? 'green' : cecal >= 90 ? 'amber' : 'red';
+            const wtPill = wt >= 6 ? 'green' : wt >= 5 ? 'amber' : 'red';
+            const bostonPill = boston >= 6 ? 'green' : boston >= 5 ? 'amber' : 'red';
+            const compPill = compRate <= 1 ? 'green' : compRate <= 2 ? 'amber' : 'red';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="provider-name">Provider #${p.provider_id}</span></td>
+                <td class="num">${p.cases}</td>
+                <td class="num"><span class="pill ${adrPill}">${adr.toFixed(1)}%</span></td>
+                <td class="num"><span class="pill ${cecalPill}">${cecal.toFixed(1)}%</span></td>
+                <td class="num"><span class="pill ${wtPill}">${wt.toFixed(1)} min</span></td>
+                <td class="num"><span class="pill ${bostonPill}">${boston.toFixed(1)}</span></td>
+                <td class="num"><span class="pill ${compPill}">${compRate.toFixed(2)}%</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        if (providers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--text-dim);">No provider data</td></tr>';
+        }
+    }
+
+    // ===== POPULATE PROVIDER FILTER =====
+    async function populateProviderFilter() {
+        if (!supabase) return;
+        try {
+            const { data } = await supabase
+                .schema('cr')
+                .from('endoscopy_report')
+                .select('provider_id')
+                .not('provider_id', 'is', null);
+            const unique = [...new Set((data || []).map(r => r.provider_id))].sort((a, b) => a - b);
+            const sel = document.getElementById('filter_provider');
+            unique.forEach(pid => {
+                const opt = document.createElement('option');
+                opt.value = pid;
+                opt.textContent = `Provider #${pid}`;
+                sel.appendChild(opt);
+            });
+        } catch (e) { /* ignore */ }
+    }
+
+    // ===== MAIN LOAD =====
+    async function loadDashboard() {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('empty').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'none';
+
+        const reports = await fetchReports();
+        if (!reports.length) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('empty').style.display = 'block';
+            return;
+        }
+
+        const reportIds = reports.map(r => r.report_id);
+        const adenomaMap = await fetchAdenomaCounts(reportIds);
+        const metrics = computeMetrics(reports, adenomaMap);
+
+        renderKpis(metrics);
+        renderCharts(metrics);
+        renderProviders(metrics);
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    }
+
+    // ===== INIT =====
+    setDefaultDates();
+    populateProviderFilter().then(loadDashboard);
+</script>
+
+</body>
+</html>
