@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PatientTrac Surgery - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #060e1c;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #060e1c 0%, #0a1628 100%);
+            border-bottom: 1px solid rgba(201, 169, 110, 0.2);
+            padding: 1rem 2rem;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #c9a96e;
+        }
+        
+        .logo svg {
+            width: 32px;
+            height: 32px;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-info {
+            text-align: right;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #c9a96e;
+        }
+        
+        .user-role {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .btn-logout {
+            background: rgba(201, 169, 110, 0.1);
+            color: #c9a96e;
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-logout:hover {
+            background: rgba(201, 169, 110, 0.2);
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Patient Context Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, #0a1628 0%, #060e1c 100%);
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #c9a96e;
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.5rem;
+            color: #c9a96e;
+            margin-bottom: 0.5rem;
+        }
+        
+        .patient-details {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+        }
+        
+        .patient-details span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Navigation Cards */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .nav-card {
+            background: linear-gradient(135deg, #0a1628 0%, #060e1c 100%);
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .nav-card:hover {
+            border-color: #c9a96e;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(201, 169, 110, 0.2);
+        }
+        
+        .nav-card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .nav-card h3 {
+            font-size: 1.5rem;
+            color: #c9a96e;
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-card p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .nav-card .badge {
+            display: inline-block;
+            background: rgba(201, 169, 110, 0.2);
+            color: #c9a96e;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+        
+        /* Loading State */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(201, 169, 110, 0.2);
+            border-top-color: #c9a96e;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            color: rgba(201, 169, 110, 0.3);
+            margin-bottom: 1.5rem;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: #c9a96e;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <svg viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2"/>
+                    <path d="M16 8v8l5 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="16" cy="16" r="2" fill="currentColor"/>
+                </svg>
+                <span>PatientTrac Surgery</span>
+            </div>
+            
+            <div class="user-menu">
+                <div class="user-info">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-role" id="userRole">Surgeon</div>
+                </div>
+                <button class="btn-logout" onclick="signOut()">Sign Out</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Patient Context (shown when accessed via cross-app) -->
+        <div id="patientBanner" class="patient-banner" style="display: none;">
+            <img id="patientPhoto" class="patient-photo" src="" alt="Patient">
+            <div class="patient-info">
+                <h2 id="patientName">Loading...</h2>
+                <div class="patient-details">
+                    <span>📅 DOB: <strong id="patientDOB">--/--/----</strong></span>
+                    <span>🆔 MRN: <strong id="patientMRN">------</strong></span>
+                    <span>⚕️ Encounter: <strong id="encounterType">Surgical</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Grid -->
+        <div id="navGrid" style="display: none;">
+            <div class="nav-grid">
+                <!-- Pre-Op Assessment -->
+                <a href="/preop.html" class="nav-card">
+                    <div class="nav-card-icon">🔬</div>
+                    <h3>Pre-Op Assessment</h3>
+                    <p>Surgical risk stratification, anesthesia evaluation, lab review, and clearance documentation.</p>
+                    <span class="badge">Required</span>
+                </a>
+
+                <!-- Operative Note -->
+                <a href="/operative.html" class="nav-card">
+                    <div class="nav-card-icon">⚕️</div>
+                    <h3>Operative Note</h3>
+                    <p>CPT/ICD-10 coding, implant tracking, tissue documentation, auto-superbill generation.</p>
+                    <span class="badge">Primary</span>
+                </a>
+
+                <!-- Anesthesia Record -->
+                <a href="/anesthesia.html" class="nav-card">
+                    <div class="nav-card-icon">💉</div>
+                    <h3>Anesthesia Record</h3>
+                    <p>Complete anesthesia progress notes with vital signs, medications, and procedural documentation.</p>
+                    <span class="badge">Concurrent</span>
+                </a>
+
+                <!-- Post-Op Care -->
+                <a href="/postop.html" class="nav-card">
+                    <div class="nav-card-icon">📋</div>
+                    <h3>Post-Op Care</h3>
+                    <p>PACU notes, discharge instructions, wound care, pain management, follow-up scheduling.</p>
+                    <span class="badge">Follow-Up</span>
+                </a>
+
+                <!-- Equipment Management -->
+                <a href="/equipment.html" class="nav-card">
+                    <div class="nav-card-icon">🏥</div>
+                    <h3>Equipment & Supplies</h3>
+                    <p>OR equipment checkout, supply usage tracking, implant inventory, automatic deduction.</p>
+                    <span class="badge">Inventory</span>
+                </a>
+
+                <!-- Billing Preview -->
+                <a href="/billing.html" class="nav-card">
+                    <div class="nav-card-icon">💰</div>
+                    <h3>Billing Preview</h3>
+                    <p>Review auto-generated superbills, CPT/ICD-10 codes, modifiers, and submit for billing.</p>
+                    <span class="badge">Billing</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Empty State (no patient context) -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <h3>No Active Patient Selected</h3>
+            <p>Access this dashboard through PatientTracForge, Revela, or another specialty EMR to begin documentation.</p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM0MzQ5NzAsImV4cCI6MjA0OTAxMDk3MH0.aDjhCLn3wvXMF-3_1JL9CbBJMrm_3pxhEaKDu0HY53M';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const encounterId = urlParams.get('encounter_id');
+        const patientId = urlParams.get('patient_id');
+
+        // Initialize dashboard
+        async function initDashboard() {
+            try {
+                // Check authentication
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                
+                if (error || !session) {
+                    window.location.href = '/app.html';
+                    return;
+                }
+
+                // Load user info
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                document.getElementById('userName').textContent = user.email.split('@')[0];
+
+                // If encounter context exists, load patient data
+                if (encounterId && patientId) {
+                    await loadPatientContext(encounterId, patientId);
+                } else {
+                    showEmptyState();
+                }
+
+            } catch (error) {
+                console.error('Dashboard initialization error:', error);
+                showEmptyState();
+            }
+        }
+
+        // Load patient context from surgery view
+        async function loadPatientContext(encounterId, patientId) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('encounter_id', encounterId)
+                    .single();
+
+                if (error) throw error;
+
+                // Populate patient banner
+                document.getElementById('patientName').textContent = data.patient_name;
+                document.getElementById('patientDOB').textContent = formatDate(data.birth);
+                document.getElementById('patientMRN').textContent = patientId;
+                document.getElementById('encounterType').textContent = data.encounter_type || 'Surgical';
+                
+                if (data.photo_url) {
+                    document.getElementById('patientPhoto').src = data.photo_url;
+                } else {
+                    document.getElementById('patientPhoto').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgba(201,169,110,0.3)"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+                }
+
+                // Update navigation links with context
+                updateNavigationLinks(encounterId, patientId);
+
+                // Show patient banner and navigation
+                document.getElementById('patientBanner').style.display = 'flex';
+                document.getElementById('navGrid').style.display = 'block';
+                document.getElementById('loadingState').style.display = 'none';
+
+            } catch (error) {
+                console.error('Error loading patient context:', error);
+                showEmptyState();
+            }
+        }
+
+        // Update navigation card links with context
+        function updateNavigationLinks(encounterId, patientId) {
+            const cards = document.querySelectorAll('.nav-card');
+            cards.forEach(card => {
+                const href = card.getAttribute('href');
+                card.setAttribute('href', `${href}?encounter_id=${encounterId}&patient_id=${patientId}`);
+            });
+        }
+
+        // Show empty state (no patient context)
+        function showEmptyState() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('patientBanner').style.display = 'none';
+            document.getElementById('navGrid').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return '--/--/----';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+        }
+
+        // Sign out
+        async function signOut() {
+            await supabaseClient.auth.signOut();
+            window.location.href = '/app.html';
+        }
+
+        // Initialize on page load
+        initDashboard();
+    </script>
+</body>
+</html>

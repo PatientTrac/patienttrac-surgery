@@ -1,0 +1,23 @@
+patienttrac-surgery/
+├── landing.html          ← Marketing homepage (public)
+├── app.html             ← Authentication portal (MFA login)
+├── dashboard.html       ← Main surgical navigation (after auth)
+├── operative.html       ← Operative note (to be built)
+├── preop.html          ← Pre-op assessment (to be built)
+├── postop.html         ← Post-op care (to be built)
+├── anesthesia.html     ← Anesthesia record (to be built)
+├── equipment.html      ← Equipment management (to be built)
+├── billing.html        ← Billing preview (to be built)
+├── README.md           ← Deployment instructions
+├── STRUCTURE.txt       ← This file
+└── netlify.toml        ← Netlify configuration (to be created)
+
+URLs:
+- https://patienttrac-surgery.com               → landing.html
+- https://patienttrac-surgery.com/app.html      → app.html (login)
+- https://patienttrac-surgery.com/dashboard.html → dashboard.html
+
+Cross-App Access:
+- From Revela: patienttrac-surgery.com/dashboard?encounter_id=X&token=Y
+- From Forge:  patienttrac-surgery.com/dashboard?encounter_id=X&token=Y
+- From Mind:   patienttrac-surgery.com/dashboard?encounter_id=X&token=Y
