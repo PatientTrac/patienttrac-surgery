@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthopedic Surgery Evaluation | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--blue);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--blue);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .specialty-badge {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        /* Tab Navigation */
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Section Styling */
+        .section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            color: var(--blue);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--blue);
+            border-radius: 2px;
+        }
+        
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        /* ROM Tracker */
+        .rom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .rom-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .rom-joint {
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .rom-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .rom-inputs label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .rom-inputs input {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        /* Strength Testing */
+        .strength-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .strength-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .strength-muscle {
+            font-weight: 600;
+            color: var(--blue);
+            margin-bottom: 0.75rem;
+        }
+        
+        .strength-scale {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .strength-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .strength-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--blue);
+        }
+        
+        .strength-btn.selected {
+            background: var(--blue);
+            color: #ffffff;
+            border-color: var(--blue);
+        }
+        
+        /* Special Tests */
+        .special-tests {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .test-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .test-card:hover {
+            border-color: var(--blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .test-card.positive {
+            border-color: var(--red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .test-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .test-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .test-card.positive .test-checkbox {
+            background: var(--red);
+            border-color: var(--red);
+        }
+        
+        .test-name {
+            font-weight: 600;
+            color: var(--blue);
+        }
+        
+        .test-description {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-left: 2rem;
+        }
+        
+        /* Procedure Cards */
+        .procedure-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .procedure-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .procedure-card:hover {
+            border-color: var(--blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+        }
+        
+        .procedure-card.selected {
+            border-color: var(--blue);
+            background: rgba(59, 130, 246, 0.15);
+        }
+        
+        .procedure-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .procedure-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 0.5rem;
+        }
+        
+        .procedure-cpt {
+            font-size: 0.85rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(201, 169, 110, 0.2);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(201, 169, 110, 0.3);
+        }
+        
+        /* Alert Messages */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--blue);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .patient-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .patient-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .specialty-badge {
+                margin-left: 0;
+            }
+            
+            .tabs {
+                padding: 0 1rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img id="patientPhoto" class="patient-photo" src="https://via.placeholder.com/80" alt="Patient">
+        <div class="patient-info">
+            <h2 id="patientName">Loading Patient...</h2>
+            <div class="patient-meta">
+                <span>📋 MRN: <strong id="patientMRN">---</strong></span>
+                <span>🎂 Age: <strong id="patientAge">---</strong></span>
+                <span>⚥ Sex: <strong id="patientSex">---</strong></span>
+                <span>📞 <strong id="patientPhone">---</strong></span>
+            </div>
+        </div>
+        <div class="specialty-badge">🦴 ORTHOPEDIC SURGERY</div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="history">📋 History & Exam</button>
+        <button class="tab-btn" data-tab="rom">📐 Range of Motion</button>
+        <button class="tab-btn" data-tab="strength">💪 Strength Testing</button>
+        <button class="tab-btn" data-tab="special">🔍 Special Tests</button>
+        <button class="tab-btn" data-tab="plan">🏥 Assessment & Plan</button>
+    </div>
+
+    <!-- Tab Content -->
+    <div id="historyTab" class="tab-content active">
+        <div class="section">
+            <h3 class="section-header">Chief Complaint & History</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Chief Complaint</label>
+                    <textarea id="chiefComplaint" placeholder="Patient's primary complaint in their own words..."></textarea>
+                </div>
+                <div class="form-field">
+                    <label>Onset</label>
+                    <select id="onsetType">
+                        <option value="">Select onset...</option>
+                        <option value="acute">Acute (< 6 weeks)</option>
+                        <option value="subacute">Subacute (6 weeks - 3 months)</option>
+                        <option value="chronic">Chronic (> 3 months)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Mechanism of Injury</label>
+                    <select id="mechanism">
+                        <option value="">Select mechanism...</option>
+                        <option value="traumatic">Traumatic injury</option>
+                        <option value="overuse">Overuse/Repetitive</option>
+                        <option value="degenerative">Degenerative</option>
+                        <option value="atraumatic">Atraumatic</option>
+                        <option value="unknown">Unknown</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Pain Level (0-10)</label>
+                    <input type="number" id="painLevel" min="0" max="10" placeholder="0-10">
+                </div>
+                <div class="form-field">
+                    <label>Location</label>
+                    <select id="painLocation">
+                        <option value="">Select location...</option>
+                        <option value="shoulder">Shoulder</option>
+                        <option value="elbow">Elbow</option>
+                        <option value="wrist">Wrist</option>
+                        <option value="hand">Hand</option>
+                        <option value="hip">Hip</option>
+                        <option value="knee">Knee</option>
+                        <option value="ankle">Ankle</option>
+                        <option value="foot">Foot</option>
+                        <option value="spine_cervical">Cervical Spine</option>
+                        <option value="spine_lumbar">Lumbar Spine</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Laterality</label>
+                    <select id="laterality">
+                        <option value="">Select side...</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                        <option value="bilateral">Bilateral</option>
+                    </select>
+                </div>
+                <div class="form-field full-width">
+                    <label>Prior Treatments</label>
+                    <textarea id="priorTreatments" placeholder="PT, medications, injections, bracing..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Physical Examination</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Inspection</label>
+                    <textarea id="inspection" placeholder="Gait, posture, deformity, swelling, ecchymosis, atrophy..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Palpation</label>
+                    <textarea id="palpation" placeholder="Tenderness, crepitus, effusion, warmth..."></textarea>
+                </div>
+                <div class="form-field">
+                    <label>Neurovascular Status</label>
+                    <select id="neurovascularStatus">
+                        <option value="intact">Intact</option>
+                        <option value="abnormal">Abnormal (see notes)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Circulation</label>
+                    <select id="circulation">
+                        <option value="normal">Normal pulses</option>
+                        <option value="diminished">Diminished</option>
+                        <option value="absent">Absent</option>
+                    </select>
+                </div>
+                <div class="form-field full-width">
+                    <label>Neurovascular Notes</label>
+                    <textarea id="neurovascularNotes" placeholder="Sensory deficits, motor weakness, reflex changes..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="romTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Range of Motion Assessment</h3>
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">
+                Record active and passive range of motion in degrees. Normal values are provided for reference.
+            </p>
+            <div class="rom-grid" id="romGrid">
+                <!-- ROM cards will be dynamically generated -->
+            </div>
+        </div>
+    </div>
+
+    <div id="strengthTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Muscle Strength Testing (0-5 Scale)</h3>
+            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                <strong>Grading Scale:</strong><br>
+                <strong>0</strong> = No contraction | 
+                <strong>1</strong> = Flicker | 
+                <strong>2</strong> = Movement with gravity eliminated | 
+                <strong>3</strong> = Movement against gravity | 
+                <strong>4</strong> = Movement against resistance | 
+                <strong>5</strong> = Normal strength
+            </div>
+            <div class="strength-grid" id="strengthGrid">
+                <!-- Strength cards will be dynamically generated -->
+            </div>
+        </div>
+    </div>
+
+    <div id="specialTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Special Orthopedic Tests</h3>
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 1.5rem;">
+                Select tests that were performed and positive. Click a test to mark as positive.
+            </p>
+            <div class="special-tests" id="specialTestsGrid">
+                <!-- Special tests will be dynamically generated -->
+            </div>
+        </div>
+    </div>
+
+    <div id="planTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Imaging & Diagnostics</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>X-Ray Results</label>
+                    <select id="xrayResults">
+                        <option value="">Not performed</option>
+                        <option value="normal">Normal</option>
+                        <option value="abnormal">Abnormal</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>MRI Results</label>
+                    <select id="mriResults">
+                        <option value="">Not performed</option>
+                        <option value="normal">Normal</option>
+                        <option value="abnormal">Abnormal</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>CT Results</label>
+                    <select id="ctResults">
+                        <option value="">Not performed</option>
+                        <option value="normal">Normal</option>
+                        <option value="abnormal">Abnormal</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>EMG/NCS</label>
+                    <select id="emgResults">
+                        <option value="">Not performed</option>
+                        <option value="normal">Normal</option>
+                        <option value="abnormal">Abnormal</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-field full-width">
+                    <label>Imaging Notes</label>
+                    <textarea id="imagingNotes" placeholder="Describe relevant findings from imaging studies..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Diagnosis & Assessment</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Primary Diagnosis</label>
+                    <input type="text" id="primaryDiagnosis" placeholder="Enter primary orthopedic diagnosis...">
+                </div>
+                <div class="form-field full-width">
+                    <label>Secondary Diagnoses</label>
+                    <textarea id="secondaryDiagnoses" placeholder="Additional diagnoses, one per line..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Recommended Procedure</h3>
+            <div class="procedure-grid" id="procedureGrid">
+                <!-- Procedure cards will be dynamically generated -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Treatment Plan</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Treatment Type</label>
+                    <select id="treatmentType">
+                        <option value="">Select treatment...</option>
+                        <option value="conservative">Conservative management</option>
+                        <option value="injection">Injection therapy</option>
+                        <option value="surgical">Surgical intervention</option>
+                        <option value="pt">Physical therapy</option>
+                        <option value="combined">Combined approach</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Urgency</label>
+                    <select id="urgency">
+                        <option value="elective">Elective</option>
+                        <option value="urgent">Urgent (< 2 weeks)</option>
+                        <option value="emergent">Emergent (< 24 hours)</option>
+                    </select>
+                </div>
+                <div class="form-field full-width">
+                    <label>Treatment Plan Details</label>
+                    <textarea id="treatmentPlan" placeholder="Detailed treatment plan, follow-up schedule, restrictions..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertMessage"></div>
+
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+                ⬅️ Back to Dashboard
+            </button>
+            <button class="btn btn-primary" onclick="saveEvaluation()">
+                <span class="spinner" id="saveSpinner" style="display: none;"></span>
+                💾 Save Evaluation
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5ODM5MjAsImV4cCI6MjA1MDU1OTkyMH0.TJLFmscCP8JhOMx7KRqKKd38VWLq7GqEeV8v8Zg8n-I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let patientData = null;
+        let encounterId = null;
+        let selectedProcedure = null;
+        let romData = {};
+        let strengthData = {};
+        let specialTests = {};
+
+        // ROM reference values by joint
+        const romReference = {
+            shoulder: [
+                { name: 'Flexion', normal: '180°', left: '', right: '' },
+                { name: 'Extension', normal: '60°', left: '', right: '' },
+                { name: 'Abduction', normal: '180°', left: '', right: '' },
+                { name: 'Internal Rotation', normal: '70°', left: '', right: '' },
+                { name: 'External Rotation', normal: '90°', left: '', right: '' }
+            ],
+            elbow: [
+                { name: 'Flexion', normal: '150°', left: '', right: '' },
+                { name: 'Extension', normal: '0°', left: '', right: '' },
+                { name: 'Supination', normal: '90°', left: '', right: '' },
+                { name: 'Pronation', normal: '90°', left: '', right: '' }
+            ],
+            wrist: [
+                { name: 'Flexion', normal: '80°', left: '', right: '' },
+                { name: 'Extension', normal: '70°', left: '', right: '' },
+                { name: 'Radial Deviation', normal: '20°', left: '', right: '' },
+                { name: 'Ulnar Deviation', normal: '30°', left: '', right: '' }
+            ],
+            hip: [
+                { name: 'Flexion', normal: '120°', left: '', right: '' },
+                { name: 'Extension', normal: '30°', left: '', right: '' },
+                { name: 'Abduction', normal: '45°', left: '', right: '' },
+                { name: 'Adduction', normal: '30°', left: '', right: '' },
+                { name: 'Internal Rotation', normal: '45°', left: '', right: '' },
+                { name: 'External Rotation', normal: '45°', left: '', right: '' }
+            ],
+            knee: [
+                { name: 'Flexion', normal: '135°', left: '', right: '' },
+                { name: 'Extension', normal: '0°', left: '', right: '' }
+            ],
+            ankle: [
+                { name: 'Dorsiflexion', normal: '20°', left: '', right: '' },
+                { name: 'Plantarflexion', normal: '50°', left: '', right: '' },
+                { name: 'Inversion', normal: '35°', left: '', right: '' },
+                { name: 'Eversion', normal: '15°', left: '', right: '' }
+            ]
+        };
+
+        // Muscle groups by region
+        const strengthGroups = {
+            shoulder: ['Deltoid', 'Rotator Cuff', 'Biceps', 'Triceps'],
+            elbow: ['Biceps', 'Triceps', 'Brachioradialis'],
+            wrist: ['Wrist Flexors', 'Wrist Extensors'],
+            hand: ['Grip Strength', 'Finger Flexors', 'Finger Extensors'],
+            hip: ['Hip Flexors', 'Hip Extensors', 'Hip Abductors', 'Hip Adductors'],
+            knee: ['Quadriceps', 'Hamstrings'],
+            ankle: ['Dorsiflexors', 'Plantarflexors', 'Inverters', 'Everters']
+        };
+
+        // Special orthopedic tests
+        const specialTestsList = [
+            { name: 'Lachman Test', desc: 'ACL integrity (knee)', category: 'knee' },
+            { name: 'Anterior Drawer', desc: 'ACL/ankle stability', category: 'knee' },
+            { name: 'McMurray Test', desc: 'Meniscal tear (knee)', category: 'knee' },
+            { name: 'Apley Compression', desc: 'Meniscal pathology', category: 'knee' },
+            { name: 'Valgus Stress', desc: 'MCL integrity', category: 'knee' },
+            { name: 'Varus Stress', desc: 'LCL integrity', category: 'knee' },
+            { name: 'Empty Can Test', desc: 'Supraspinatus (shoulder)', category: 'shoulder' },
+            { name: 'Hawkins-Kennedy', desc: 'Impingement (shoulder)', category: 'shoulder' },
+            { name: 'Neer Test', desc: 'Impingement (shoulder)', category: 'shoulder' },
+            { name: "O'Brien Test", desc: 'Labral tear (shoulder)', category: 'shoulder' },
+            { name: 'Speed Test', desc: 'Biceps tendonitis', category: 'shoulder' },
+            { name: 'Yergason Test', desc: 'Biceps instability', category: 'shoulder' },
+            { name: 'FABER Test', desc: 'Hip pathology', category: 'hip' },
+            { name: 'FADIR Test', desc: 'Hip impingement', category: 'hip' },
+            { name: 'Trendelenburg', desc: 'Hip abductor weakness', category: 'hip' },
+            { name: 'Straight Leg Raise', desc: 'Nerve root irritation', category: 'spine' },
+            { name: 'Spurling Test', desc: 'Cervical radiculopathy', category: 'spine' },
+            { name: 'Tinel Sign', desc: 'Nerve compression', category: 'nerve' },
+            { name: 'Phalen Test', desc: 'Carpal tunnel syndrome', category: 'wrist' }
+        ];
+
+        // Orthopedic procedures
+        const procedures = [
+            { name: 'Knee Arthroscopy', cpt: '29881', icon: '🦴', category: 'knee' },
+            { name: 'ACL Reconstruction', cpt: '29888', icon: '🦴', category: 'knee' },
+            { name: 'Meniscus Repair', cpt: '29882', icon: '🦴', category: 'knee' },
+            { name: 'Total Knee Arthroplasty', cpt: '27447', icon: '🦴', category: 'knee' },
+            { name: 'Shoulder Arthroscopy', cpt: '29826', icon: '🦴', category: 'shoulder' },
+            { name: 'Rotator Cuff Repair', cpt: '29827', icon: '🦴', category: 'shoulder' },
+            { name: 'Total Shoulder Arthroplasty', cpt: '23472', icon: '🦴', category: 'shoulder' },
+            { name: 'Hip Arthroscopy', cpt: '29914', icon: '🦴', category: 'hip' },
+            { name: 'Total Hip Arthroplasty', cpt: '27130', icon: '🦴', category: 'hip' },
+            { name: 'ORIF Fracture', cpt: '27524', icon: '🔧', category: 'trauma' },
+            { name: 'Carpal Tunnel Release', cpt: '64721', icon: '✋', category: 'hand' },
+            { name: 'Trigger Finger Release', cpt: '26055', icon: '✋', category: 'hand' },
+            { name: 'Ankle Arthroscopy', cpt: '29891', icon: '🦶', category: 'ankle' },
+            { name: 'Lumbar Discectomy', cpt: '63030', icon: '🔧', category: 'spine' },
+            { name: 'Spinal Fusion', cpt: '22612', icon: '🔧', category: 'spine' }
+        ];
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            validateToken();
+            setupTabs();
+            initializeROMGrid();
+            initializeStrengthGrid();
+            initializeSpecialTests();
+            initializeProcedureGrid();
+        });
+
+        async function validateToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            encounterId = params.get('encounter_id');
+            const patientId = params.get('patient_id');
+
+            if (!token || !encounterId || !patientId) {
+                window.location.href = 'app.html?error=missing_params';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.rpc('validate_cross_app_token', { token_value: token });
+                
+                if (error || !data) {
+                    window.location.href = 'app.html?error=invalid_token';
+                    return;
+                }
+
+                await loadPatientData(patientId, encounterId);
+            } catch (err) {
+                console.error('Token validation error:', err);
+                window.location.href = 'app.html?error=validation_failed';
+            }
+        }
+
+        async function loadPatientData(patientId, encounterIdParam) {
+            try {
+                const { data, error } = await supabase
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('patient_id', patientId)
+                    .eq('encounter_id', encounterIdParam)
+                    .single();
+
+                if (error) throw error;
+
+                patientData = data;
+                populatePatientBanner(data);
+            } catch (err) {
+                console.error('Error loading patient data:', err);
+                showAlert('Failed to load patient data', 'error');
+            }
+        }
+
+        function populatePatientBanner(data) {
+            document.getElementById('patientName').textContent = data.patient_name || 'Unknown Patient';
+            document.getElementById('patientMRN').textContent = data.mrn || 'N/A';
+            document.getElementById('patientAge').textContent = data.age || 'N/A';
+            document.getElementById('patientSex').textContent = data.sex || 'N/A';
+            document.getElementById('patientPhone').textContent = data.phone || 'N/A';
+            
+            if (data.photo_url) {
+                document.getElementById('patientPhoto').src = data.photo_url;
+            }
+        }
+
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.dataset.tab;
+                    
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tabName}Tab`).classList.add('active');
+                });
+            });
+        }
+
+        function initializeROMGrid() {
+            const grid = document.getElementById('romGrid');
+            
+            Object.entries(romReference).forEach(([joint, movements]) => {
+                const card = document.createElement('div');
+                card.className = 'rom-card';
+                
+                let html = `<div class="rom-joint">${joint.charAt(0).toUpperCase() + joint.slice(1)}</div>`;
+                
+                movements.forEach((movement, idx) => {
+                    html += `
+                        <div style="margin-bottom: 0.75rem;">
+                            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-bottom: 0.25rem;">
+                                ${movement.name} <span style="color: var(--gold);">(${movement.normal})</span>
+                            </div>
+                            <div class="rom-inputs">
+                                <div>
+                                    <label>Left</label>
+                                    <input type="number" data-joint="${joint}" data-movement="${idx}" data-side="left" 
+                                           placeholder="°" style="width: 100%;">
+                                </div>
+                                <div>
+                                    <label>Right</label>
+                                    <input type="number" data-joint="${joint}" data-movement="${idx}" data-side="right" 
+                                           placeholder="°" style="width: 100%;">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                card.innerHTML = html;
+                grid.appendChild(card);
+            });
+            
+            // Add event listeners to capture ROM data
+            grid.querySelectorAll('input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const joint = e.target.dataset.joint;
+                    const movement = e.target.dataset.movement;
+                    const side = e.target.dataset.side;
+                    
+                    if (!romData[joint]) romData[joint] = {};
+                    if (!romData[joint][movement]) romData[joint][movement] = {};
+                    
+                    romData[joint][movement][side] = e.target.value;
+                });
+            });
+        }
+
+        function initializeStrengthGrid() {
+            const grid = document.getElementById('strengthGrid');
+            
+            Object.entries(strengthGroups).forEach(([region, muscles]) => {
+                muscles.forEach(muscle => {
+                    const card = document.createElement('div');
+                    card.className = 'strength-card';
+                    
+                    let html = `<div class="strength-muscle">${muscle}</div>`;
+                    html += `<div class="strength-scale">`;
+                    
+                    for (let i = 0; i <= 5; i++) {
+                        html += `<button class="strength-btn" data-muscle="${muscle}" data-score="${i}">${i}</button>`;
+                    }
+                    
+                    html += `</div>`;
+                    card.innerHTML = html;
+                    grid.appendChild(card);
+                });
+            });
+            
+            // Add click handlers
+            grid.querySelectorAll('.strength-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const muscle = btn.dataset.muscle;
+                    const score = btn.dataset.score;
+                    
+                    // Remove selected from siblings
+                    btn.parentElement.querySelectorAll('.strength-btn').forEach(b => {
+                        b.classList.remove('selected');
+                    });
+                    
+                    btn.classList.add('selected');
+                    strengthData[muscle] = score;
+                });
+            });
+        }
+
+        function initializeSpecialTests() {
+            const grid = document.getElementById('specialTestsGrid');
+            
+            specialTestsList.forEach(test => {
+                const card = document.createElement('div');
+                card.className = 'test-card';
+                card.dataset.testName = test.name;
+                
+                card.innerHTML = `
+                    <div class="test-header">
+                        <div class="test-checkbox">✓</div>
+                        <div class="test-name">${test.name}</div>
+                    </div>
+                    <div class="test-description">${test.desc}</div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    card.classList.toggle('positive');
+                    specialTests[test.name] = card.classList.contains('positive');
+                });
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function initializeProcedureGrid() {
+            const grid = document.getElementById('procedureGrid');
+            
+            procedures.forEach(proc => {
+                const card = document.createElement('div');
+                card.className = 'procedure-card';
+                card.dataset.procedureName = proc.name;
+                
+                card.innerHTML = `
+                    <div class="procedure-icon">${proc.icon}</div>
+                    <div class="procedure-name">${proc.name}</div>
+                    <div class="procedure-cpt">CPT ${proc.cpt}</div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    grid.querySelectorAll('.procedure-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    card.classList.add('selected');
+                    selectedProcedure = proc;
+                });
+                
+                grid.appendChild(card);
+            });
+        }
+
+        async function saveEvaluation() {
+            const spinner = document.getElementById('saveSpinner');
+            spinner.style.display = 'inline-block';
+
+            try {
+                // Collect all form data
+                const evaluationData = {
+                    org_id: patientData.org_id,
+                    patient_id: patientData.patient_id,
+                    encounter_id: encounterId,
+                    provider_id: patientData.provider_id,
+                    
+                    // History
+                    chief_complaint: document.getElementById('chiefComplaint').value,
+                    onset_type: document.getElementById('onsetType').value,
+                    mechanism_of_injury: document.getElementById('mechanism').value,
+                    pain_level: parseInt(document.getElementById('painLevel').value) || null,
+                    pain_location: document.getElementById('painLocation').value,
+                    laterality: document.getElementById('laterality').value,
+                    prior_treatments: document.getElementById('priorTreatments').value,
+                    
+                    // Exam
+                    inspection_findings: document.getElementById('inspection').value,
+                    palpation_findings: document.getElementById('palpation').value,
+                    neurovascular_status: document.getElementById('neurovascularStatus').value,
+                    circulation_status: document.getElementById('circulation').value,
+                    neurovascular_notes: document.getElementById('neurovascularNotes').value,
+                    
+                    // ROM & Strength (stored as JSONB)
+                    rom_measurements: romData,
+                    strength_testing: strengthData,
+                    special_tests_performed: specialTests,
+                    
+                    // Imaging
+                    xray_results: document.getElementById('xrayResults').value || null,
+                    mri_results: document.getElementById('mriResults').value || null,
+                    ct_results: document.getElementById('ctResults').value || null,
+                    emg_results: document.getElementById('emgResults').value || null,
+                    imaging_notes: document.getElementById('imagingNotes').value,
+                    
+                    // Assessment
+                    primary_diagnosis: document.getElementById('primaryDiagnosis').value,
+                    secondary_diagnoses: document.getElementById('secondaryDiagnoses').value,
+                    
+                    // Plan
+                    recommended_procedure: selectedProcedure?.name || null,
+                    procedure_cpt_code: selectedProcedure?.cpt || null,
+                    treatment_type: document.getElementById('treatmentType').value,
+                    urgency: document.getElementById('urgency').value,
+                    treatment_plan: document.getElementById('treatmentPlan').value
+                };
+
+                const { error } = await supabase
+                    .from('orthopedic_pre_op')
+                    .insert([evaluationData]);
+
+                if (error) throw error;
+
+                showAlert('✅ Orthopedic evaluation saved successfully!', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Save error:', err);
+                showAlert('❌ Failed to save evaluation: ' + err.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
