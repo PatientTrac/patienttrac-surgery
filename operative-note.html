@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operative Note | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            padding-bottom: 100px;
+        }
+        
+        /* Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--cyan);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--cyan);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .or-badge {
+            background: linear-gradient(135deg, var(--cyan) 0%, #0891b2 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-left: auto;
+        }
+        
+        /* Tabs */
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn.active {
+            color: var(--cyan);
+            border-bottom-color: var(--cyan);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            color: white;
+            background: rgba(0, 212, 255, 0.05);
+        }
+        
+        /* Content */
+        .content-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-card h3 {
+            color: var(--cyan);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-card h3::before {
+            content: "";
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--cyan) 0%, var(--purple) 100%);
+            border-radius: 2px;
+        }
+        
+        /* Code Search */
+        .code-search {
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(6, 14, 28, 0.98);
+            border: 1px solid var(--cyan);
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        
+        .search-results.active {
+            display: block;
+        }
+        
+        .search-result-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .search-result-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .result-code {
+            color: var(--cyan);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .result-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        /* Selected Codes */
+        .selected-codes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .code-tag {
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid var(--cyan);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .code-tag .code {
+            color: var(--cyan);
+            font-weight: 600;
+        }
+        
+        .code-tag .remove {
+            background: var(--red);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        /* Laterality Selector */
+        .laterality-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .laterality-btn {
+            flex: 1;
+            background: rgba(6, 14, 28, 0.6);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .laterality-btn:hover {
+            border-color: var(--cyan);
+            background: rgba(0, 212, 255, 0.05);
+        }
+        
+        .laterality-btn.selected {
+            background: var(--cyan);
+            color: var(--darker-bg);
+            border-color: var(--cyan);
+        }
+        
+        /* Implant Tracking */
+        .implant-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .implant-item {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .implant-item h4 {
+            color: var(--cyan);
+            margin-bottom: 1rem;
+        }
+        
+        /* Action Bar */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.98) 0%, rgba(6, 14, 28, 0.98) 100%);
+            border-top: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            z-index: 50;
+        }
+        
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cyan) 0%, #0891b2 100%);
+            color: white;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gold);
+            color: var(--darker-bg);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--green) 0%, #059669 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img id="patientPhoto" src="https://via.placeholder.com/80" alt="Patient" class="patient-photo">
+        <div class="patient-info">
+            <h2 id="patientName">Loading...</h2>
+            <div class="patient-meta">
+                <span>🆔 MRN: <strong id="patientMRN">--</strong></span>
+                <span>📅 Date: <strong id="surgeryDate">--</strong></span>
+                <span>🏥 Surgeon: <strong id="surgeonName">--</strong></span>
+            </div>
+        </div>
+        <div class="or-badge" id="orRoom">
+            OR 1
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="switchTab(0)">Diagnosis & Procedures</button>
+        <button class="tab-btn" onclick="switchTab(1)">Operative Details</button>
+        <button class="tab-btn" onclick="switchTab(2)">Findings & Specimens</button>
+        <button class="tab-btn" onclick="switchTab(3)">Closure & Post-Op</button>
+    </nav>
+
+    <!-- Content -->
+    <div class="content-wrapper">
+        <!-- Tab 1: Diagnosis & Procedures -->
+        <div class="tab-content active">
+            <div class="section-card">
+                <h3>Pre-Operative Diagnosis</h3>
+                <div class="code-search">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="icdSearch"
+                        placeholder="Search ICD-10 codes... (e.g., morbid obesity, diabetes)"
+                        oninput="searchICD(this.value)"
+                    >
+                    <div class="search-results" id="icdResults"></div>
+                </div>
+                <div class="selected-codes" id="selectedICD"></div>
+            </div>
+
+            <div class="section-card">
+                <h3>Procedures Performed</h3>
+                <div class="code-search">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="cptSearch"
+                        placeholder="Search CPT codes... (e.g., gastric sleeve, bypass, laparoscopic)"
+                        oninput="searchCPT(this.value)"
+                    >
+                    <div class="search-results" id="cptResults"></div>
+                </div>
+                <div class="selected-codes" id="selectedCPT"></div>
+            </div>
+
+            <div class="section-card">
+                <h3>Post-Operative Diagnosis</h3>
+                <div class="form-group">
+                    <textarea id="postOpDiagnosis" placeholder="Enter post-operative diagnosis (can differ from pre-op if intraoperative findings change diagnosis)..."></textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Laterality</h3>
+                <div class="laterality-buttons">
+                    <button class="laterality-btn" onclick="selectLaterality(this, 'N/A')">N/A</button>
+                    <button class="laterality-btn" onclick="selectLaterality(this, 'Left')">Left</button>
+                    <button class="laterality-btn" onclick="selectLaterality(this, 'Right')">Right</button>
+                    <button class="laterality-btn" onclick="selectLaterality(this, 'Bilateral')">Bilateral</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Operative Details -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Anesthesia & Positioning</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Anesthesia Type</label>
+                        <select id="anesthesiaType">
+                            <option value="General">General Endotracheal</option>
+                            <option value="Spinal">Spinal</option>
+                            <option value="Epidural">Epidural</option>
+                            <option value="MAC">MAC (Monitored Anesthesia Care)</option>
+                            <option value="Regional">Regional Block</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Anesthesia Provider</label>
+                        <input type="text" id="anesthesiaProvider" placeholder="Anesthesiologist name">
+                    </div>
+                    <div class="form-group">
+                        <label>Patient Position</label>
+                        <select id="patientPosition">
+                            <option value="Supine">Supine</option>
+                            <option value="Prone">Prone</option>
+                            <option value="Lateral">Lateral Decubitus</option>
+                            <option value="Lithotomy">Lithotomy</option>
+                            <option value="Reverse Trendelenburg">Reverse Trendelenburg</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Surgical Approach & Technique</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Surgical Approach</label>
+                        <select id="surgicalApproach">
+                            <option value="Laparoscopic">Laparoscopic</option>
+                            <option value="Robotic">Robotic-Assisted</option>
+                            <option value="Open">Open</option>
+                            <option value="Converted">Converted to Open</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Ports/Incisions</label>
+                        <input type="number" id="numPorts" min="1" max="10" placeholder="e.g., 5">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Operative Technique Description</label>
+                    <textarea id="operativeTechnique" rows="6" placeholder="Describe the surgical technique step-by-step: entry method, port placement, dissection, anastomosis, stapling, etc."></textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Implants & Devices</h3>
+                <div class="implant-grid">
+                    <div class="implant-item">
+                        <h4>Implant Details</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Manufacturer</label>
+                                <input type="text" id="implantManufacturer" placeholder="e.g., Medtronic, Ethicon">
+                            </div>
+                            <div class="form-group">
+                                <label>Device/Product Name</label>
+                                <input type="text" id="implantProduct" placeholder="e.g., EEA Stapler">
+                            </div>
+                            <div class="form-group">
+                                <label>Size/Model</label>
+                                <input type="text" id="implantSize" placeholder="e.g., 25mm">
+                            </div>
+                            <div class="form-group">
+                                <label>Serial/Lot Number</label>
+                                <input type="text" id="implantSerial" placeholder="Serial or lot number">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Findings & Specimens -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Intraoperative Findings</h3>
+                <div class="form-group">
+                    <textarea id="intraopFindings" rows="5" placeholder="Document visual findings, anatomical variations, adhesions, inflammation, pathology observed..."></textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Tissue Removed/Specimens</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Specimen Description</label>
+                        <input type="text" id="specimenDescription" placeholder="e.g., Gastric tissue, Appendix, Gallbladder">
+                    </div>
+                    <div class="form-group">
+                        <label>Specimen Weight (grams)</label>
+                        <input type="number" id="specimenWeight" step="0.1" placeholder="Weight in grams">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>
+                        <input type="checkbox" id="pathologyRequired" style="width: 20px; height: 20px; vertical-align: middle;">
+                        <strong style="margin-left: 0.5rem;">Send to Pathology</strong>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Estimated Blood Loss & Fluids</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Estimated Blood Loss (mL)</label>
+                        <input type="number" id="ebl" placeholder="EBL in mL" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Crystalloid Given (mL)</label>
+                        <input type="number" id="crystalloid" placeholder="IV fluids in mL" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Urine Output (mL)</label>
+                        <input type="number" id="urineOutput" placeholder="UOP in mL" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Drains & Tubes</h3>
+                <div class="form-group">
+                    <textarea id="drainsPlaced" rows="3" placeholder="Describe any drains, tubes, or catheters placed (type, size, location, exit site)..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Closure & Post-Op -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Closure Technique</h3>
+                <div class="form-group">
+                    <textarea id="closureTechnique" rows="4" placeholder="Describe fascial closure, skin closure, suture types, staples, steri-strips, dressings applied..."></textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Complications</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="noComplications" onclick="toggleComplications()" style="width: 20px; height: 20px; vertical-align: middle;">
+                        <strong style="margin-left: 0.5rem;">None - No intraoperative complications</strong>
+                    </label>
+                </div>
+                <div class="form-group" id="complicationsField" style="margin-top: 1rem; display: none;">
+                    <textarea id="complications" rows="4" placeholder="Document any complications encountered (bleeding, injury, equipment failure, conversion to open, etc.)"></textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Patient Condition & Disposition</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Condition at End of Procedure</label>
+                        <select id="patientCondition">
+                            <option value="Stable">Stable</option>
+                            <option value="Critical">Critical</option>
+                            <option value="Guarded">Guarded</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Disposition</label>
+                        <select id="disposition">
+                            <option value="PACU">PACU</option>
+                            <option value="ICU">ICU</option>
+                            <option value="Floor">Floor/Inpatient Unit</option>
+                            <option value="Home">Discharged Home</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Post-Operative Plan</h3>
+                <div class="form-group">
+                    <textarea id="postopPlan" rows="5" placeholder="Document post-operative orders, diet progression, activity restrictions, pain management, DVT prophylaxis, follow-up plan..."></textarea>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Operative Times</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Incision Time</label>
+                        <input type="time" id="incisionTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Closure Time</label>
+                        <input type="time" id="closureTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Total Duration (minutes)</label>
+                        <input type="number" id="duration" placeholder="Auto-calculated" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Surgeon Signature</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Attending Surgeon</label>
+                        <input type="text" id="attendingSurgeon" placeholder="Surgeon name">
+                    </div>
+                    <div class="form-group">
+                        <label>Assistant Surgeon (if any)</label>
+                        <input type="text" id="assistantSurgeon" placeholder="Assistant name">
+                    </div>
+                    <div class="form-group">
+                        <label>Date Dictated</label>
+                        <input type="date" id="dictatedDate" value="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+        <div style="display: flex; gap: 1rem;">
+            <button onclick="saveOperativeNote('draft')" class="btn btn-secondary">Save Draft</button>
+            <button onclick="saveOperativeNote('final')" class="btn btn-primary">Sign & Finalize</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTM5MTE0ODMsImV4cCI6MjAyOTQ4NzQ4M30.zAkrBNQhU4_yqvj6PaSV5eKgqd5CyLFzFhZA7Y4XQ6o';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const encounterId = urlParams.get('encounter_id');
+        const patientId = urlParams.get('patient_id');
+        const token = urlParams.get('token');
+
+        let selectedICDCodes = [];
+        let selectedCPTCodes = [];
+        let selectedLaterality = 'N/A';
+
+        // Load patient data
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('dictatedDate').valueAsDate = new Date();
+            document.getElementById('surgeryDate').textContent = new Date().toLocaleDateString();
+
+            if (!encounterId || !patientId || !token) {
+                alert('Invalid access.');
+                window.location.href = '/app.html';
+                return;
+            }
+
+            const { data: patient, error } = await supabase
+                .from('surgery_encounter_view')
+                .select('*')
+                .eq('encounter_id', encounterId)
+                .single();
+
+            if (error || !patient) return;
+
+            document.getElementById('patientName').textContent = `${patient.first_name} ${patient.last_name}`;
+            document.getElementById('patientMRN').textContent = patient.mrn || '--';
+            document.getElementById('surgeonName').textContent = patient.provider_name || 'Dr. Surgeon';
+            
+            if (patient.photo_url) {
+                document.getElementById('patientPhoto').src = patient.photo_url;
+            }
+
+            // Calculate duration when times change
+            document.getElementById('incisionTime').addEventListener('change', calculateDuration);
+            document.getElementById('closureTime').addEventListener('change', calculateDuration);
+        });
+
+        // Tab switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => tab.classList.toggle('active', i === index));
+            contents.forEach((content, i) => content.classList.toggle('active', i === index));
+        }
+
+        // ICD-10 Search
+        async function searchICD(query) {
+            if (query.length < 2) {
+                document.getElementById('icdResults').classList.remove('active');
+                return;
+            }
+
+            const { data, error } = await supabase.rpc('search_icd10', { search_query: query });
+
+            if (error || !data) return;
+
+            const resultsDiv = document.getElementById('icdResults');
+            resultsDiv.innerHTML = data.slice(0, 10).map(code => `
+                <div class="search-result-item" onclick="addICD('${code.code}', '${code.description.replace(/'/g, "\\'")}')">
+                    <div class="result-code">${code.code}</div>
+                    <div class="result-description">${code.description}</div>
+                </div>
+            `).join('');
+            resultsDiv.classList.add('active');
+        }
+
+        // Add ICD code
+        function addICD(code, description) {
+            if (selectedICDCodes.find(c => c.code === code)) return;
+
+            selectedICDCodes.push({ code, description });
+            renderSelectedCodes('icd');
+            document.getElementById('icdResults').classList.remove('active');
+            document.getElementById('icdSearch').value = '';
+        }
+
+        // CPT Search
+        async function searchCPT(query) {
+            if (query.length < 2) {
+                document.getElementById('cptResults').classList.remove('active');
+                return;
+            }
+
+            const { data, error } = await supabase.rpc('search_cpt', { search_query: query });
+
+            if (error || !data) return;
+
+            const resultsDiv = document.getElementById('cptResults');
+            resultsDiv.innerHTML = data.slice(0, 10).map(code => `
+                <div class="search-result-item" onclick="addCPT('${code.code}', '${code.description.replace(/'/g, "\\'")}')">
+                    <div class="result-code">CPT ${code.code}</div>
+                    <div class="result-description">${code.description}</div>
+                </div>
+            `).join('');
+            resultsDiv.classList.add('active');
+        }
+
+        // Add CPT code
+        function addCPT(code, description) {
+            if (selectedCPTCodes.find(c => c.code === code)) return;
+
+            selectedCPTCodes.push({ code, description });
+            renderSelectedCodes('cpt');
+            document.getElementById('cptResults').classList.remove('active');
+            document.getElementById('cptSearch').value = '';
+        }
+
+        // Render selected codes
+        function renderSelectedCodes(type) {
+            const codes = type === 'icd' ? selectedICDCodes : selectedCPTCodes;
+            const container = document.getElementById(type === 'icd' ? 'selectedICD' : 'selectedCPT');
+
+            container.innerHTML = codes.map((c, idx) => `
+                <div class="code-tag">
+                    <span class="code">${c.code}</span>
+                    <span>${c.description.substring(0, 50)}${c.description.length > 50 ? '...' : ''}</span>
+                    <span class="remove" onclick="removeCode('${type}', ${idx})">×</span>
+                </div>
+            `).join('');
+        }
+
+        // Remove code
+        function removeCode(type, index) {
+            if (type === 'icd') {
+                selectedICDCodes.splice(index, 1);
+            } else {
+                selectedCPTCodes.splice(index, 1);
+            }
+            renderSelectedCodes(type);
+        }
+
+        // Select laterality
+        function selectLaterality(btn, value) {
+            document.querySelectorAll('.laterality-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedLaterality = value;
+        }
+
+        // Toggle complications
+        function toggleComplications() {
+            const field = document.getElementById('complicationsField');
+            const checked = document.getElementById('noComplications').checked;
+            field.style.display = checked ? 'none' : 'block';
+        }
+
+        // Calculate duration
+        function calculateDuration() {
+            const incision = document.getElementById('incisionTime').value;
+            const closure = document.getElementById('closureTime').value;
+
+            if (incision && closure) {
+                const start = new Date(`2000-01-01 ${incision}`);
+                const end = new Date(`2000-01-01 ${closure}`);
+                const minutes = Math.round((end - start) / 60000);
+                document.getElementById('duration').value = minutes > 0 ? minutes : '';
+            }
+        }
+
+        // Save operative note
+        async function saveOperativeNote(status) {
+            if (selectedCPTCodes.length === 0) {
+                alert('Please select at least one CPT procedure code.');
+                return;
+            }
+
+            const saveData = {
+                org_id: '00000000-0000-0000-0000-000000000001',
+                patient_id: parseInt(patientId),
+                encounter_id: parseInt(encounterId),
+                provider_id: 1,
+                preop_diagnosis_codes: selectedICDCodes.map(c => c.code),
+                procedure_codes: selectedCPTCodes.map(c => c.code),
+                postop_diagnosis: document.getElementById('postOpDiagnosis').value,
+                laterality: selectedLaterality,
+                anesthesia_type: document.getElementById('anesthesiaType').value,
+                anesthesia_provider: document.getElementById('anesthesiaProvider').value,
+                patient_position: document.getElementById('patientPosition').value,
+                surgical_approach: document.getElementById('surgicalApproach').value,
+                operative_technique: document.getElementById('operativeTechnique').value,
+                implant_details: {
+                    manufacturer: document.getElementById('implantManufacturer').value,
+                    product: document.getElementById('implantProduct').value,
+                    size: document.getElementById('implantSize').value,
+                    serial: document.getElementById('implantSerial').value
+                },
+                intraop_findings: document.getElementById('intraopFindings').value,
+                specimen_description: document.getElementById('specimenDescription').value,
+                specimen_weight_grams: parseFloat(document.getElementById('specimenWeight').value) || null,
+                pathology_required: document.getElementById('pathologyRequired').checked,
+                estimated_blood_loss_ml: parseInt(document.getElementById('ebl').value) || 0,
+                crystalloid_ml: parseInt(document.getElementById('crystalloid').value) || 0,
+                urine_output_ml: parseInt(document.getElementById('urineOutput').value) || 0,
+                drains_placed: document.getElementById('drainsPlaced').value,
+                closure_technique: document.getElementById('closureTechnique').value,
+                complications: document.getElementById('noComplications').checked ? 'None' : document.getElementById('complications').value,
+                patient_condition: document.getElementById('patientCondition').value,
+                disposition: document.getElementById('disposition').value,
+                postop_plan: document.getElementById('postopPlan').value,
+                incision_time: document.getElementById('incisionTime').value,
+                closure_time: document.getElementById('closureTime').value,
+                total_duration_minutes: parseInt(document.getElementById('duration').value) || null,
+                attending_surgeon: document.getElementById('attendingSurgeon').value,
+                assistant_surgeon: document.getElementById('assistantSurgeon').value || null,
+                status: status,
+                dictated_date: document.getElementById('dictatedDate').value,
+                created_at: new Date().toISOString()
+            };
+
+            const { data, error } = await supabase
+                .from('operative_note_detailed')
+                .insert(saveData);
+
+            if (error) {
+                console.error('Error:', error);
+                alert('Error saving: ' + error.message);
+            } else {
+                // Auto-populate superbill
+                await createSuperbill();
+                
+                alert(status === 'final' ? '✅ Operative note signed and finalized!' : '✅ Draft saved successfully!');
+                window.location.href = '/dashboard.html?encounter_id=' + encounterId + '&patient_id=' + patientId + '&token=' + token;
+            }
+        }
+
+        // Create superbill from operative note
+        async function createSuperbill() {
+            for (const cpt of selectedCPTCodes) {
+                await supabase.from('superbill').insert({
+                    org_id: '00000000-0000-0000-0000-000000000001',
+                    patient_id: parseInt(patientId),
+                    encounter_id: parseInt(encounterId),
+                    provider_id: 1,
+                    cpt_code: cpt.code,
+                    icd10_codes: selectedICDCodes.map(c => c.code),
+                    service_date: new Date().toISOString().split('T')[0],
+                    units: 1,
+                    created_at: new Date().toISOString()
+                });
+            }
+        }
+    </script>
+</body>
+</html>
