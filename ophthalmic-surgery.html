@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ophthalmic Surgery | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #8b5cf6;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--purple);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--purple);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .specialty-badge {
+            background: linear-gradient(135deg, var(--purple) 0%, #a855f7 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--purple);
+            background: rgba(139, 92, 246, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--purple);
+            border-bottom-color: var(--purple);
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            color: var(--purple);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--purple);
+            border-radius: 2px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .eye-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .eye-btn {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .eye-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--purple);
+        }
+        
+        .eye-btn.active {
+            background: var(--purple);
+            color: #ffffff;
+            border-color: var(--purple);
+        }
+        
+        .va-converter {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .va-converter h4 {
+            color: var(--purple);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .va-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        
+        .va-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .va-input-group label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .biometry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .biometry-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .biometry-label {
+            font-weight: 700;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .biometry-unit {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .iol-calculator {
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .iol-result {
+            background: var(--purple);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .iol-power {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple) 0%, #a855f7 100%);
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(201, 169, 110, 0.2);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+        
+        .btn-calculate {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--purple);
+            border: 1px solid var(--purple);
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--purple);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .patient-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .patient-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .specialty-badge {
+                margin-left: 0;
+            }
+            
+            .tabs {
+                padding: 0 1rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .va-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="patient-banner">
+        <img id="patientPhoto" class="patient-photo" src="https://via.placeholder.com/80" alt="Patient">
+        <div class="patient-info">
+            <h2 id="patientName">Loading Patient...</h2>
+            <div class="patient-meta">
+                <span>📋 MRN: <strong id="patientMRN">---</strong></span>
+                <span>🎂 Age: <strong id="patientAge">---</strong></span>
+                <span>⚥ Sex: <strong id="patientSex">---</strong></span>
+                <span>📞 <strong id="patientPhone">---</strong></span>
+            </div>
+        </div>
+        <div class="specialty-badge">👁️ OPHTHALMIC SURGERY</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="assessment">📋 Pre-Operative</button>
+        <button class="tab-btn" data-tab="vision">👓 Visual Acuity</button>
+        <button class="tab-btn" data-tab="biometry">📐 Biometry & IOL</button>
+        <button class="tab-btn" data-tab="procedure">🔬 Surgical Procedure</button>
+        <button class="tab-btn" data-tab="postop">📊 Post-Operative</button>
+    </div>
+
+    <div id="assessmentTab" class="tab-content active">
+        <div class="section">
+            <h3 class="section-header">Chief Complaint & History</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Chief Complaint</label>
+                    <textarea id="chiefComplaint" placeholder="Blurred vision, cataracts, floaters, eye pain..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Ocular History</h3>
+            <div class="checkbox-group">
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hx_prior_surgery">
+                    <span>Prior Eye Surgery</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hx_glaucoma">
+                    <span>Glaucoma</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hx_diabetic_retinopathy">
+                    <span>Diabetic Retinopathy</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hx_macular_degeneration">
+                    <span>Macular Degeneration</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hx_amblyopia">
+                    <span>Amblyopia</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hx_strabismus">
+                    <span>Strabismus</span>
+                </label>
+            </div>
+            <div class="form-grid" style="margin-top: 1rem;">
+                <div class="form-field">
+                    <label>Current Eye Medications</label>
+                    <textarea id="currentMedications" placeholder="Glaucoma drops, dry eye drops..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="visionTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Eye Selection</h3>
+            <div class="eye-selector">
+                <button class="eye-btn active" data-eye="OD" onclick="selectEye('OD')">
+                    👁️ OD (Right Eye)
+                </button>
+                <button class="eye-btn" data-eye="OS" onclick="selectEye('OS')">
+                    👁️ OS (Left Eye)
+                </button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Visual Acuity - <span id="currentEye">OD</span></h3>
+            <div class="va-converter">
+                <h4>Visual Acuity Converter (Auto-converts between formats)</h4>
+                <div class="va-inputs">
+                    <div class="va-input-group">
+                        <label>Snellen</label>
+                        <input type="text" id="va_snellen" placeholder="20/40" onchange="convertVA('snellen')">
+                    </div>
+                    <div class="va-input-group">
+                        <label>LogMAR</label>
+                        <input type="number" id="va_logmar" step="0.1" placeholder="0.30" onchange="convertVA('logmar')">
+                    </div>
+                    <div class="va-input-group">
+                        <label>Decimal</label>
+                        <input type="number" id="va_decimal" step="0.1" placeholder="0.5" onchange="convertVA('decimal')">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Uncorrected VA (UCVA)</label>
+                    <input type="text" id="ucva" placeholder="Enter Snellen, LogMAR, or Decimal">
+                </div>
+                <div class="form-field">
+                    <label>Best Corrected VA (BCVA)</label>
+                    <input type="text" id="bcva" placeholder="Enter Snellen, LogMAR, or Decimal">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Intraocular Pressure (IOP)</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>IOP - OD (Right Eye) mmHg</label>
+                    <input type="number" id="iop_od" placeholder="10-21 normal">
+                </div>
+                <div class="form-field">
+                    <label>IOP - OS (Left Eye) mmHg</label>
+                    <input type="number" id="iop_os" placeholder="10-21 normal">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="biometryTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Biometry Measurements</h3>
+            <div class="biometry-grid">
+                <div class="biometry-card">
+                    <div class="biometry-label">Axial Length (AL)</div>
+                    <div class="biometry-unit">Normal: 22-25 mm</div>
+                    <input type="number" id="axial_length" step="0.01" placeholder="mm" style="width: 100%; margin-top: 0.5rem;">
+                </div>
+                <div class="biometry-card">
+                    <div class="biometry-label">Keratometry K1</div>
+                    <div class="biometry-unit">Diopters (D)</div>
+                    <input type="number" id="k1" step="0.25" placeholder="D" style="width: 100%; margin-top: 0.5rem;">
+                </div>
+                <div class="biometry-card">
+                    <div class="biometry-label">Keratometry K2</div>
+                    <div class="biometry-unit">Diopters (D)</div>
+                    <input type="number" id="k2" step="0.25" placeholder="D" style="width: 100%; margin-top: 0.5rem;">
+                </div>
+                <div class="biometry-card">
+                    <div class="biometry-label">ACD (Anterior Chamber)</div>
+                    <div class="biometry-unit">Depth in mm</div>
+                    <input type="number" id="acd" step="0.01" placeholder="mm" style="width: 100%; margin-top: 0.5rem;">
+                </div>
+                <div class="biometry-card">
+                    <div class="biometry-label">Lens Thickness (LT)</div>
+                    <div class="biometry-unit">Millimeters</div>
+                    <input type="number" id="lt" step="0.01" placeholder="mm" style="width: 100%; margin-top: 0.5rem;">
+                </div>
+                <div class="biometry-card">
+                    <div class="biometry-label">White-to-White (WTW)</div>
+                    <div class="biometry-unit">Diameter in mm</div>
+                    <input type="number" id="wtw" step="0.1" placeholder="mm" style="width: 100%; margin-top: 0.5rem;">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">IOL Power Calculation</h3>
+            <div class="iol-calculator">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Target Refraction</label>
+                        <select id="target_refraction">
+                            <option value="0">Plano (0.00)</option>
+                            <option value="-1.0">-1.00 D (Monovision near)</option>
+                            <option value="-2.0">-2.00 D (Monovision near)</option>
+                            <option value="+0.5">+0.50 D</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>IOL Formula</label>
+                        <select id="iol_formula">
+                            <option value="SRK/T">SRK/T</option>
+                            <option value="Holladay 1">Holladay 1</option>
+                            <option value="Holladay 2">Holladay 2</option>
+                            <option value="Barrett Universal II">Barrett Universal II</option>
+                            <option value="Haigis">Haigis</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>IOL Type</label>
+                        <select id="iol_type">
+                            <option value="monofocal">Monofocal</option>
+                            <option value="toric">Toric (Astigmatism)</option>
+                            <option value="multifocal">Multifocal</option>
+                            <option value="edof">EDOF (Extended Depth)</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-calculate" onclick="calculateIOL()">
+                    🔢 Calculate IOL Power
+                </button>
+                <div class="iol-result" id="iolResult" style="display: none;">
+                    <div>Recommended IOL Power</div>
+                    <div class="iol-power" id="iolPower">--</div>
+                    <div style="font-size: 0.9rem;">Diopters</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">IOL Details</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Manufacturer</label>
+                    <input type="text" id="iol_manufacturer" placeholder="Alcon, Johnson & Johnson, Bausch + Lomb...">
+                </div>
+                <div class="form-field">
+                    <label>IOL Model</label>
+                    <input type="text" id="iol_model" placeholder="Model name">
+                </div>
+                <div class="form-field">
+                    <label>Lot Number</label>
+                    <input type="text" id="iol_lot" placeholder="Lot #">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="procedureTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Surgical Procedure</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Procedure Type</label>
+                    <select id="procedure_type">
+                        <option value="">Select procedure...</option>
+                        <option value="cataract_iol">Cataract Extraction with IOL</option>
+                        <option value="lasik">LASIK</option>
+                        <option value="prk">PRK (Photorefractive Keratectomy)</option>
+                        <option value="vitrectomy">Vitrectomy</option>
+                        <option value="retinal_detachment">Retinal Detachment Repair</option>
+                        <option value="corneal">Corneal Procedure</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Eye Operated</label>
+                    <select id="eye_operated">
+                        <option value="OD">OD (Right Eye)</option>
+                        <option value="OS">OS (Left Eye)</option>
+                        <option value="OU">OU (Both Eyes)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Phacoemulsification Metrics (if applicable)</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Phaco Time (seconds)</label>
+                    <input type="number" id="phaco_time" placeholder="seconds">
+                </div>
+                <div class="form-field">
+                    <label>CDE (Cumulative Dissipated Energy)</label>
+                    <input type="number" id="cde" step="0.1" placeholder="Energy">
+                </div>
+                <div class="form-field">
+                    <label>Fluid Used (mL)</label>
+                    <input type="number" id="fluid_used" placeholder="mL">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Complications</h3>
+            <div class="checkbox-group">
+                <label class="checkbox-item">
+                    <input type="checkbox" id="comp_none" onchange="if(this.checked) uncheckOtherComplications()">
+                    <span>None</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="comp_pcr" class="complication">
+                    <span>Posterior Capsule Rupture (PCR)</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="comp_vitreous_loss" class="complication">
+                    <span>Vitreous Loss</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="comp_zonular" class="complication">
+                    <span>Zonular Dialysis</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="comp_iris" class="complication">
+                    <span>Iris Trauma</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="comp_corneal_edema" class="complication">
+                    <span>Corneal Edema</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="comp_wound_leak" class="complication">
+                    <span>Wound Leak</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div id="postopTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Post-Operative Status</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>IOL Position</label>
+                    <select id="iol_position">
+                        <option value="in_the_bag">In-the-Bag</option>
+                        <option value="sulcus">Sulcus</option>
+                        <option value="anterior_chamber">Anterior Chamber</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Expected Visual Outcome</label>
+                    <select id="expected_outcome">
+                        <option value="20/20">20/20 or better</option>
+                        <option value="20/25">20/25</option>
+                        <option value="20/30">20/30</option>
+                        <option value="20/40">20/40</option>
+                        <option value="limited">Limited by other pathology</option>
+                    </select>
+                </div>
+                <div class="form-field full-width">
+                    <label>Post-Operative Medications</label>
+                    <textarea id="postop_medications" placeholder="Antibiotic drops, steroid drops, NSAID drops, dosing schedule..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Follow-up Schedule</label>
+                    <textarea id="followup_schedule" placeholder="Day 1 post-op, Week 1, Month 1..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertMessage"></div>
+
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+                ⬅️ Back to Dashboard
+            </button>
+            <button class="btn btn-primary" onclick="saveProcedure()">
+                <span class="spinner" id="saveSpinner" style="display: none;"></span>
+                💾 Save Procedure
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5ODM5MjAsImV4cCI6MjA1MDU1OTkyMH0.TJLFmscCP8JhOMx7KRqKKd38VWLq7GqEeV8v8Zg8n-I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let patientData = null;
+        let encounterId = null;
+        let currentEye = 'OD';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            validateToken();
+            setupTabs();
+        });
+
+        async function validateToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            encounterId = params.get('encounter_id');
+            const patientId = params.get('patient_id');
+
+            if (!token || !encounterId || !patientId) {
+                window.location.href = 'app.html?error=missing_params';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.rpc('validate_cross_app_token', { token_value: token });
+                
+                if (error || !data) {
+                    window.location.href = 'app.html?error=invalid_token';
+                    return;
+                }
+
+                await loadPatientData(patientId, encounterId);
+            } catch (err) {
+                console.error('Token validation error:', err);
+                window.location.href = 'app.html?error=validation_failed';
+            }
+        }
+
+        async function loadPatientData(patientId, encounterIdParam) {
+            try {
+                const { data, error } = await supabase
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('patient_id', patientId)
+                    .eq('encounter_id', encounterIdParam)
+                    .single();
+
+                if (error) throw error;
+
+                patientData = data;
+                populatePatientBanner(data);
+            } catch (err) {
+                console.error('Error loading patient data:', err);
+                showAlert('Failed to load patient data', 'error');
+            }
+        }
+
+        function populatePatientBanner(data) {
+            document.getElementById('patientName').textContent = data.patient_name || 'Unknown Patient';
+            document.getElementById('patientMRN').textContent = data.mrn || 'N/A';
+            document.getElementById('patientAge').textContent = data.age || 'N/A';
+            document.getElementById('patientSex').textContent = data.sex || 'N/A';
+            document.getElementById('patientPhone').textContent = data.phone || 'N/A';
+            
+            if (data.photo_url) {
+                document.getElementById('patientPhoto').src = data.photo_url;
+            }
+        }
+
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.dataset.tab;
+                    
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tabName}Tab`).classList.add('active');
+                });
+            });
+        }
+
+        function selectEye(eye) {
+            currentEye = eye;
+            document.getElementById('currentEye').textContent = eye;
+            
+            document.querySelectorAll('.eye-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.eye === eye);
+            });
+        }
+
+        function convertVA(from) {
+            const snellen = document.getElementById('va_snellen').value;
+            const logmar = parseFloat(document.getElementById('va_logmar').value);
+            const decimal = parseFloat(document.getElementById('va_decimal').value);
+            
+            if (from === 'snellen' && snellen) {
+                // Simple conversion examples
+                const conversions = {
+                    '20/20': { logmar: 0.0, decimal: 1.0 },
+                    '20/25': { logmar: 0.1, decimal: 0.8 },
+                    '20/30': { logmar: 0.18, decimal: 0.67 },
+                    '20/40': { logmar: 0.3, decimal: 0.5 },
+                    '20/50': { logmar: 0.4, decimal: 0.4 },
+                    '20/60': { logmar: 0.48, decimal: 0.33 },
+                    '20/80': { logmar: 0.6, decimal: 0.25 },
+                    '20/100': { logmar: 0.7, decimal: 0.2 },
+                    '20/200': { logmar: 1.0, decimal: 0.1 }
+                };
+                
+                if (conversions[snellen]) {
+                    document.getElementById('va_logmar').value = conversions[snellen].logmar;
+                    document.getElementById('va_decimal').value = conversions[snellen].decimal;
+                }
+            } else if (from === 'logmar' && !isNaN(logmar)) {
+                const decimalValue = Math.pow(10, -logmar).toFixed(2);
+                document.getElementById('va_decimal').value = decimalValue;
+            } else if (from === 'decimal' && !isNaN(decimal)) {
+                const logmarValue = (-Math.log10(decimal)).toFixed(2);
+                document.getElementById('va_logmar').value = logmarValue;
+            }
+        }
+
+        function calculateIOL() {
+            const al = parseFloat(document.getElementById('axial_length').value);
+            const k1 = parseFloat(document.getElementById('k1').value);
+            const k2 = parseFloat(document.getElementById('k2').value);
+            
+            if (!al || !k1 || !k2) {
+                showAlert('Please enter axial length and keratometry values', 'error');
+                return;
+            }
+            
+            // Simplified IOL calculation (SRK/T formula approximation)
+            const avgK = (k1 + k2) / 2;
+            const iolPower = 118.0 - (2.5 * al) - (0.9 * avgK);
+            
+            document.getElementById('iolResult').style.display = 'block';
+            document.getElementById('iolPower').textContent = iolPower.toFixed(2);
+        }
+
+        function uncheckOtherComplications() {
+            document.querySelectorAll('.complication').forEach(cb => {
+                cb.checked = false;
+            });
+        }
+
+        document.querySelectorAll('.complication').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (cb.checked) {
+                    document.getElementById('comp_none').checked = false;
+                }
+            });
+        });
+
+        async function saveProcedure() {
+            const spinner = document.getElementById('saveSpinner');
+            spinner.style.display = 'inline-block';
+
+            try {
+                const procedureData = {
+                    org_id: patientData.org_id,
+                    patient_id: patientData.patient_id,
+                    encounter_id: encounterId,
+                    provider_id: patientData.provider_id,
+                    
+                    // Assessment
+                    chief_complaint: document.getElementById('chiefComplaint').value,
+                    ocular_history: {
+                        prior_surgery: document.getElementById('hx_prior_surgery').checked,
+                        glaucoma: document.getElementById('hx_glaucoma').checked,
+                        diabetic_retinopathy: document.getElementById('hx_diabetic_retinopathy').checked,
+                        macular_degeneration: document.getElementById('hx_macular_degeneration').checked,
+                        amblyopia: document.getElementById('hx_amblyopia').checked,
+                        strabismus: document.getElementById('hx_strabismus').checked
+                    },
+                    current_medications: document.getElementById('currentMedications').value,
+                    
+                    // Visual acuity
+                    visual_acuity_od: {
+                        ucva: document.getElementById('ucva').value,
+                        bcva: document.getElementById('bcva').value,
+                        snellen: document.getElementById('va_snellen').value,
+                        logmar: parseFloat(document.getElementById('va_logmar').value) || null,
+                        decimal: parseFloat(document.getElementById('va_decimal').value) || null
+                    },
+                    iop_od: parseInt(document.getElementById('iop_od').value) || null,
+                    iop_os: parseInt(document.getElementById('iop_os').value) || null,
+                    
+                    // Biometry
+                    biometry: {
+                        axial_length: parseFloat(document.getElementById('axial_length').value) || null,
+                        k1: parseFloat(document.getElementById('k1').value) || null,
+                        k2: parseFloat(document.getElementById('k2').value) || null,
+                        acd: parseFloat(document.getElementById('acd').value) || null,
+                        lt: parseFloat(document.getElementById('lt').value) || null,
+                        wtw: parseFloat(document.getElementById('wtw').value) || null
+                    },
+                    
+                    // IOL
+                    iol_calculation: {
+                        target_refraction: document.getElementById('target_refraction').value,
+                        formula: document.getElementById('iol_formula').value,
+                        calculated_power: document.getElementById('iolPower').textContent
+                    },
+                    iol_details: {
+                        type: document.getElementById('iol_type').value,
+                        manufacturer: document.getElementById('iol_manufacturer').value,
+                        model: document.getElementById('iol_model').value,
+                        lot: document.getElementById('iol_lot').value
+                    },
+                    
+                    // Procedure
+                    procedure_type: document.getElementById('procedure_type').value,
+                    eye_operated: document.getElementById('eye_operated').value,
+                    phaco_metrics: {
+                        phaco_time: parseInt(document.getElementById('phaco_time').value) || null,
+                        cde: parseFloat(document.getElementById('cde').value) || null,
+                        fluid_used: parseInt(document.getElementById('fluid_used').value) || null
+                    },
+                    complications: {
+                        none: document.getElementById('comp_none').checked,
+                        pcr: document.getElementById('comp_pcr').checked,
+                        vitreous_loss: document.getElementById('comp_vitreous_loss').checked,
+                        zonular_dialysis: document.getElementById('comp_zonular').checked,
+                        iris_trauma: document.getElementById('comp_iris').checked,
+                        corneal_edema: document.getElementById('comp_corneal_edema').checked,
+                        wound_leak: document.getElementById('comp_wound_leak').checked
+                    },
+                    
+                    // Post-op
+                    iol_position: document.getElementById('iol_position').value,
+                    expected_outcome: document.getElementById('expected_outcome').value,
+                    postop_medications: document.getElementById('postop_medications').value,
+                    followup_schedule: document.getElementById('followup_schedule').value
+                };
+
+                const { error } = await supabase
+                    .from('ophthalmic_pre_op')
+                    .insert([procedureData]);
+
+                if (error) throw error;
+
+                showAlert('✅ Ophthalmic procedure saved successfully!', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Save error:', err);
+                showAlert('❌ Failed to save procedure: ' + err.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endoscopy Report | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(16, 185, 129, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--green);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--green);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .specialty-badge {
+            background: linear-gradient(135deg, var(--green) 0%, #059669 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--green);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--green);
+            border-bottom-color: var(--green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            color: var(--green);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--green);
+            border-radius: 2px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .bbps-calculator {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .bbps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .bbps-section {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .bbps-label {
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+        
+        .bbps-scale {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .bbps-btn {
+            padding: 0.75rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        
+        .bbps-btn:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--green);
+        }
+        
+        .bbps-btn.selected {
+            background: var(--green);
+            color: #ffffff;
+            border-color: var(--green);
+        }
+        
+        .bbps-total {
+            background: var(--green);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .bbps-score {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+        
+        .bbps-status {
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .withdrawal-timer {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .withdrawal-time {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--green);
+            margin: 1rem 0;
+        }
+        
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .polyp-list {
+            margin-top: 1rem;
+        }
+        
+        .polyp-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .polyp-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .polyp-number {
+            font-weight: 700;
+            color: var(--green);
+            font-size: 1.1rem;
+        }
+        
+        .remove-polyp {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green) 0%, #059669 100%);
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(201, 169, 110, 0.2);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+        
+        .btn-add {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+            margin-top: 1rem;
+        }
+        
+        .btn-timer {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+            padding: 0.75rem 1.5rem;
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+        
+        .alert-warning {
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid #fbbf24;
+            color: #fbbf24;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--green);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .patient-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .patient-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .specialty-badge {
+                margin-left: 0;
+            }
+            
+            .tabs {
+                padding: 0 1rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .bbps-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="patient-banner">
+        <img id="patientPhoto" class="patient-photo" src="https://via.placeholder.com/80" alt="Patient">
+        <div class="patient-info">
+            <h2 id="patientName">Loading Patient...</h2>
+            <div class="patient-meta">
+                <span>📋 MRN: <strong id="patientMRN">---</strong></span>
+                <span>🎂 Age: <strong id="patientAge">---</strong></span>
+                <span>⚥ Sex: <strong id="patientSex">---</strong></span>
+                <span>📞 <strong id="patientPhone">---</strong></span>
+            </div>
+        </div>
+        <div class="specialty-badge">🔬 ENDOSCOPY</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="preprocedure">📋 Pre-Procedure</button>
+        <button class="tab-btn" data-tab="procedure">🔍 Procedure Details</button>
+        <button class="tab-btn" data-tab="findings">🔎 Findings & Polyps</button>
+        <button class="tab-btn" data-tab="pathology">🧪 Pathology</button>
+        <button class="tab-btn" data-tab="postprocedure">📊 Post-Procedure</button>
+    </div>
+
+    <div id="preprocedureTab" class="tab-content active">
+        <div class="section">
+            <h3 class="section-header">Indication & History</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Indication</label>
+                    <select id="indication">
+                        <option value="">Select indication...</option>
+                        <option value="screening">Screening Colonoscopy</option>
+                        <option value="gi_bleeding">GI Bleeding</option>
+                        <option value="anemia">Anemia</option>
+                        <option value="diarrhea">Chronic Diarrhea</option>
+                        <option value="constipation">Constipation</option>
+                        <option value="surveillance">Surveillance (Prior Polyps/IBD)</option>
+                        <option value="abdominal_pain">Abdominal Pain</option>
+                        <option value="weight_loss">Weight Loss</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Prior Colonoscopy Date</label>
+                    <input type="date" id="priorColonDate">
+                </div>
+                <div class="form-field full-width">
+                    <label>Prior Findings</label>
+                    <textarea id="priorFindings" placeholder="Number and type of prior polyps, other findings..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Boston Bowel Prep Scale (BBPS)</h3>
+            <div class="bbps-calculator">
+                <div class="form-grid" style="margin-bottom: 1rem;">
+                    <div class="form-field">
+                        <label>Prep Type</label>
+                        <select id="prepType">
+                            <option value="">Select prep...</option>
+                            <option value="GoLYTELY">GoLYTELY</option>
+                            <option value="Miralax">Miralax</option>
+                            <option value="Suprep">Suprep</option>
+                            <option value="Moviprep">Moviprep</option>
+                            <option value="Plenvu">Plenvu</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Prep Tolerance</label>
+                        <select id="prepTolerance">
+                            <option value="completed">Completed</option>
+                            <option value="partial">Partial</option>
+                            <option value="unable">Unable to Complete</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bbps-grid">
+                    <div class="bbps-section">
+                        <div class="bbps-label">Right Colon</div>
+                        <div class="bbps-scale" id="bbps_right">
+                            <button class="bbps-btn" onclick="setBBPS('right', 0)">0 - Unprepared</button>
+                            <button class="bbps-btn" onclick="setBBPS('right', 1)">1 - Portions seen</button>
+                            <button class="bbps-btn" onclick="setBBPS('right', 2)">2 - Minor residue</button>
+                            <button class="bbps-btn" onclick="setBBPS('right', 3)">3 - Entire mucosa seen</button>
+                        </div>
+                    </div>
+                    <div class="bbps-section">
+                        <div class="bbps-label">Transverse Colon</div>
+                        <div class="bbps-scale" id="bbps_transverse">
+                            <button class="bbps-btn" onclick="setBBPS('transverse', 0)">0 - Unprepared</button>
+                            <button class="bbps-btn" onclick="setBBPS('transverse', 1)">1 - Portions seen</button>
+                            <button class="bbps-btn" onclick="setBBPS('transverse', 2)">2 - Minor residue</button>
+                            <button class="bbps-btn" onclick="setBBPS('transverse', 3)">3 - Entire mucosa seen</button>
+                        </div>
+                    </div>
+                    <div class="bbps-section">
+                        <div class="bbps-label">Left Colon</div>
+                        <div class="bbps-scale" id="bbps_left">
+                            <button class="bbps-btn" onclick="setBBPS('left', 0)">0 - Unprepared</button>
+                            <button class="bbps-btn" onclick="setBBPS('left', 1)">1 - Portions seen</button>
+                            <button class="bbps-btn" onclick="setBBPS('left', 2)">2 - Minor residue</button>
+                            <button class="bbps-btn" onclick="setBBPS('left', 3)">3 - Entire mucosa seen</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bbps-total">
+                    <div>Total BBPS Score</div>
+                    <div class="bbps-score" id="bbpsTotal">0</div>
+                    <div class="bbps-status" id="bbpsStatus">Score <6 = Inadequate prep</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Sedation</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>ASA Classification</label>
+                    <select id="asaClass">
+                        <option value="I">I - Healthy</option>
+                        <option value="II">II - Mild systemic disease</option>
+                        <option value="III">III - Severe systemic disease</option>
+                        <option value="IV">IV - Life-threatening disease</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Sedation Type</label>
+                    <select id="sedationType">
+                        <option value="MAC">MAC (Monitored Anesthesia Care)</option>
+                        <option value="moderate">Moderate Sedation</option>
+                        <option value="none">None (Unsedated)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="procedureTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Procedure Type</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Procedure</label>
+                    <select id="procedureType">
+                        <option value="">Select procedure...</option>
+                        <option value="colonoscopy">Colonoscopy</option>
+                        <option value="egd">EGD (Esophagogastroduodenoscopy)</option>
+                        <option value="flex_sig">Flexible Sigmoidoscopy</option>
+                        <option value="ercp">ERCP</option>
+                        <option value="bronchoscopy">Bronchoscopy</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Extent of Exam</label>
+                    <select id="extentOfExam">
+                        <option value="">Select extent...</option>
+                        <option value="terminal_ileum">Terminal Ileum Reached</option>
+                        <option value="cecum">Cecum Only</option>
+                        <option value="hepatic_flexure">Hepatic Flexure</option>
+                        <option value="splenic_flexure">Splenic Flexure</option>
+                        <option value="sigmoid">Sigmoid Only</option>
+                        <option value="incomplete">Incomplete</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Withdrawal Time (Quality Metric)</h3>
+            <div class="withdrawal-timer">
+                <h4 style="color: var(--green);">Colonoscopy Withdrawal Timer</h4>
+                <div class="withdrawal-time" id="withdrawalTime">00:00</div>
+                <div style="color: rgba(255,255,255,0.7); margin-bottom: 1rem;">
+                    Target: ≥6 minutes for quality
+                </div>
+                <div class="timer-controls">
+                    <button class="btn btn-timer" id="startWithdrawalBtn" onclick="startWithdrawalTimer()">▶️ Start</button>
+                    <button class="btn btn-timer" onclick="stopWithdrawalTimer()">⏸️ Stop</button>
+                    <button class="btn btn-timer" onclick="resetWithdrawalTimer()">🔄 Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="findingsTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Polyps & Lesions</h3>
+            <div class="polyp-list" id="polypList">
+                <!-- Polyps will be dynamically added -->
+            </div>
+            <button class="btn btn-add" onclick="addPolyp()">+ Add Polyp</button>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Other Findings</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Additional Findings</label>
+                    <textarea id="otherFindings" placeholder="Diverticulosis, hemorrhoids, inflammation, masses, normal..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pathologyTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Biopsies & Pathology</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Biopsies Taken</label>
+                    <input type="number" id="biopsiesCount" placeholder="Number of specimens">
+                </div>
+                <div class="form-field">
+                    <label>Pathology Results</label>
+                    <select id="pathologyResults">
+                        <option value="pending">Pending</option>
+                        <option value="hyperplastic">Hyperplastic Polyp (No follow-up)</option>
+                        <option value="tubular_adenoma">Tubular Adenoma (Low-risk)</option>
+                        <option value="tubulovillous">Tubulovillous Adenoma (High-risk)</option>
+                        <option value="villous">Villous Adenoma (High-risk)</option>
+                        <option value="adenoma_hgd">Adenoma with HGD (High-risk)</option>
+                        <option value="adenocarcinoma">Adenocarcinoma</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Adenoma Detection (ADR)</label>
+                    <select id="adrStatus">
+                        <option value="no">No Adenomas Found</option>
+                        <option value="yes">Adenoma(s) Detected ✓</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="postprocedureTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Complications</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Complications</label>
+                    <select id="complications">
+                        <option value="none">None</option>
+                        <option value="bleeding">Bleeding</option>
+                        <option value="perforation">Perforation</option>
+                        <option value="sedation_reaction">Adverse Reaction to Sedation</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Complication Details (if applicable)</label>
+                    <textarea id="complicationDetails"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Surveillance Interval Calculator</h3>
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 1.5rem;">
+                <button class="btn btn-add" onclick="calculateSurveillance()">📅 Calculate Surveillance Interval</button>
+                <div id="surveillanceResult" style="margin-top: 1rem; display: none;">
+                    <strong style="color: var(--green);">Recommended Interval:</strong>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--green); margin: 0.5rem 0;" id="surveillanceInterval">--</div>
+                    <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7);" id="surveillanceReason">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Discharge & Follow-up</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Discharge Instructions</label>
+                    <textarea id="dischargeInstructions" placeholder="Diet advancement, activity restrictions, return precautions..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Follow-up Plan</label>
+                    <textarea id="followupPlan" placeholder="Return for pathology results, surveillance colonoscopy timing..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertMessage"></div>
+
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+                ⬅️ Back to Dashboard
+            </button>
+            <button class="btn btn-primary" onclick="saveProcedure()">
+                <span class="spinner" id="saveSpinner" style="display: none;"></span>
+                💾 Save Report
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5ODM5MjAsImV4cCI6MjA1MDU1OTkyMH0.TJLFmscCP8JhOMx7KRqKKd38VWLq7GqEeV8v8Zg8n-I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let patientData = null;
+        let encounterId = null;
+        let bbpsScores = { right: 0, transverse: 0, left: 0 };
+        let polyps = [];
+        let polypCounter = 0;
+        let withdrawalInterval = null;
+        let withdrawalSeconds = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            validateToken();
+            setupTabs();
+        });
+
+        async function validateToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            encounterId = params.get('encounter_id');
+            const patientId = params.get('patient_id');
+
+            if (!token || !encounterId || !patientId) {
+                window.location.href = 'app.html?error=missing_params';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.rpc('validate_cross_app_token', { token_value: token });
+                
+                if (error || !data) {
+                    window.location.href = 'app.html?error=invalid_token';
+                    return;
+                }
+
+                await loadPatientData(patientId, encounterId);
+            } catch (err) {
+                console.error('Token validation error:', err);
+                window.location.href = 'app.html?error=validation_failed';
+            }
+        }
+
+        async function loadPatientData(patientId, encounterIdParam) {
+            try {
+                const { data, error } = await supabase
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('patient_id', patientId)
+                    .eq('encounter_id', encounterIdParam)
+                    .single();
+
+                if (error) throw error;
+
+                patientData = data;
+                populatePatientBanner(data);
+            } catch (err) {
+                console.error('Error loading patient data:', err);
+                showAlert('Failed to load patient data', 'error');
+            }
+        }
+
+        function populatePatientBanner(data) {
+            document.getElementById('patientName').textContent = data.patient_name || 'Unknown Patient';
+            document.getElementById('patientMRN').textContent = data.mrn || 'N/A';
+            document.getElementById('patientAge').textContent = data.age || 'N/A';
+            document.getElementById('patientSex').textContent = data.sex || 'N/A';
+            document.getElementById('patientPhone').textContent = data.phone || 'N/A';
+            
+            if (data.photo_url) {
+                document.getElementById('patientPhoto').src = data.photo_url;
+            }
+        }
+
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.dataset.tab;
+                    
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tabName}Tab`).classList.add('active');
+                });
+            });
+        }
+
+        function setBBPS(section, score) {
+            bbpsScores[section] = score;
+            
+            // Update button styling
+            const container = document.getElementById(`bbps_${section}`);
+            const buttons = container.querySelectorAll('.bbps-btn');
+            buttons.forEach((btn, idx) => {
+                btn.classList.toggle('selected', idx === score);
+            });
+            
+            // Calculate total
+            const total = bbpsScores.right + bbpsScores.transverse + bbpsScores.left;
+            document.getElementById('bbpsTotal').textContent = total;
+            
+            let status;
+            if (total < 6) {
+                status = '❌ Inadequate - Recommend Early Repeat';
+            } else if (total < 9) {
+                status = '⚠️ Adequate for Surveillance';
+            } else {
+                status = '✅ Excellent Preparation';
+            }
+            document.getElementById('bbpsStatus').textContent = status;
+        }
+
+        function startWithdrawalTimer() {
+            if (withdrawalInterval) return;
+            
+            withdrawalInterval = setInterval(() => {
+                withdrawalSeconds++;
+                const mins = Math.floor(withdrawalSeconds / 60);
+                const secs = withdrawalSeconds % 60;
+                document.getElementById('withdrawalTime').textContent = 
+                    `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+                    
+                if (withdrawalSeconds >= 360) { // 6 minutes
+                    document.getElementById('withdrawalTime').style.color = 'var(--green)';
+                }
+            }, 1000);
+            
+            document.getElementById('startWithdrawalBtn').textContent = '⏸️ Pause';
+            document.getElementById('startWithdrawalBtn').onclick = pauseWithdrawalTimer;
+        }
+
+        function pauseWithdrawalTimer() {
+            clearInterval(withdrawalInterval);
+            withdrawalInterval = null;
+            document.getElementById('startWithdrawalBtn').textContent = '▶️ Resume';
+            document.getElementById('startWithdrawalBtn').onclick = startWithdrawalTimer;
+        }
+
+        function stopWithdrawalTimer() {
+            clearInterval(withdrawalInterval);
+            withdrawalInterval = null;
+            document.getElementById('startWithdrawalBtn').textContent = '▶️ Start';
+            document.getElementById('startWithdrawalBtn').onclick = startWithdrawalTimer;
+        }
+
+        function resetWithdrawalTimer() {
+            clearInterval(withdrawalInterval);
+            withdrawalInterval = null;
+            withdrawalSeconds = 0;
+            document.getElementById('withdrawalTime').textContent = '00:00';
+            document.getElementById('withdrawalTime').style.color = 'var(--green)';
+            document.getElementById('startWithdrawalBtn').textContent = '▶️ Start';
+            document.getElementById('startWithdrawalBtn').onclick = startWithdrawalTimer;
+        }
+
+        function addPolyp() {
+            polypCounter++;
+            const polypId = `polyp_${polypCounter}`;
+            
+            const polypItem = document.createElement('div');
+            polypItem.className = 'polyp-item';
+            polypItem.id = polypId;
+            
+            polypItem.innerHTML = `
+                <div class="polyp-header">
+                    <div class="polyp-number">Polyp #${polypCounter}</div>
+                    <button class="remove-polyp" onclick="removePolyp('${polypId}')">Remove</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Location</label>
+                        <select data-polyp="${polypId}" data-field="location">
+                            <option value="">Select location...</option>
+                            <option value="terminal_ileum">Terminal Ileum</option>
+                            <option value="cecum">Cecum</option>
+                            <option value="ascending">Ascending Colon</option>
+                            <option value="hepatic_flexure">Hepatic Flexure</option>
+                            <option value="transverse">Transverse Colon</option>
+                            <option value="splenic_flexure">Splenic Flexure</option>
+                            <option value="descending">Descending Colon</option>
+                            <option value="sigmoid">Sigmoid Colon</option>
+                            <option value="rectum">Rectum</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Size (mm)</label>
+                        <input type="number" data-polyp="${polypId}" data-field="size" placeholder="mm">
+                    </div>
+                    <div class="form-field">
+                        <label>Morphology (Paris Classification)</label>
+                        <select data-polyp="${polypId}" data-field="morphology">
+                            <option value="">Select morphology...</option>
+                            <option value="pedunculated">Ip - Pedunculated</option>
+                            <option value="sessile">Is - Sessile</option>
+                            <option value="flat_elevated">IIa - Flat Elevated</option>
+                            <option value="flat_depressed">IIc - Flat Depressed</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Removal Method</label>
+                        <select data-polyp="${polypId}" data-field="removal">
+                            <option value="">Select method...</option>
+                            <option value="cold_forceps">Cold Forceps</option>
+                            <option value="hot_forceps">Hot Forceps</option>
+                            <option value="cold_snare">Cold Snare</option>
+                            <option value="hot_snare">Hot Snare (Polypectomy)</option>
+                            <option value="emr">EMR (Endoscopic Mucosal Resection)</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Specimen Jar Number</label>
+                        <input type="text" data-polyp="${polypId}" data-field="jar" placeholder="Jar #">
+                    </div>
+                    <div class="form-field">
+                        <label>Photo Captured</label>
+                        <select data-polyp="${polypId}" data-field="photo">
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('polypList').appendChild(polypItem);
+            polyps.push({ id: polypId, data: {} });
+        }
+
+        function removePolyp(polypId) {
+            document.getElementById(polypId).remove();
+            polyps = polyps.filter(p => p.id !== polypId);
+        }
+
+        function calculateSurveillance() {
+            const polypCount = polyps.length;
+            const pathology = document.getElementById('pathologyResults').value;
+            
+            let interval, reason;
+            
+            if (polypCount === 0) {
+                interval = '10 years';
+                reason = 'No polyps found - routine screening';
+            } else if (pathology === 'hyperplastic') {
+                interval = '10 years';
+                reason = 'Hyperplastic polyps only - no increased risk';
+            } else if (polypCount === 1 || polypCount === 2) {
+                // Check size from first polyp
+                const firstPolyp = document.querySelector('[data-polyp]');
+                const size = parseInt(firstPolyp?.querySelector('[data-field="size"]')?.value) || 0;
+                
+                if (size < 10) {
+                    interval = '5-10 years';
+                    reason = '1-2 small (<10mm) tubular adenomas';
+                } else {
+                    interval = '3 years';
+                    reason = 'Large (≥10mm) adenoma';
+                }
+            } else if (polypCount <= 4) {
+                interval = '3 years';
+                reason = '3-4 adenomas';
+            } else if (polypCount <= 10) {
+                interval = '3 years';
+                reason = '5-10 adenomas';
+            } else {
+                interval = '< 3 years';
+                reason = '>10 adenomas - consider genetics evaluation';
+            }
+            
+            if (pathology === 'adenoma_hgd') {
+                interval = '1 year';
+                reason = 'Adenoma with high-grade dysplasia';
+            }
+            
+            document.getElementById('surveillanceInterval').textContent = interval;
+            document.getElementById('surveillanceReason').textContent = reason;
+            document.getElementById('surveillanceResult').style.display = 'block';
+        }
+
+        async function saveProcedure() {
+            const spinner = document.getElementById('saveSpinner');
+            spinner.style.display = 'inline-block';
+
+            // Check withdrawal time
+            if (withdrawalSeconds < 360 && document.getElementById('procedureType').value === 'colonoscopy') {
+                showAlert('⚠️ Withdrawal time <6 minutes - quality metric not met', 'warning');
+            }
+
+            // Collect polyp data
+            const polypData = [];
+            polyps.forEach(polyp => {
+                const polypEl = document.getElementById(polyp.id);
+                if (polypEl) {
+                    const polypInfo = {};
+                    polypEl.querySelectorAll('[data-polyp]').forEach(input => {
+                        const field = input.dataset.field;
+                        polypInfo[field] = input.value;
+                    });
+                    polypData.push(polypInfo);
+                }
+            });
+
+            try {
+                const reportData = {
+                    org_id: patientData.org_id,
+                    patient_id: patientData.patient_id,
+                    encounter_id: encounterId,
+                    provider_id: patientData.provider_id,
+                    
+                    // Pre-procedure
+                    indication: document.getElementById('indication').value,
+                    prior_exam_date: document.getElementById('priorColonDate').value || null,
+                    prior_findings: document.getElementById('priorFindings').value,
+                    
+                    // Bowel prep
+                    bowel_prep_type: document.getElementById('prepType').value,
+                    prep_tolerance: document.getElementById('prepTolerance').value,
+                    bbps_scores: bbpsScores,
+                    bbps_total: bbpsScores.right + bbpsScores.transverse + bbpsScores.left,
+                    
+                    // Sedation
+                    asa_class: document.getElementById('asaClass').value,
+                    sedation_type: document.getElementById('sedationType').value,
+                    
+                    // Procedure
+                    procedure_type: document.getElementById('procedureType').value,
+                    extent_of_exam: document.getElementById('extentOfExam').value,
+                    withdrawal_time_mins: Math.floor(withdrawalSeconds / 60),
+                    
+                    // Findings
+                    polyps_found: polypData,
+                    other_findings: document.getElementById('otherFindings').value,
+                    
+                    // Pathology
+                    biopsies_taken_count: parseInt(document.getElementById('biopsiesCount').value) || 0,
+                    pathology_results: document.getElementById('pathologyResults').value,
+                    adr_positive: document.getElementById('adrStatus').value === 'yes',
+                    
+                    // Post-procedure
+                    complications: document.getElementById('complications').value,
+                    complication_details: document.getElementById('complicationDetails').value,
+                    discharge_instructions: document.getElementById('dischargeInstructions').value,
+                    followup_plan: document.getElementById('followupPlan').value
+                };
+
+                const { error } = await supabase
+                    .from('endoscopy_report')
+                    .insert([reportData]);
+
+                if (error) throw error;
+
+                showAlert('✅ Endoscopy report saved successfully!', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Save error:', err);
+                showAlert('❌ Failed to save report: ' + err.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

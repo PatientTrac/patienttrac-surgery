@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardiac Catheterization | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --red: #ef4444;
+            --orange: #f97316;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(239, 68, 68, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--red);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--red);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .specialty-badge {
+            background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--red);
+            background: rgba(239, 68, 68, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--red);
+            border-bottom-color: var(--red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            color: var(--red);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--red);
+            border-radius: 2px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .hemodynamic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .pressure-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .pressure-label {
+            font-weight: 700;
+            color: var(--red);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .pressure-normal {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 0.5rem;
+        }
+        
+        .vessel-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .vessel-name {
+            font-weight: 700;
+            color: var(--red);
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+        
+        .stenosis-slider-container {
+            margin-top: 0.5rem;
+        }
+        
+        .stenosis-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stenosis-percent {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--orange);
+        }
+        
+        .stenosis-severity {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .severity-none { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+        .severity-moderate { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .severity-severe { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+        .severity-total { background: rgba(139, 92, 246, 0.2); color: var(--purple); }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, var(--green) 0%, #fbbf24 50%, var(--red) 70%, var(--purple) 100%);
+            outline: none;
+            padding: 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 2px solid var(--red);
+        }
+        
+        .timi-scale {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .timi-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .timi-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--red);
+        }
+        
+        .timi-btn.selected {
+            background: var(--red);
+            color: #ffffff;
+            border-color: var(--red);
+        }
+        
+        .stent-list {
+            margin-top: 1rem;
+        }
+        
+        .stent-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stent-number {
+            font-weight: 700;
+            color: var(--red);
+            font-size: 1.1rem;
+        }
+        
+        .remove-stent {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%);
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(201, 169, 110, 0.2);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+        
+        .btn-add {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+            margin-top: 1rem;
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+        
+        .alert-warning {
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid #fbbf24;
+            color: #fbbf24;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--red);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .patient-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .patient-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .specialty-badge {
+                margin-left: 0;
+            }
+            
+            .tabs {
+                padding: 0 1rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="patient-banner">
+        <img id="patientPhoto" class="patient-photo" src="https://via.placeholder.com/80" alt="Patient">
+        <div class="patient-info">
+            <h2 id="patientName">Loading Patient...</h2>
+            <div class="patient-meta">
+                <span>📋 MRN: <strong id="patientMRN">---</strong></span>
+                <span>🎂 Age: <strong id="patientAge">---</strong></span>
+                <span>⚥ Sex: <strong id="patientSex">---</strong></span>
+                <span>📞 <strong id="patientPhone">---</strong></span>
+            </div>
+        </div>
+        <div class="specialty-badge">🫀 CARDIAC SURGERY</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="assessment">📋 Pre-Procedure</button>
+        <button class="tab-btn" data-tab="hemodynamics">💓 Hemodynamics</button>
+        <button class="tab-btn" data-tab="coronary">🌳 Coronary Anatomy</button>
+        <button class="tab-btn" data-tab="intervention">🔧 Intervention</button>
+        <button class="tab-btn" data-tab="postprocedure">📊 Post-Procedure</button>
+    </div>
+
+    <div id="assessmentTab" class="tab-content active">
+        <div class="section">
+            <h3 class="section-header">Clinical Assessment</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Chief Complaint</label>
+                    <textarea id="chiefComplaint" placeholder="Chest pain, dyspnea, palpitations..."></textarea>
+                </div>
+                <div class="form-field">
+                    <label>NYHA Class</label>
+                    <select id="nyhaClass">
+                        <option value="">Select class...</option>
+                        <option value="I">I - No limitation</option>
+                        <option value="II">II - Slight limitation</option>
+                        <option value="III">III - Marked limitation</option>
+                        <option value="IV">IV - Symptoms at rest</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>CCS Angina Class</label>
+                    <select id="ccsClass">
+                        <option value="">Select class...</option>
+                        <option value="0">0 - No angina</option>
+                        <option value="I">I - With strenuous activity</option>
+                        <option value="II">II - With moderate activity</option>
+                        <option value="III">III - With minimal activity</option>
+                        <option value="IV">IV - At rest</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Cardiac Risk Factors</h3>
+            <div class="checkbox-group">
+                <label class="checkbox-item">
+                    <input type="checkbox" id="rf_hypertension">
+                    <span>Hypertension</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="rf_diabetes">
+                    <span>Diabetes Mellitus</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="rf_hyperlipidemia">
+                    <span>Hyperlipidemia</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="rf_smoking">
+                    <span>Current/Former Smoker</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="rf_family_hx">
+                    <span>Family History CAD</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="rf_prior_mi">
+                    <span>Prior MI</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="rf_prior_pci">
+                    <span>Prior PCI</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="rf_prior_cabg">
+                    <span>Prior CABG</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Laboratory Values</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Creatinine (mg/dL)</label>
+                    <input type="number" id="creatinine" step="0.1" placeholder="0.0">
+                </div>
+                <div class="form-field">
+                    <label>eGFR (mL/min/1.73m²)</label>
+                    <input type="number" id="egfr" placeholder="0">
+                </div>
+                <div class="form-field">
+                    <label>Troponin</label>
+                    <input type="text" id="troponin" placeholder="Value">
+                </div>
+                <div class="form-field">
+                    <label>BNP/NT-proBNP</label>
+                    <input type="text" id="bnp" placeholder="Value">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="hemodynamicsTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Hemodynamic Measurements</h3>
+            <div class="hemodynamic-grid">
+                <div class="pressure-card">
+                    <div class="pressure-label">RA (Right Atrial)</div>
+                    <div class="pressure-normal">Normal: 0-8 mmHg</div>
+                    <input type="number" id="ra_pressure" placeholder="mmHg" style="width: 100%;">
+                </div>
+                <div class="pressure-card">
+                    <div class="pressure-label">RV (Right Ventricular)</div>
+                    <div class="pressure-normal">Normal: 15-30/0-8</div>
+                    <input type="text" id="rv_pressure" placeholder="sys/dia" style="width: 100%;">
+                </div>
+                <div class="pressure-card">
+                    <div class="pressure-label">PA (Pulmonary Artery)</div>
+                    <div class="pressure-normal">Normal: 15-30/4-12</div>
+                    <input type="text" id="pa_pressure" placeholder="sys/dia" style="width: 100%;">
+                </div>
+                <div class="pressure-card">
+                    <div class="pressure-label">PCWP (Wedge)</div>
+                    <div class="pressure-normal">Normal: 6-12 mmHg</div>
+                    <input type="number" id="pcwp" placeholder="mmHg" style="width: 100%;">
+                </div>
+                <div class="pressure-card">
+                    <div class="pressure-label">LV (Left Ventricular)</div>
+                    <div class="pressure-normal">Normal: 90-140/3-12</div>
+                    <input type="text" id="lv_pressure" placeholder="sys/dia" style="width: 100%;">
+                </div>
+                <div class="pressure-card">
+                    <div class="pressure-label">Aorta</div>
+                    <div class="pressure-normal">Normal: 90-140/60-90</div>
+                    <input type="text" id="aorta_pressure" placeholder="sys/dia" style="width: 100%;">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Cardiac Output</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>CO (Cardiac Output) L/min</label>
+                    <input type="number" id="cardiac_output" step="0.1" placeholder="4.0-8.0 normal">
+                </div>
+                <div class="form-field">
+                    <label>CI (Cardiac Index) L/min/m²</label>
+                    <input type="number" id="cardiac_index" step="0.1" placeholder="2.5-4.0 normal">
+                </div>
+                <div class="form-field">
+                    <label>SVR (dynes·sec/cm⁵)</label>
+                    <input type="number" id="svr" placeholder="800-1200 normal">
+                </div>
+                <div class="form-field">
+                    <label>Heart Rate (bpm)</label>
+                    <input type="number" id="heart_rate" placeholder="bpm">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="coronaryTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Coronary Artery Stenosis</h3>
+            <div id="vesselGrid">
+                <!-- Vessels will be dynamically generated -->
+            </div>
+        </div>
+    </div>
+
+    <div id="interventionTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Procedure Type</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Procedure</label>
+                    <select id="procedureType">
+                        <option value="">Select procedure...</option>
+                        <option value="diagnostic_only">Diagnostic Catheterization Only</option>
+                        <option value="ptca">PCI with Balloon Angioplasty</option>
+                        <option value="pci_stent">PCI with Stent Placement</option>
+                        <option value="pacemaker">Pacemaker Implantation</option>
+                        <option value="icd">ICD Implantation</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Access Site</label>
+                    <select id="accessSite">
+                        <option value="">Select site...</option>
+                        <option value="femoral">Femoral</option>
+                        <option value="radial">Radial</option>
+                        <option value="brachial">Brachial</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Contrast Volume (mL)</label>
+                    <input type="number" id="contrastVolume" placeholder="Total mL used">
+                </div>
+                <div class="form-field">
+                    <label>Fluoroscopy Time (minutes)</label>
+                    <input type="number" id="fluoroTime" step="0.1" placeholder="Total minutes">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Stent Details</h3>
+            <div class="stent-list" id="stentList">
+                <!-- Stents will be dynamically added -->
+            </div>
+            <button class="btn btn-add" onclick="addStent()">+ Add Stent</button>
+        </div>
+    </div>
+
+    <div id="postprocedureTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Post-Procedure Status</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Hemostasis Method</label>
+                    <select id="hemostasisMethod">
+                        <option value="">Select method...</option>
+                        <option value="manual">Manual Compression</option>
+                        <option value="closure_device">Vascular Closure Device</option>
+                        <option value="hemostatic_pad">Hemostatic Pad</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Complications</label>
+                    <select id="complications">
+                        <option value="none">None</option>
+                        <option value="bleeding">Access Site Bleeding/Hematoma</option>
+                        <option value="dissection">Coronary Dissection</option>
+                        <option value="perforation">Vessel Perforation</option>
+                        <option value="acute_closure">Acute Vessel Closure</option>
+                        <option value="no_reflow">No-Reflow Phenomenon</option>
+                        <option value="stroke">Stroke/TIA</option>
+                        <option value="mi">MI</option>
+                    </select>
+                </div>
+                <div class="form-field full-width">
+                    <label>DAPT (Dual Antiplatelet Therapy) Plan</label>
+                    <textarea id="daptPlan" placeholder="Aspirin 81mg daily, Plavix 75mg daily for 12 months..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Follow-up Recommendations</label>
+                    <textarea id="followupPlan" placeholder="Return in 1 week, cardiac rehab referral, echo in 6 weeks..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertMessage"></div>
+
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+                ⬅️ Back to Dashboard
+            </button>
+            <button class="btn btn-primary" onclick="saveProcedure()">
+                <span class="spinner" id="saveSpinner" style="display: none;"></span>
+                💾 Save Procedure
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5ODM5MjAsImV4cCI6MjA1MDU1OTkyMH0.TJLFmscCP8JhOMx7KRqKKd38VWLq7GqEeV8v8Zg8n-I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let patientData = null;
+        let encounterId = null;
+        let stenosisData = {};
+        let timiFlowData = {};
+        let stents = [];
+
+        const coronaryVessels = [
+            { name: 'Left Main (LM)', id: 'lm' },
+            { name: 'LAD (Left Anterior Descending)', id: 'lad' },
+            { name: 'LCx (Left Circumflex)', id: 'lcx' },
+            { name: 'RCA (Right Coronary Artery)', id: 'rca' },
+            { name: 'Diagonal Branch', id: 'diag' },
+            { name: 'OM (Obtuse Marginal)', id: 'om' },
+            { name: 'PDA (Posterior Descending)', id: 'pda' }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            validateToken();
+            setupTabs();
+            initializeVesselGrid();
+        });
+
+        async function validateToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            encounterId = params.get('encounter_id');
+            const patientId = params.get('patient_id');
+
+            if (!token || !encounterId || !patientId) {
+                window.location.href = 'app.html?error=missing_params';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.rpc('validate_cross_app_token', { token_value: token });
+                
+                if (error || !data) {
+                    window.location.href = 'app.html?error=invalid_token';
+                    return;
+                }
+
+                await loadPatientData(patientId, encounterId);
+            } catch (err) {
+                console.error('Token validation error:', err);
+                window.location.href = 'app.html?error=validation_failed';
+            }
+        }
+
+        async function loadPatientData(patientId, encounterIdParam) {
+            try {
+                const { data, error } = await supabase
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('patient_id', patientId)
+                    .eq('encounter_id', encounterIdParam)
+                    .single();
+
+                if (error) throw error;
+
+                patientData = data;
+                populatePatientBanner(data);
+            } catch (err) {
+                console.error('Error loading patient data:', err);
+                showAlert('Failed to load patient data', 'error');
+            }
+        }
+
+        function populatePatientBanner(data) {
+            document.getElementById('patientName').textContent = data.patient_name || 'Unknown Patient';
+            document.getElementById('patientMRN').textContent = data.mrn || 'N/A';
+            document.getElementById('patientAge').textContent = data.age || 'N/A';
+            document.getElementById('patientSex').textContent = data.sex || 'N/A';
+            document.getElementById('patientPhone').textContent = data.phone || 'N/A';
+            
+            if (data.photo_url) {
+                document.getElementById('patientPhoto').src = data.photo_url;
+            }
+        }
+
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.dataset.tab;
+                    
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tabName}Tab`).classList.add('active');
+                });
+            });
+        }
+
+        function initializeVesselGrid() {
+            const grid = document.getElementById('vesselGrid');
+            
+            coronaryVessels.forEach(vessel => {
+                const card = document.createElement('div');
+                card.className = 'vessel-card';
+                
+                card.innerHTML = `
+                    <div class="vessel-name">${vessel.name}</div>
+                    <div class="stenosis-slider-container">
+                        <div class="stenosis-value">
+                            <span class="stenosis-percent" id="${vessel.id}_percent">0%</span>
+                            <span class="stenosis-severity severity-none" id="${vessel.id}_severity">Non-obstructive</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="0" 
+                               id="${vessel.id}_slider" 
+                               oninput="updateStenosis('${vessel.id}', this.value)">
+                    </div>
+                    <div style="margin-top: 0.75rem;">
+                        <label style="font-size: 0.9rem; color: rgba(255,255,255,0.8); display: block; margin-bottom: 0.5rem;">TIMI Flow Grade (0-3)</label>
+                        <div class="timi-scale">
+                            <button class="timi-btn" onclick="setTIMI('${vessel.id}', 0)">0</button>
+                            <button class="timi-btn" onclick="setTIMI('${vessel.id}', 1)">1</button>
+                            <button class="timi-btn" onclick="setTIMI('${vessel.id}', 2)">2</button>
+                            <button class="timi-btn" onclick="setTIMI('${vessel.id}', 3)">3</button>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+                stenosisData[vessel.id] = 0;
+                timiFlowData[vessel.id] = 3;
+            });
+        }
+
+        function updateStenosis(vesselId, value) {
+            stenosisData[vesselId] = parseInt(value);
+            
+            const percentEl = document.getElementById(`${vesselId}_percent`);
+            const severityEl = document.getElementById(`${vesselId}_severity`);
+            
+            percentEl.textContent = `${value}%`;
+            
+            let severity, className;
+            if (value < 50) {
+                severity = 'Non-obstructive';
+                className = 'severity-none';
+            } else if (value < 70) {
+                severity = 'Moderate';
+                className = 'severity-moderate';
+            } else if (value < 100) {
+                severity = 'Severe';
+                className = 'severity-severe';
+            } else {
+                severity = 'Total Occlusion';
+                className = 'severity-total';
+            }
+            
+            severityEl.textContent = severity;
+            severityEl.className = `stenosis-severity ${className}`;
+        }
+
+        function setTIMI(vesselId, grade) {
+            timiFlowData[vesselId] = grade;
+            
+            const buttons = document.querySelectorAll(`#vesselGrid .vessel-card`);
+            buttons.forEach(card => {
+                if (card.innerHTML.includes(vesselId)) {
+                    const timiBtns = card.querySelectorAll('.timi-btn');
+                    timiBtns.forEach((btn, idx) => {
+                        btn.classList.toggle('selected', idx === grade);
+                    });
+                }
+            });
+        }
+
+        let stentCounter = 0;
+
+        function addStent() {
+            stentCounter++;
+            const stentId = `stent_${stentCounter}`;
+            
+            const stentItem = document.createElement('div');
+            stentItem.className = 'stent-item';
+            stentItem.id = stentId;
+            
+            stentItem.innerHTML = `
+                <div class="stent-header">
+                    <div class="stent-number">Stent #${stentCounter}</div>
+                    <button class="remove-stent" onclick="removeStent('${stentId}')">Remove</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Vessel Treated</label>
+                        <select data-stent="${stentId}" data-field="vessel">
+                            <option value="">Select vessel...</option>
+                            ${coronaryVessels.map(v => `<option value="${v.id}">${v.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Stent Type</label>
+                        <select data-stent="${stentId}" data-field="type">
+                            <option value="DES">Drug-Eluting Stent (DES)</option>
+                            <option value="BMS">Bare-Metal Stent (BMS)</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Manufacturer</label>
+                        <input type="text" data-stent="${stentId}" data-field="manufacturer" placeholder="Abbott, Boston Scientific, Medtronic...">
+                    </div>
+                    <div class="form-field">
+                        <label>Stent Size (diameter × length mm)</label>
+                        <input type="text" data-stent="${stentId}" data-field="size" placeholder="3.0 × 24">
+                    </div>
+                    <div class="form-field">
+                        <label>Lot Number</label>
+                        <input type="text" data-stent="${stentId}" data-field="lot">
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('stentList').appendChild(stentItem);
+            
+            stents.push({ id: stentId, data: {} });
+        }
+
+        function removeStent(stentId) {
+            document.getElementById(stentId).remove();
+            stents = stents.filter(s => s.id !== stentId);
+        }
+
+        async function saveProcedure() {
+            const spinner = document.getElementById('saveSpinner');
+            spinner.style.display = 'inline-block';
+
+            // Check fluoroscopy time warning
+            const fluoroTime = parseFloat(document.getElementById('fluoroTime').value) || 0;
+            if (fluoroTime > 20) {
+                showAlert('⚠️ High fluoroscopy time (>20 min) - significant radiation exposure', 'warning');
+            }
+
+            // Collect stent data
+            const stentData = [];
+            stents.forEach(stent => {
+                const stentEl = document.getElementById(stent.id);
+                if (stentEl) {
+                    const stentInfo = {};
+                    stentEl.querySelectorAll('[data-stent]').forEach(input => {
+                        const field = input.dataset.field;
+                        stentInfo[field] = input.value;
+                    });
+                    stentData.push(stentInfo);
+                }
+            });
+
+            try {
+                const procedureData = {
+                    org_id: patientData.org_id,
+                    patient_id: patientData.patient_id,
+                    encounter_id: encounterId,
+                    provider_id: patientData.provider_id,
+                    
+                    // Assessment
+                    chief_complaint: document.getElementById('chiefComplaint').value,
+                    nyha_class: document.getElementById('nyhaClass').value,
+                    ccs_class: document.getElementById('ccsClass').value,
+                    
+                    // Risk factors
+                    cardiac_risk_factors: {
+                        hypertension: document.getElementById('rf_hypertension').checked,
+                        diabetes: document.getElementById('rf_diabetes').checked,
+                        hyperlipidemia: document.getElementById('rf_hyperlipidemia').checked,
+                        smoking: document.getElementById('rf_smoking').checked,
+                        family_hx: document.getElementById('rf_family_hx').checked,
+                        prior_mi: document.getElementById('rf_prior_mi').checked,
+                        prior_pci: document.getElementById('rf_prior_pci').checked,
+                        prior_cabg: document.getElementById('rf_prior_cabg').checked
+                    },
+                    
+                    // Labs
+                    creatinine: parseFloat(document.getElementById('creatinine').value) || null,
+                    egfr: parseInt(document.getElementById('egfr').value) || null,
+                    troponin: document.getElementById('troponin').value,
+                    bnp: document.getElementById('bnp').value,
+                    
+                    // Hemodynamics
+                    hemodynamics: {
+                        ra: parseInt(document.getElementById('ra_pressure').value) || null,
+                        rv: document.getElementById('rv_pressure').value,
+                        pa: document.getElementById('pa_pressure').value,
+                        pcwp: parseInt(document.getElementById('pcwp').value) || null,
+                        lv: document.getElementById('lv_pressure').value,
+                        aorta: document.getElementById('aorta_pressure').value,
+                        co: parseFloat(document.getElementById('cardiac_output').value) || null,
+                        ci: parseFloat(document.getElementById('cardiac_index').value) || null,
+                        svr: parseInt(document.getElementById('svr').value) || null,
+                        hr: parseInt(document.getElementById('heart_rate').value) || null
+                    },
+                    
+                    // Coronary anatomy
+                    coronary_stenosis: stenosisData,
+                    timi_flow_grades: timiFlowData,
+                    
+                    // Intervention
+                    procedure_type: document.getElementById('procedureType').value,
+                    access_site: document.getElementById('accessSite').value,
+                    contrast_volume_ml: parseInt(document.getElementById('contrastVolume').value) || null,
+                    fluoroscopy_time_mins: fluoroTime,
+                    stent_details: stentData,
+                    
+                    // Post-procedure
+                    hemostasis_method: document.getElementById('hemostasisMethod').value,
+                    complications: document.getElementById('complications').value,
+                    dapt_plan: document.getElementById('daptPlan').value,
+                    followup_plan: document.getElementById('followupPlan').value
+                };
+
+                const { error } = await supabase
+                    .from('cardiac_pre_procedure')
+                    .insert([procedureData]);
+
+                if (error) throw error;
+
+                showAlert('✅ Cardiac procedure saved successfully!', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Save error:', err);
+                showAlert('❌ Failed to save procedure: ' + err.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
