@@ -59,7 +59,7 @@ git push -u origin master
 
 ### Step 3: Configure Custom Domain
 1. In Netlify: Site settings → Domain management
-2. Add custom domain: `patienttrac-surgery.com`
+2. Add custom domain: `patienttracsurg.com`
 3. Configure DNS (A/CNAME records)
 4. Enable HTTPS (automatic)
 
@@ -77,7 +77,7 @@ const { data } = await supabase.rpc('checkin_and_route', {
   p_target_app: 'surgery'
 });
 window.location.href = data.url;
-// Opens: patienttrac-surgery.com/dashboard?encounter_id=X&patient_id=Y&token=Z
+// Opens: patienttracsurg.com/dashboard?encounter_id=X&patient_id=Y&token=Z
 ```
 
 ### From Revela:
@@ -134,7 +134,7 @@ Provides patient context for cross-app access:
 
 ## 🎯 Next Steps
 
-1. ✅ Deploy landing page to patienttrac-surgery.com
+1. ✅ Deploy landing page to patienttracsurg.com
 2. ✅ Test authentication flow
 3. ⏳ Build operative note page (operative.html)
 4. ⏳ Build pre-op assessment page (preop.html)
