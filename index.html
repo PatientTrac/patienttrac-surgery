@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PatientTracSurg - AI-Powered Bariatric Surgery Platform</title>
+    <title>PatientTracSurg - AI-Powered Surgical Documentation Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -18,711 +18,919 @@
         
         body {
             font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
             color: #ffffff;
             line-height: 1.6;
-            overflow-x: hidden;
         }
         
-        /* Hero Section with Shield Logo */
-        .hero {
-            min-height: 100vh;
-            background: linear-gradient(135deg, rgba(6, 14, 28, 0.98) 0%, rgba(10, 22, 40, 0.95) 100%),
-                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23060e1c" width="100" height="100"/></svg>');
+        /* Language Switcher */
+        .language-bar {
+            background: rgba(6, 14, 28, 0.95);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 0.5rem 2rem;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            padding: 2rem;
-        }
-        
-        .hero::before {
-            content: "";
-            position: absolute;
+            justify-content: flex-end;
+            gap: 1rem;
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.15) 0%, transparent 60%);
-            pointer-events: none;
-        }
-        
-        /* Shield Logo */
-        .shield-logo {
-            width: 400px;
-            max-width: 90vw;
-            height: auto;
-            margin-bottom: 3rem;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .shield-logo img {
-            width: 100%;
-            height: auto;
-            filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.6));
-        }
-        
-        .hero-content {
-            text-align: center;
-            max-width: 900px;
-            z-index: 2;
-        }
-        
-        .hero h1 {
-            font-size: 4rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--cyan) 50%, var(--purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
-        }
-        
-        .hero .tagline {
-            font-size: 1.8rem;
-            color: var(--cyan);
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-        
-        .hero .description {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 3rem;
-            line-height: 1.8;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 1.2rem 3rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--cyan) 0%, #0891b2 100%);
-            color: white;
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
-        }
-        
-        .btn-secondary {
-            background: transparent;
-            border: 2px solid var(--gold);
-            color: var(--gold);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--gold);
-            color: var(--darker-bg);
-        }
-        
-        /* About Section */
-        .about {
-            background: linear-gradient(180deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
-            padding: 6rem 2rem;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .section-title {
-            font-size: 3rem;
-            text-align: center;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .section-subtitle {
-            text-align: center;
-            font-size: 1.3rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 4rem;
-        }
-        
-        .about-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-            margin-bottom: 4rem;
-        }
-        
-        .about-card {
-            background: linear-gradient(135deg, rgba(10, 22, 40, 0.6) 0%, rgba(6, 14, 28, 0.8) 100%);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            border-radius: 16px;
-            padding: 2.5rem;
+            z-index: 1000;
             backdrop-filter: blur(10px);
         }
         
-        .about-card h3 {
-            font-size: 1.8rem;
-            color: var(--cyan);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .about-card .icon {
-            font-size: 2.5rem;
-        }
-        
-        .about-card p {
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.8;
-        }
-        
-        /* Timeline */
-        .timeline {
-            background: var(--dark-bg);
-            padding: 6rem 2rem;
-        }
-        
-        .timeline-items {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        .timeline-items::before {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: linear-gradient(180deg, var(--cyan) 0%, var(--purple) 100%);
-        }
-        
-        .timeline-item {
-            margin-bottom: 4rem;
-            position: relative;
-        }
-        
-        .timeline-item:nth-child(odd) {
-            padding-right: 52%;
-            text-align: right;
-        }
-        
-        .timeline-item:nth-child(even) {
-            padding-left: 52%;
-        }
-        
-        .timeline-year {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--cyan);
-            margin-bottom: 0.5rem;
-        }
-        
-        .timeline-title {
-            font-size: 1.5rem;
-            color: white;
-            margin-bottom: 0.5rem;
-        }
-        
-        .timeline-text {
+        .lang-btn {
+            background: transparent;
+            border: 2px solid rgba(0, 212, 255, 0.3);
             color: rgba(255, 255, 255, 0.7);
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
         }
         
-        /* Technology Section */
-        .technology {
-            background: linear-gradient(180deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
-            padding: 6rem 2rem;
+        .lang-btn:hover, .lang-btn.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0, 212, 255, 0.1);
         }
         
-        .tech-grid {
+        /* Hero Section */
+        .hero {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+        }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo {
+            width: 150px;
+            height: 150px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        
+        .tagline {
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 3rem;
+            background: linear-gradient(135deg, var(--cyan) 0%, #0891b2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.8);
+        }
+        
+        /* Content Sections */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+        
+        .section {
+            margin-bottom: 6rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            color: var(--cyan);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        /* Specialty Grid */
+        .specialty-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
         }
         
-        .tech-card {
-            background: rgba(6, 14, 28, 0.6);
+        .specialty-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
             border: 2px solid rgba(0, 212, 255, 0.2);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 2rem;
             text-align: center;
             transition: all 0.3s ease;
         }
         
-        .tech-card:hover {
+        .specialty-card:hover {
             border-color: var(--cyan);
             transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
         }
         
-        .tech-card .icon {
-            font-size: 3rem;
+        .specialty-icon {
+            font-size: 4rem;
             margin-bottom: 1rem;
         }
         
-        .tech-card h4 {
-            font-size: 1.3rem;
+        .specialty-card h3 {
             color: var(--cyan);
+            font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
         
-        .tech-card p {
+        .specialty-card p {
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.95rem;
         }
         
-        /* Stats Section */
-        .stats {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
-            padding: 4rem 2rem;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 3rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 4rem;
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .stat-label {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.8);
             margin-top: 0.5rem;
         }
         
-        /* Pricing */
-        .pricing {
-            background: var(--darker-bg);
-            padding: 6rem 2rem;
+        .status-live {
+            background: var(--green);
+            color: white;
         }
         
+        .status-coming {
+            background: var(--gold);
+            color: var(--darker-bg);
+        }
+        
+        /* AI Features Grid */
+        .ai-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .ai-card {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        
+        .ai-card h3 {
+            color: var(--purple);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .ai-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .ai-card li {
+            padding: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.8);
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .ai-card li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: bold;
+        }
+        
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+            border: 2px solid var(--gold);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            color: var(--gold);
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+        }
+        
+        /* Pricing Section */
         .pricing-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
         }
         
         .pricing-card {
-            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
-            border: 2px solid rgba(0, 212, 255, 0.2);
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.9) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
             border-radius: 16px;
-            padding: 3rem 2rem;
+            padding: 2.5rem;
             text-align: center;
-            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .pricing-card:hover {
+            border-color: var(--cyan);
+            transform: scale(1.05);
         }
         
         .pricing-card.featured {
-            border-color: var(--cyan);
-            transform: scale(1.05);
-            box-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+            border-color: var(--gold);
+            box-shadow: 0 0 40px rgba(201, 169, 110, 0.3);
         }
         
-        .pricing-card h3 {
-            font-size: 2rem;
+        .plan-name {
             color: var(--cyan);
+            font-size: 1.8rem;
             margin-bottom: 1rem;
         }
         
-        .pricing-card .price {
-            font-size: 3rem;
+        .plan-price {
+            font-size: 2.5rem;
+            color: var(--gold);
             font-weight: 700;
-            color: white;
             margin-bottom: 0.5rem;
         }
         
-        .pricing-card .period {
+        .plan-period {
             color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
             margin-bottom: 2rem;
         }
         
-        .pricing-card ul {
+        .plan-features {
             list-style: none;
+            padding: 0;
             margin-bottom: 2rem;
             text-align: left;
         }
         
-        .pricing-card li {
+        .plan-features li {
             padding: 0.75rem 0;
             color: rgba(255, 255, 255, 0.8);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-left: 2rem;
+            position: relative;
         }
         
-        .pricing-card li::before {
+        .plan-features li::before {
             content: "✓";
-            color: var(--cyan);
-            font-weight: 700;
-            margin-right: 1rem;
-        }
-        
-        /* Workflow Showcase */
-        .workflow-showcase {
-            background: var(--dark-bg);
-            padding: 6rem 2rem;
-        }
-        
-        .workflow-image {
-            max-width: 1400px;
-            margin: 3rem auto 0;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 0 60px rgba(0, 212, 255, 0.4);
-            border: 2px solid rgba(0, 212, 255, 0.3);
-        }
-        
-        .workflow-image img {
-            width: 100%;
-            height: auto;
-            display: block;
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: bold;
+            font-size: 1.2rem;
         }
         
         /* Footer */
         footer {
-            background: var(--darker-bg);
+            background: rgba(6, 14, 28, 0.98);
+            border-top: 2px solid rgba(0, 212, 255, 0.2);
             padding: 3rem 2rem;
             text-align: center;
-            border-top: 2px solid rgba(0, 212, 255, 0.2);
         }
         
-        footer p {
-            color: rgba(255, 255, 255, 0.6);
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
         
+        .footer-links a {
+            color: var(--cyan);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--gold);
+        }
+        
+        /* Responsive */
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .hero .tagline { font-size: 1.2rem; }
+            h1 { font-size: 2.5rem; }
+            .tagline { font-size: 1.2rem; }
             .section-title { font-size: 2rem; }
-            .shield-logo { width: 300px; }
-            .timeline-items::before { left: 0; }
-            .timeline-item:nth-child(odd) { padding-right: 0; padding-left: 3rem; text-align: left; }
-            .timeline-item:nth-child(even) { padding-left: 3rem; }
         }
     </style>
 </head>
 <body>
-    <!-- Hero Section with Shield Logo -->
-    <section class="hero">
-        <div class="shield-logo">
-            <img src="/mnt/user-data/uploads/PatientTracESurg2.jpg" alt="PatientTracSurg Shield Logo">
+    <!-- Language Switcher -->
+    <div class="language-bar">
+        <button class="lang-btn active" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="es">Español</button>
+        <button class="lang-btn" data-lang="fr">Français</button>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="logo-container">
+            <svg class="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Animated Surgical Shield -->
+                <defs>
+                    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <path d="M100 20 L160 50 L160 110 Q160 150 100 180 Q40 150 40 110 L40 50 Z" 
+                      fill="url(#shieldGrad)" opacity="0.2" stroke="url(#shieldGrad)" stroke-width="3"/>
+                <!-- Scalpel -->
+                <line x1="80" y1="70" x2="120" y2="130" stroke="#00d4ff" stroke-width="3"/>
+                <circle cx="80" cy="70" r="5" fill="#c9a96e"/>
+                <!-- Scissors -->
+                <path d="M110 70 Q115 90 120 110 M110 70 Q105 90 100 110" 
+                      stroke="#a855f7" stroke-width="3" fill="none"/>
+                <circle cx="110" cy="70" r="5" fill="#c9a96e"/>
+                <!-- Circuit Pattern -->
+                <circle cx="70" cy="90" r="3" fill="#00d4ff"/>
+                <circle cx="130" cy="90" r="3" fill="#00d4ff"/>
+                <line x1="73" y1="90" x2="127" y2="90" stroke="#00d4ff" stroke-width="1"/>
+            </svg>
         </div>
         
-        <div class="hero-content">
-            <h1>PatientTracSurg</h1>
-            <p class="tagline">AI-Powered Bariatric Surgery Platform</p>
-            <p class="description">
-                Revolutionary surgical documentation platform combining cutting-edge AI technology with comprehensive clinical workflows. 
-                Streamline pre-operative assessment, intraoperative documentation, and post-operative care with intelligent automation.
+        <h1 data-i18n="title">PatientTracSurg</h1>
+        <p class="tagline" data-i18n="tagline">AI-Powered Outpatient Surgical Documentation</p>
+        <p class="subtitle" data-i18n="subtitle">
+            Complete surgical workflow platform with intelligent documentation, 
+            e-signature consent management, and automated billing optimization
+        </p>
+        <a href="/app.html" class="cta-button" data-i18n="cta">Launch Platform</a>
+    </div>
+
+    <!-- Surgical Specialties -->
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title" data-i18n="specialties-title">Surgical Specialties Supported</h2>
+            <div class="specialty-grid">
+                <div class="specialty-card">
+                    <div class="specialty-icon">🔪</div>
+                    <h3 data-i18n="spec-bariatric-title">Bariatric Surgery</h3>
+                    <p data-i18n="spec-bariatric-desc">Gastric Sleeve, Bypass, Revision procedures with comprehensive consent management</p>
+                    <span class="status-badge status-live" data-i18n="status-live">LIVE</span>
+                </div>
+                
+                <div class="specialty-card">
+                    <div class="specialty-icon">💗</div>
+                    <h3 data-i18n="spec-plastic-title">Plastic Surgery</h3>
+                    <p data-i18n="spec-plastic-desc">Breast augmentation, reconstruction, body contouring with photo documentation</p>
+                    <span class="status-badge status-live" data-i18n="status-live">LIVE</span>
+                </div>
+                
+                <div class="specialty-card">
+                    <div class="specialty-icon">👁️</div>
+                    <h3 data-i18n="spec-ophthalmic-title">Ophthalmic Surgery</h3>
+                    <p data-i18n="spec-ophthalmic-desc">Cataract, LASIK, retinal procedures with visual acuity tracking</p>
+                    <span class="status-badge status-coming" data-i18n="status-coming">COMING Q3 2026</span>
+                </div>
+                
+                <div class="specialty-card">
+                    <div class="specialty-icon">🦴</div>
+                    <h3 data-i18n="spec-orthopedic-title">Orthopedic Surgery</h3>
+                    <p data-i18n="spec-orthopedic-desc">Joint arthroscopy, fracture repair, sports medicine procedures</p>
+                    <span class="status-badge status-coming" data-i18n="status-coming">COMING Q3 2026</span>
+                </div>
+                
+                <div class="specialty-card">
+                    <div class="specialty-icon">🫀</div>
+                    <h3 data-i18n="spec-cardiac-title">Cardiac Surgery</h3>
+                    <p data-i18n="spec-cardiac-desc">Catheterization, stent placement, pacemaker implantation</p>
+                    <span class="status-badge status-coming" data-i18n="status-coming">COMING Q4 2026</span>
+                </div>
+                
+                <div class="specialty-card">
+                    <div class="specialty-icon">🔬</div>
+                    <h3 data-i18n="spec-endoscopy-title">Endoscopy Procedures</h3>
+                    <p data-i18n="spec-endoscopy-desc">GI endoscopy, colonoscopy, bronchoscopy with imaging capture</p>
+                    <span class="status-badge status-coming" data-i18n="status-coming">COMING Q4 2026</span>
+                </div>
+                
+                <div class="specialty-card">
+                    <div class="specialty-icon">🦷</div>
+                    <h3 data-i18n="spec-dental-title">Oral Surgery</h3>
+                    <p data-i18n="spec-dental-desc">Extractions, implants, wisdom teeth with dental imaging</p>
+                    <span class="status-badge status-coming" data-i18n="status-coming">COMING 2027</span>
+                </div>
+                
+                <div class="specialty-card">
+                    <div class="specialty-icon">👶</div>
+                    <h3 data-i18n="spec-pediatric-title">Pediatric Surgery</h3>
+                    <p data-i18n="spec-pediatric-desc">Hernia repair, circumcision, minor procedures with parent consent</p>
+                    <span class="status-badge status-coming" data-i18n="status-coming">COMING 2027</span>
+                </div>
+                
+                <div class="specialty-card">
+                    <div class="specialty-icon">🩺</div>
+                    <h3 data-i18n="spec-dermatology-title">Dermatology</h3>
+                    <p data-i18n="spec-dermatology-desc">Skin lesion removal, Mohs surgery, cosmetic procedures</p>
+                    <span class="status-badge status-coming" data-i18n="status-coming">COMING 2027</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Features -->
+        <section class="section">
+            <h2 class="section-title" data-i18n="ai-title">Claude AI 4.6 Powered Features</h2>
+            <div class="ai-grid">
+                <div class="ai-card">
+                    <h3><span>🤖</span> <span data-i18n="ai-clinical-title">Clinical Intelligence</span></h3>
+                    <ul>
+                        <li data-i18n="ai-clinical-1">Airway risk scoring (5-factor algorithm)</li>
+                        <li data-i18n="ai-clinical-2">Aldrete recovery assessment (auto-discharge)</li>
+                        <li data-i18n="ai-clinical-3">BMI calculations with risk stratification</li>
+                        <li data-i18n="ai-clinical-4">Vital signs monitoring with alerts</li>
+                        <li data-i18n="ai-clinical-5">Comorbidity impact analysis</li>
+                    </ul>
+                </div>
+                
+                <div class="ai-card">
+                    <h3><span>💰</span> <span data-i18n="ai-billing-title">Billing Optimization</span></h3>
+                    <ul>
+                        <li data-i18n="ai-billing-1">Auto-superbill generation from op notes</li>
+                        <li data-i18n="ai-billing-2">CPT/ICD-10 code search & validation</li>
+                        <li data-i18n="ai-billing-3">Multi-code procedure documentation</li>
+                        <li data-i18n="ai-billing-4">Modifier suggestions & compliance</li>
+                        <li data-i18n="ai-billing-5">Reimbursement optimization</li>
+                    </ul>
+                </div>
+                
+                <div class="ai-card">
+                    <h3><span>📋</span> <span data-i18n="ai-consent-title">Smart Consent Management</span></h3>
+                    <ul>
+                        <li data-i18n="ai-consent-1">Comprehensive legal disclaimers</li>
+                        <li data-i18n="ai-consent-2">E-signature capture (touch/mouse)</li>
+                        <li data-i18n="ai-consent-3">4-item verification checklist</li>
+                        <li data-i18n="ai-consent-4">Version control & audit trail</li>
+                        <li data-i18n="ai-consent-5">Multi-language support</li>
+                    </ul>
+                </div>
+                
+                <div class="ai-card">
+                    <h3><span>📊</span> <span data-i18n="ai-analytics-title">Real-Time Analytics</span></h3>
+                    <ul>
+                        <li data-i18n="ai-analytics-1">Workflow completion tracking</li>
+                        <li data-i18n="ai-analytics-2">Patient timeline monitoring</li>
+                        <li data-i18n="ai-analytics-3">Recovery milestone detection</li>
+                        <li data-i18n="ai-analytics-4">Complication pattern recognition</li>
+                        <li data-i18n="ai-analytics-5">Outcome prediction models</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="section">
+            <h2 class="section-title" data-i18n="stats-title">Proven Results</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">94%</div>
+                    <div class="stat-label" data-i18n="stat-billing">Billing Accuracy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">40%</div>
+                    <div class="stat-label" data-i18n="stat-time">Time Savings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">23%</div>
+                    <div class="stat-label" data-i18n="stat-revenue">Revenue Increase</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label" data-i18n="stat-hipaa">HIPAA Compliant</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section class="section">
+            <h2 class="section-title" data-i18n="pricing-title">Flexible Pricing</h2>
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-bottom: 3rem;" data-i18n="pricing-subtitle">
+                All prices are configurable per facility at implementation
             </p>
-            <div class="hero-buttons">
-                <a href="/app.html" class="btn btn-primary">Launch Platform</a>
-                <a href="#about" class="btn btn-secondary">Learn More</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section class="about" id="about">
-        <div class="container">
-            <h2 class="section-title">About PatientTracSurg</h2>
-            <p class="section-subtitle">Transforming Surgical Care Through Innovation</p>
-            
-            <div class="about-grid">
-                <div class="about-card">
-                    <h3><span class="icon">🏥</span> Our Mission</h3>
-                    <p>
-                        To revolutionize bariatric surgery practice management through AI-powered clinical intelligence, 
-                        enabling surgical teams to deliver exceptional patient outcomes while optimizing operational efficiency 
-                        and maximizing revenue potential.
-                    </p>
-                </div>
-                
-                <div class="about-card">
-                    <h3><span class="icon">🎯</span> Our Vision</h3>
-                    <p>
-                        Becoming the leading surgical documentation platform by seamlessly integrating clinical excellence 
-                        with advanced AI technology, setting new standards for bariatric surgery care coordination, 
-                        documentation accuracy, and billing optimization.
-                    </p>
-                </div>
-                
-                <div class="about-card">
-                    <h3><span class="icon">⚡</span> Our Expertise</h3>
-                    <p>
-                        Built by healthcare technology veterans with deep expertise in EMR systems, surgical workflows, 
-                        and AI-powered clinical decision support. Over 20 years of combined experience in healthcare IT 
-                        and bariatric surgery practice management.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Evolution Timeline -->
-    <section class="timeline">
-        <div class="container">
-            <h2 class="section-title">Our Evolution</h2>
-            <p class="section-subtitle">From Innovation to Industry Leadership</p>
-            
-            <div class="timeline-items">
-                <div class="timeline-item">
-                    <div class="timeline-year">2001</div>
-                    <div class="timeline-title">PatientTrac Legacy Born</div>
-                    <div class="timeline-text">
-                        Original PatientTrac system launched in Visual Basic 6, pioneering integrated practice management 
-                        for specialty care with 200+ installations nationwide.
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-year">2024</div>
-                    <div class="timeline-title">Cloud Migration</div>
-                    <div class="timeline-text">
-                        Complete platform modernization begins with React, TypeScript, and Supabase PostgreSQL, 
-                        bringing enterprise-grade security and real-time collaboration.
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-year">2025</div>
-                    <div class="timeline-title">AI Integration</div>
-                    <div class="timeline-text">
-                        Launch of Claude Sonnet 4.6 powered clinical intelligence: automated risk scoring, 
-                        smart scheduling, AI-assisted billing, and predictive analytics.
-                    </div>
-                </div>
-                
-                <div class="timeline-item">
-                    <div class="timeline-year">2026</div>
-                    <div class="timeline-title">Surgical Suite Launch</div>
-                    <div class="timeline-text">
-                        PatientTracSurg platform debuts with comprehensive bariatric surgery workflows, 
-                        real-time OR integration, and automatic superbill generation.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Technology Highlights -->
-    <section class="technology">
-        <div class="container">
-            <h2 class="section-title">Technology Highlights</h2>
-            <p class="section-subtitle">Built on Cutting-Edge Healthcare Innovation</p>
-            
-            <div class="tech-grid">
-                <div class="tech-card">
-                    <div class="icon">🤖</div>
-                    <h4>Claude AI 4.6</h4>
-                    <p>Advanced natural language processing for clinical documentation and intelligent decision support</p>
-                </div>
-                
-                <div class="tech-card">
-                    <div class="icon">📊</div>
-                    <h4>Real-Time Analytics</h4>
-                    <p>Live dashboards tracking surgical outcomes, recovery metrics, and revenue optimization</p>
-                </div>
-                
-                <div class="tech-card">
-                    <div class="icon">🔒</div>
-                    <h4>HIPAA Compliant</h4>
-                    <p>Enterprise security with row-level encryption, audit logging, and multi-factor authentication</p>
-                </div>
-                
-                <div class="tech-card">
-                    <div class="icon">⚡</div>
-                    <h4>Cloud-Native</h4>
-                    <p>Supabase PostgreSQL with 99.9% uptime, automatic backups, and global edge distribution</p>
-                </div>
-                
-                <div class="tech-card">
-                    <div class="icon">🎯</div>
-                    <h4>Smart Billing</h4>
-                    <p>Automatic CPT/ICD-10 coding with AI-powered superbill generation and denial risk prediction</p>
-                </div>
-                
-                <div class="tech-card">
-                    <div class="icon">📱</div>
-                    <h4>Cross-Platform</h4>
-                    <p>Seamless integration with PatientTracForge, Revela, and Mind via secure token bridge</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Revenue Stats -->
-    <section class="stats">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number">23%</div>
-                <div class="stat-label">Revenue Increase</div>
-            </div>
-            
-            <div class="stat-item">
-                <div class="stat-number">40%</div>
-                <div class="stat-label">Time Savings</div>
-            </div>
-            
-            <div class="stat-item">
-                <div class="stat-number">95%</div>
-                <div class="stat-label">Billing Accuracy</div>
-            </div>
-            
-            <div class="stat-item">
-                <div class="stat-number">$2.3M</div>
-                <div class="stat-label">Avg Annual Impact</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Advanced E&M Comparison -->
-    <section class="about">
-        <div class="container">
-            <h2 class="section-title">Advanced Evaluation & Management</h2>
-            <p class="section-subtitle">Maximizing Revenue with Intelligent Documentation</p>
-            
-            <div class="about-grid">
-                <div class="about-card">
-                    <h3><span class="icon">💰</span> Revenue Optimization</h3>
-                    <p>
-                        Our AI automatically analyzes documentation complexity and suggests optimal E&M codes 
-                        (99201-99215). Average practices see 18-23% revenue increase from proper level-of-service coding 
-                        and reduced downcoding by payers. Real-time MDM calculator ensures compliant upcoding.
-                    </p>
-                </div>
-                
-                <div class="about-card">
-                    <h3><span class="icon">📈</span> Comparative Analytics</h3>
-                    <p>
-                        Benchmark your E&M distribution against national bariatric surgery averages. Dashboard shows 
-                        your Level 3 vs Level 4 vs Level 5 visit ratios compared to peers, highlighting $50K-$200K 
-                        annual revenue opportunities from documentation enhancement.
-                    </p>
-                </div>
-                
-                <div class="about-card">
-                    <h3><span class="icon">🎯</span> Denial Prevention</h3>
-                    <p>
-                        AI scoring predicts denial risk before claim submission. Pre-visit intake flags missing elements, 
-                        operative note suggests supporting ICD-10 codes, and post-visit review ensures medical necessity 
-                        documentation meets payer requirements. 94% first-pass acceptance rate.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Pricing -->
-    <section class="pricing">
-        <div class="container">
-            <h2 class="section-title">Transparent Pricing</h2>
-            <p class="section-subtitle">Choose the Plan That Fits Your Practice</p>
-            
             <div class="pricing-grid">
                 <div class="pricing-card">
-                    <h3>Starter</h3>
-                    <div class="price">$299</div>
-                    <div class="period">per month</div>
-                    <ul>
-                        <li>1 Provider License</li>
-                        <li>Core Surgical Modules</li>
-                        <li>Basic AI Features</li>
-                        <li>Email Support</li>
-                        <li>Cloud Storage (50GB)</li>
+                    <h3 class="plan-name" data-i18n="plan-starter">Starter</h3>
+                    <div class="plan-price" data-i18n="plan-starter-price">Contact Us</div>
+                    <div class="plan-period" data-i18n="plan-starter-period">Custom Pricing Per Facility</div>
+                    <ul class="plan-features">
+                        <li data-i18n="plan-starter-1">1 Surgical Specialty</li>
+                        <li data-i18n="plan-starter-2">Up to 50 procedures/month</li>
+                        <li data-i18n="plan-starter-3">Basic AI documentation</li>
+                        <li data-i18n="plan-starter-4">E-signature consent forms</li>
+                        <li data-i18n="plan-starter-5">Standard support</li>
                     </ul>
-                    <a href="/app.html" class="btn btn-secondary">Get Started</a>
+                    <a href="mailto:sales@patienttracforge.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
                 </div>
                 
                 <div class="pricing-card featured">
-                    <h3>Professional</h3>
-                    <div class="price">$699</div>
-                    <div class="period">per month</div>
-                    <ul>
-                        <li>Up to 5 Providers</li>
-                        <li>All AI Features</li>
-                        <li>Advanced Analytics</li>
-                        <li>Priority Support</li>
-                        <li>Cloud Storage (500GB)</li>
-                        <li>API Access</li>
+                    <h3 class="plan-name" data-i18n="plan-professional">Professional</h3>
+                    <div class="plan-price" data-i18n="plan-professional-price">Contact Us</div>
+                    <div class="plan-period" data-i18n="plan-professional-period">Custom Pricing Per Facility</div>
+                    <ul class="plan-features">
+                        <li data-i18n="plan-professional-1">Up to 3 Surgical Specialties</li>
+                        <li data-i18n="plan-professional-2">Unlimited procedures</li>
+                        <li data-i18n="plan-professional-3">Full AI suite (Claude 4.6)</li>
+                        <li data-i18n="plan-professional-4">Advanced consent library</li>
+                        <li data-i18n="plan-professional-5">Auto-superbill generation</li>
+                        <li data-i18n="plan-professional-6">Priority support</li>
                     </ul>
-                    <a href="/app.html" class="btn btn-primary">Most Popular</a>
+                    <a href="mailto:sales@patienttracforge.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
                 </div>
                 
                 <div class="pricing-card">
-                    <h3>Enterprise</h3>
-                    <div class="price">$1,499</div>
-                    <div class="period">per month</div>
-                    <ul>
-                        <li>Unlimited Providers</li>
-                        <li>Custom AI Training</li>
-                        <li>White-Label Option</li>
-                        <li>24/7 Phone Support</li>
-                        <li>Unlimited Storage</li>
-                        <li>Custom Integrations</li>
+                    <h3 class="plan-name" data-i18n="plan-enterprise">Enterprise</h3>
+                    <div class="plan-price" data-i18n="plan-enterprise-price">Contact Us</div>
+                    <div class="plan-period" data-i18n="plan-enterprise-period">Custom Pricing Per Facility</div>
+                    <ul class="plan-features">
+                        <li data-i18n="plan-enterprise-1">All Surgical Specialties</li>
+                        <li data-i18n="plan-enterprise-2">Multi-facility deployment</li>
+                        <li data-i18n="plan-enterprise-3">Custom AI model training</li>
+                        <li data-i18n="plan-enterprise-4">White-label options</li>
+                        <li data-i18n="plan-enterprise-5">Dedicated success manager</li>
+                        <li data-i18n="plan-enterprise-6">24/7 phone support</li>
                     </ul>
-                    <a href="/app.html" class="btn btn-secondary">Contact Sales</a>
+                    <a href="mailto:sales@patienttracforge.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Workflow Showcase -->
-    <section class="workflow-showcase">
-        <div class="container">
-            <h2 class="section-title">Complete Surgical Workflow</h2>
-            <p class="section-subtitle">From Pre-Op to Post-Op in One Integrated Platform</p>
-            
-            <div class="workflow-image">
-                <img src="/mnt/user-data/uploads/ptsuurg.jpg" alt="PatientTracSurg Comprehensive Workflow Dashboard">
-            </div>
-        </div>
-    </section>
+        </section>
+    </div>
 
     <!-- Footer -->
     <footer>
-        <div class="container">
-            <p>&copy; 2026 PatientTrac Corp. All rights reserved.</p>
-            <p style="margin-top: 1rem;">
-                <a href="mailto:sales@patienttracforge.com" style="color: var(--cyan); text-decoration: none;">sales@patienttracforge.com</a> | 
-                <a href="mailto:support@patienttrac.com" style="color: var(--cyan); text-decoration: none;">support@patienttrac.com</a>
-            </p>
+        <div class="footer-links">
+            <a href="/privacy.html" data-i18n="footer-privacy">Privacy Policy</a>
+            <a href="/terms.html" data-i18n="footer-terms">Terms of Service</a>
+            <a href="/hipaa.html" data-i18n="footer-hipaa">HIPAA Compliance</a>
+            <a href="mailto:support@patienttracforge.com" data-i18n="footer-support">Support</a>
         </div>
+        <p style="color: rgba(255, 255, 255, 0.5);">
+            &copy; 2026 PatientTrac Corp. <span data-i18n="footer-rights">All rights reserved.</span>
+        </p>
+        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem; margin-top: 1rem;">
+            <span data-i18n="footer-tagline">Built from 25 years of surgical EMR expertise</span> | 
+            <span data-i18n="footer-powered">Powered by Claude AI 4.6</span>
+        </p>
     </footer>
+
+    <script>
+        // Multi-language translations
+        const translations = {
+            en: {
+                'title': 'PatientTracSurg',
+                'tagline': 'AI-Powered Outpatient Surgical Documentation',
+                'subtitle': 'Complete surgical workflow platform with intelligent documentation, e-signature consent management, and automated billing optimization',
+                'cta': 'Launch Platform',
+                'specialties-title': 'Surgical Specialties Supported',
+                'spec-bariatric-title': 'Bariatric Surgery',
+                'spec-bariatric-desc': 'Gastric Sleeve, Bypass, Revision procedures with comprehensive consent management',
+                'spec-plastic-title': 'Plastic Surgery',
+                'spec-plastic-desc': 'Breast augmentation, reconstruction, body contouring with photo documentation',
+                'spec-ophthalmic-title': 'Ophthalmic Surgery',
+                'spec-ophthalmic-desc': 'Cataract, LASIK, retinal procedures with visual acuity tracking',
+                'spec-orthopedic-title': 'Orthopedic Surgery',
+                'spec-orthopedic-desc': 'Joint arthroscopy, fracture repair, sports medicine procedures',
+                'spec-cardiac-title': 'Cardiac Surgery',
+                'spec-cardiac-desc': 'Catheterization, stent placement, pacemaker implantation',
+                'spec-endoscopy-title': 'Endoscopy Procedures',
+                'spec-endoscopy-desc': 'GI endoscopy, colonoscopy, bronchoscopy with imaging capture',
+                'spec-dental-title': 'Oral Surgery',
+                'spec-dental-desc': 'Extractions, implants, wisdom teeth with dental imaging',
+                'spec-pediatric-title': 'Pediatric Surgery',
+                'spec-pediatric-desc': 'Hernia repair, circumcision, minor procedures with parent consent',
+                'spec-dermatology-title': 'Dermatology',
+                'spec-dermatology-desc': 'Skin lesion removal, Mohs surgery, cosmetic procedures',
+                'status-live': 'LIVE',
+                'status-coming': 'COMING SOON',
+                'ai-title': 'Claude AI 4.6 Powered Features',
+                'ai-clinical-title': 'Clinical Intelligence',
+                'ai-clinical-1': 'Airway risk scoring (5-factor algorithm)',
+                'ai-clinical-2': 'Aldrete recovery assessment (auto-discharge)',
+                'ai-clinical-3': 'BMI calculations with risk stratification',
+                'ai-clinical-4': 'Vital signs monitoring with alerts',
+                'ai-clinical-5': 'Comorbidity impact analysis',
+                'ai-billing-title': 'Billing Optimization',
+                'ai-billing-1': 'Auto-superbill generation from op notes',
+                'ai-billing-2': 'CPT/ICD-10 code search & validation',
+                'ai-billing-3': 'Multi-code procedure documentation',
+                'ai-billing-4': 'Modifier suggestions & compliance',
+                'ai-billing-5': 'Reimbursement optimization',
+                'ai-consent-title': 'Smart Consent Management',
+                'ai-consent-1': 'Comprehensive legal disclaimers',
+                'ai-consent-2': 'E-signature capture (touch/mouse)',
+                'ai-consent-3': '4-item verification checklist',
+                'ai-consent-4': 'Version control & audit trail',
+                'ai-consent-5': 'Multi-language support',
+                'ai-analytics-title': 'Real-Time Analytics',
+                'ai-analytics-1': 'Workflow completion tracking',
+                'ai-analytics-2': 'Patient timeline monitoring',
+                'ai-analytics-3': 'Recovery milestone detection',
+                'ai-analytics-4': 'Complication pattern recognition',
+                'ai-analytics-5': 'Outcome prediction models',
+                'stats-title': 'Proven Results',
+                'stat-billing': 'Billing Accuracy',
+                'stat-time': 'Time Savings',
+                'stat-revenue': 'Revenue Increase',
+                'stat-hipaa': 'HIPAA Compliant',
+                'pricing-title': 'Flexible Pricing',
+                'pricing-subtitle': 'All prices are configurable per facility at implementation',
+                'plan-starter': 'Starter',
+                'plan-starter-price': 'Contact Us',
+                'plan-starter-period': 'Custom Pricing Per Facility',
+                'plan-starter-1': '1 Surgical Specialty',
+                'plan-starter-2': 'Up to 50 procedures/month',
+                'plan-starter-3': 'Basic AI documentation',
+                'plan-starter-4': 'E-signature consent forms',
+                'plan-starter-5': 'Standard support',
+                'plan-professional': 'Professional',
+                'plan-professional-price': 'Contact Us',
+                'plan-professional-period': 'Custom Pricing Per Facility',
+                'plan-professional-1': 'Up to 3 Surgical Specialties',
+                'plan-professional-2': 'Unlimited procedures',
+                'plan-professional-3': 'Full AI suite (Claude 4.6)',
+                'plan-professional-4': 'Advanced consent library',
+                'plan-professional-5': 'Auto-superbill generation',
+                'plan-professional-6': 'Priority support',
+                'plan-enterprise': 'Enterprise',
+                'plan-enterprise-price': 'Contact Us',
+                'plan-enterprise-period': 'Custom Pricing Per Facility',
+                'plan-enterprise-1': 'All Surgical Specialties',
+                'plan-enterprise-2': 'Multi-facility deployment',
+                'plan-enterprise-3': 'Custom AI model training',
+                'plan-enterprise-4': 'White-label options',
+                'plan-enterprise-5': 'Dedicated success manager',
+                'plan-enterprise-6': '24/7 phone support',
+                'contact-sales': 'Contact Sales',
+                'footer-privacy': 'Privacy Policy',
+                'footer-terms': 'Terms of Service',
+                'footer-hipaa': 'HIPAA Compliance',
+                'footer-support': 'Support',
+                'footer-rights': 'All rights reserved.',
+                'footer-tagline': 'Built from 25 years of surgical EMR expertise',
+                'footer-powered': 'Powered by Claude AI 4.6'
+            },
+            es: {
+                'title': 'PatientTracSurg',
+                'tagline': 'Documentación Quirúrgica Ambulatoria con IA',
+                'subtitle': 'Plataforma completa de flujo quirúrgico con documentación inteligente, gestión de consentimiento con firma electrónica y optimización de facturación automatizada',
+                'cta': 'Iniciar Plataforma',
+                'specialties-title': 'Especialidades Quirúrgicas Soportadas',
+                'spec-bariatric-title': 'Cirugía Bariátrica',
+                'spec-bariatric-desc': 'Manga gástrica, bypass, revisión con gestión integral de consentimiento',
+                'spec-plastic-title': 'Cirugía Plástica',
+                'spec-plastic-desc': 'Aumento mamario, reconstrucción, contorno corporal con documentación fotográfica',
+                'spec-ophthalmic-title': 'Cirugía Oftálmica',
+                'spec-ophthalmic-desc': 'Cataratas, LASIK, procedimientos retinales con seguimiento de agudeza visual',
+                'spec-orthopedic-title': 'Cirugía Ortopédica',
+                'spec-orthopedic-desc': 'Artroscopia articular, reparación de fracturas, medicina deportiva',
+                'spec-cardiac-title': 'Cirugía Cardíaca',
+                'spec-cardiac-desc': 'Cateterismo, colocación de stents, implantación de marcapasos',
+                'spec-endoscopy-title': 'Procedimientos Endoscópicos',
+                'spec-endoscopy-desc': 'Endoscopia GI, colonoscopia, broncoscopia con captura de imágenes',
+                'spec-dental-title': 'Cirugía Oral',
+                'spec-dental-desc': 'Extracciones, implantes, muelas del juicio con imágenes dentales',
+                'spec-pediatric-title': 'Cirugía Pediátrica',
+                'spec-pediatric-desc': 'Reparación de hernias, circuncisión, procedimientos menores con consentimiento parental',
+                'spec-dermatology-title': 'Dermatología',
+                'spec-dermatology-desc': 'Extirpación de lesiones cutáneas, cirugía de Mohs, procedimientos cosméticos',
+                'status-live': 'EN VIVO',
+                'status-coming': 'PRÓXIMAMENTE',
+                'ai-title': 'Características Potenciadas por Claude AI 4.6',
+                'ai-clinical-title': 'Inteligencia Clínica',
+                'ai-clinical-1': 'Puntuación de riesgo de vía aérea (algoritmo de 5 factores)',
+                'ai-clinical-2': 'Evaluación de recuperación Aldrete (alta automática)',
+                'ai-clinical-3': 'Cálculos de IMC con estratificación de riesgo',
+                'ai-clinical-4': 'Monitoreo de signos vitales con alertas',
+                'ai-clinical-5': 'Análisis de impacto de comorbilidades',
+                'ai-billing-title': 'Optimización de Facturación',
+                'ai-billing-1': 'Generación automática de superbill desde notas operatorias',
+                'ai-billing-2': 'Búsqueda y validación de códigos CPT/ICD-10',
+                'ai-billing-3': 'Documentación de procedimientos multicódigo',
+                'ai-billing-4': 'Sugerencias de modificadores y cumplimiento',
+                'ai-billing-5': 'Optimización de reembolsos',
+                'ai-consent-title': 'Gestión Inteligente de Consentimiento',
+                'ai-consent-1': 'Descargos legales completos',
+                'ai-consent-2': 'Captura de firma electrónica (táctil/ratón)',
+                'ai-consent-3': 'Lista de verificación de 4 elementos',
+                'ai-consent-4': 'Control de versiones y rastro de auditoría',
+                'ai-consent-5': 'Soporte multiidioma',
+                'ai-analytics-title': 'Análisis en Tiempo Real',
+                'ai-analytics-1': 'Seguimiento de finalización de flujo de trabajo',
+                'ai-analytics-2': 'Monitoreo de línea de tiempo del paciente',
+                'ai-analytics-3': 'Detección de hitos de recuperación',
+                'ai-analytics-4': 'Reconocimiento de patrones de complicaciones',
+                'ai-analytics-5': 'Modelos de predicción de resultados',
+                'stats-title': 'Resultados Comprobados',
+                'stat-billing': 'Precisión de Facturación',
+                'stat-time': 'Ahorro de Tiempo',
+                'stat-revenue': 'Aumento de Ingresos',
+                'stat-hipaa': 'Cumplimiento HIPAA',
+                'pricing-title': 'Precios Flexibles',
+                'pricing-subtitle': 'Todos los precios son configurables por instalación en cada centro',
+                'plan-starter': 'Inicial',
+                'plan-starter-price': 'Contáctenos',
+                'plan-starter-period': 'Precio Personalizado Por Centro',
+                'plan-starter-1': '1 Especialidad Quirúrgica',
+                'plan-starter-2': 'Hasta 50 procedimientos/mes',
+                'plan-starter-3': 'Documentación IA básica',
+                'plan-starter-4': 'Formularios de consentimiento con firma electrónica',
+                'plan-starter-5': 'Soporte estándar',
+                'plan-professional': 'Profesional',
+                'plan-professional-price': 'Contáctenos',
+                'plan-professional-period': 'Precio Personalizado Por Centro',
+                'plan-professional-1': 'Hasta 3 Especialidades Quirúrgicas',
+                'plan-professional-2': 'Procedimientos ilimitados',
+                'plan-professional-3': 'Suite completa de IA (Claude 4.6)',
+                'plan-professional-4': 'Biblioteca avanzada de consentimientos',
+                'plan-professional-5': 'Generación automática de superbill',
+                'plan-professional-6': 'Soporte prioritario',
+                'plan-enterprise': 'Empresarial',
+                'plan-enterprise-price': 'Contáctenos',
+                'plan-enterprise-period': 'Precio Personalizado Por Centro',
+                'plan-enterprise-1': 'Todas las Especialidades Quirúrgicas',
+                'plan-enterprise-2': 'Despliegue multi-instalación',
+                'plan-enterprise-3': 'Entrenamiento personalizado de modelo IA',
+                'plan-enterprise-4': 'Opciones de marca blanca',
+                'plan-enterprise-5': 'Gerente de éxito dedicado',
+                'plan-enterprise-6': 'Soporte telefónico 24/7',
+                'contact-sales': 'Contactar Ventas',
+                'footer-privacy': 'Política de Privacidad',
+                'footer-terms': 'Términos de Servicio',
+                'footer-hipaa': 'Cumplimiento HIPAA',
+                'footer-support': 'Soporte',
+                'footer-rights': 'Todos los derechos reservados.',
+                'footer-tagline': 'Construido con 25 años de experiencia en EMR quirúrgico',
+                'footer-powered': 'Potenciado por Claude AI 4.6'
+            },
+            fr: {
+                'title': 'PatientTracSurg',
+                'tagline': 'Documentation Chirurgicale Ambulatoire Propulsée par IA',
+                'subtitle': 'Plateforme complète de flux chirurgical avec documentation intelligente, gestion du consentement par signature électronique et optimisation de facturation automatisée',
+                'cta': 'Lancer la Plateforme',
+                'specialties-title': 'Spécialités Chirurgicales Supportées',
+                'spec-bariatric-title': 'Chirurgie Bariatrique',
+                'spec-bariatric-desc': 'Sleeve gastrique, bypass, révision avec gestion complète du consentement',
+                'spec-plastic-title': 'Chirurgie Plastique',
+                'spec-plastic-desc': 'Augmentation mammaire, reconstruction, contour corporel avec documentation photo',
+                'spec-ophthalmic-title': 'Chirurgie Ophtalmique',
+                'spec-ophthalmic-desc': 'Cataracte, LASIK, procédures rétiniennes avec suivi de l\'acuité visuelle',
+                'spec-orthopedic-title': 'Chirurgie Orthopédique',
+                'spec-orthopedic-desc': 'Arthroscopie articulaire, réparation de fractures, médecine sportive',
+                'spec-cardiac-title': 'Chirurgie Cardiaque',
+                'spec-cardiac-desc': 'Cathétérisme, pose de stent, implantation de stimulateur cardiaque',
+                'spec-endoscopy-title': 'Procédures Endoscopiques',
+                'spec-endoscopy-desc': 'Endoscopie GI, coloscopie, bronchoscopie avec capture d\'images',
+                'spec-dental-title': 'Chirurgie Orale',
+                'spec-dental-desc': 'Extractions, implants, dents de sagesse avec imagerie dentaire',
+                'spec-pediatric-title': 'Chirurgie Pédiatrique',
+                'spec-pediatric-desc': 'Réparation de hernie, circoncision, procédures mineures avec consentement parental',
+                'spec-dermatology-title': 'Dermatologie',
+                'spec-dermatology-desc': 'Ablation de lésions cutanées, chirurgie de Mohs, procédures cosmétiques',
+                'status-live': 'EN DIRECT',
+                'status-coming': 'BIENTÔT',
+                'ai-title': 'Fonctionnalités Propulsées par Claude AI 4.6',
+                'ai-clinical-title': 'Intelligence Clinique',
+                'ai-clinical-1': 'Score de risque des voies aériennes (algorithme à 5 facteurs)',
+                'ai-clinical-2': 'Évaluation de récupération Aldrete (sortie automatique)',
+                'ai-clinical-3': 'Calculs IMC avec stratification des risques',
+                'ai-clinical-4': 'Surveillance des signes vitaux avec alertes',
+                'ai-clinical-5': 'Analyse d\'impact des comorbidités',
+                'ai-billing-title': 'Optimisation de Facturation',
+                'ai-billing-1': 'Génération automatique de superbill depuis notes opératoires',
+                'ai-billing-2': 'Recherche et validation de codes CPT/CIM-10',
+                'ai-billing-3': 'Documentation de procédures multi-codes',
+                'ai-billing-4': 'Suggestions de modificateurs et conformité',
+                'ai-billing-5': 'Optimisation du remboursement',
+                'ai-consent-title': 'Gestion Intelligente du Consentement',
+                'ai-consent-1': 'Clauses de non-responsabilité légales complètes',
+                'ai-consent-2': 'Capture de signature électronique (tactile/souris)',
+                'ai-consent-3': 'Liste de vérification en 4 éléments',
+                'ai-consent-4': 'Contrôle de version et piste d\'audit',
+                'ai-consent-5': 'Support multilingue',
+                'ai-analytics-title': 'Analyses en Temps Réel',
+                'ai-analytics-1': 'Suivi de l\'achèvement du flux de travail',
+                'ai-analytics-2': 'Surveillance de la chronologie du patient',
+                'ai-analytics-3': 'Détection des jalons de récupération',
+                'ai-analytics-4': 'Reconnaissance de modèles de complications',
+                'ai-analytics-5': 'Modèles de prédiction des résultats',
+                'stats-title': 'Résultats Prouvés',
+                'stat-billing': 'Précision de Facturation',
+                'stat-time': 'Gain de Temps',
+                'stat-revenue': 'Augmentation des Revenus',
+                'stat-hipaa': 'Conforme HIPAA',
+                'pricing-title': 'Tarification Flexible',
+                'pricing-subtitle': 'Tous les prix sont configurables par installation dans chaque établissement',
+                'plan-starter': 'Débutant',
+                'plan-starter-price': 'Nous Contacter',
+                'plan-starter-period': 'Tarification Personnalisée Par Établissement',
+                'plan-starter-1': '1 Spécialité Chirurgicale',
+                'plan-starter-2': 'Jusqu\'à 50 procédures/mois',
+                'plan-starter-3': 'Documentation IA de base',
+                'plan-starter-4': 'Formulaires de consentement avec signature électronique',
+                'plan-starter-5': 'Support standard',
+                'plan-professional': 'Professionnel',
+                'plan-professional-price': 'Nous Contacter',
+                'plan-professional-period': 'Tarification Personnalisée Par Établissement',
+                'plan-professional-1': 'Jusqu\'à 3 Spécialités Chirurgicales',
+                'plan-professional-2': 'Procédures illimitées',
+                'plan-professional-3': 'Suite IA complète (Claude 4.6)',
+                'plan-professional-4': 'Bibliothèque de consentements avancée',
+                'plan-professional-5': 'Génération automatique de superbill',
+                'plan-professional-6': 'Support prioritaire',
+                'plan-enterprise': 'Entreprise',
+                'plan-enterprise-price': 'Nous Contacter',
+                'plan-enterprise-period': 'Tarification Personnalisée Par Établissement',
+                'plan-enterprise-1': 'Toutes les Spécialités Chirurgicales',
+                'plan-enterprise-2': 'Déploiement multi-installations',
+                'plan-enterprise-3': 'Formation personnalisée du modèle IA',
+                'plan-enterprise-4': 'Options de marque blanche',
+                'plan-enterprise-5': 'Gestionnaire de succès dédié',
+                'plan-enterprise-6': 'Support téléphonique 24/7',
+                'contact-sales': 'Contacter les Ventes',
+                'footer-privacy': 'Politique de Confidentialité',
+                'footer-terms': 'Conditions de Service',
+                'footer-hipaa': 'Conformité HIPAA',
+                'footer-support': 'Support',
+                'footer-rights': 'Tous droits réservés.',
+                'footer-tagline': 'Construit sur 25 ans d\'expertise en DME chirurgical',
+                'footer-powered': 'Propulsé par Claude AI 4.6'
+            }
+        };
+
+        // Language switcher
+        let currentLang = 'en';
+        
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                switchLanguage(lang);
+                
+                // Update active button
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            
+            // Update all translatable elements
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+        }
+    </script>
 </body>
 </html>
