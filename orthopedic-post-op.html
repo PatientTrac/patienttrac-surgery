@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthopedic Post-Op Care | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --blue: #3b82f6;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+            --gold: #c9a96e;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--blue);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--blue);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .specialty-badge {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            color: var(--blue);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--blue);
+            border-radius: 2px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .wb-status-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .wb-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .wb-card:hover {
+            border-color: var(--blue);
+            transform: translateY(-2px);
+        }
+        
+        .wb-card.selected {
+            border-color: var(--blue);
+            background: rgba(59, 130, 246, 0.15);
+        }
+        
+        .wb-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .wb-label {
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 0.25rem;
+        }
+        
+        .wb-description {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .timeline {
+            margin-top: 1rem;
+        }
+        
+        .timeline-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .timeline-week {
+            background: var(--blue);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .timeline-content {
+            flex: 1;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(201, 169, 110, 0.2);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--blue);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .patient-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .patient-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .specialty-badge {
+                margin-left: 0;
+            }
+            
+            .tabs {
+                padding: 0 1rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="patient-banner">
+        <img id="patientPhoto" class="patient-photo" src="https://via.placeholder.com/80" alt="Patient">
+        <div class="patient-info">
+            <h2 id="patientName">Loading Patient...</h2>
+            <div class="patient-meta">
+                <span>📋 MRN: <strong id="patientMRN">---</strong></span>
+                <span>🎂 Age: <strong id="patientAge">---</strong></span>
+                <span>⚥ Sex: <strong id="patientSex">---</strong></span>
+                <span>📞 <strong id="patientPhone">---</strong></span>
+            </div>
+        </div>
+        <div class="specialty-badge">🦴 POST-OPERATIVE CARE</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="weightbearing">🚶 Weight-Bearing Status</button>
+        <button class="tab-btn" data-tab="restrictions">🔒 ROM Restrictions</button>
+        <button class="tab-btn" data-tab="therapy">💪 Physical Therapy</button>
+        <button class="tab-btn" data-tab="followup">📅 Follow-up & RTS</button>
+    </div>
+
+    <div id="weightbearingTab" class="tab-content active">
+        <div class="section">
+            <h3 class="section-header">Weight-Bearing Status</h3>
+            <div class="wb-status-cards">
+                <div class="wb-card" onclick="selectWB('NWB')">
+                    <div class="wb-icon">🚫</div>
+                    <div class="wb-label">NWB</div>
+                    <div class="wb-description">Non-Weight Bearing</div>
+                </div>
+                <div class="wb-card" onclick="selectWB('TTWB')">
+                    <div class="wb-icon">👆</div>
+                    <div class="wb-label">TTWB</div>
+                    <div class="wb-description">Toe-Touch Weight Bearing</div>
+                </div>
+                <div class="wb-card" onclick="selectWB('PWB')">
+                    <div class="wb-icon">🦯</div>
+                    <div class="wb-label">PWB</div>
+                    <div class="wb-description">Partial Weight Bearing</div>
+                </div>
+                <div class="wb-card" onclick="selectWB('WBAT')">
+                    <div class="wb-icon">✅</div>
+                    <div class="wb-label">WBAT</div>
+                    <div class="wb-description">Weight Bearing as Tolerated</div>
+                </div>
+                <div class="wb-card" onclick="selectWB('FWB')">
+                    <div class="wb-icon">🚶</div>
+                    <div class="wb-label">FWB</div>
+                    <div class="wb-description">Full Weight Bearing</div>
+                </div>
+            </div>
+            <input type="hidden" id="weightBearingStatus">
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Weight-Bearing Progression Timeline</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 0-2</div>
+                    <div class="timeline-content">
+                        <input type="text" id="wb_week0_2" placeholder="Initial weight-bearing instructions..." style="width: 100%;">
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 2-6</div>
+                    <div class="timeline-content">
+                        <input type="text" id="wb_week2_6" placeholder="Mid-recovery weight-bearing progression..." style="width: 100%;">
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 6-12</div>
+                    <div class="timeline-content">
+                        <input type="text" id="wb_week6_12" placeholder="Late-recovery weight-bearing status..." style="width: 100%;">
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Week 12+</div>
+                    <div class="timeline-content">
+                        <input type="text" id="wb_week12plus" placeholder="Final weight-bearing expectations..." style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Assistive Devices</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Assistive Device</label>
+                    <select id="assistiveDevice">
+                        <option value="">Select device...</option>
+                        <option value="none">None</option>
+                        <option value="crutches">Crutches</option>
+                        <option value="walker">Walker</option>
+                        <option value="cane">Cane</option>
+                        <option value="wheelchair">Wheelchair</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Duration</label>
+                    <input type="text" id="deviceDuration" placeholder="e.g., 6 weeks">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="restrictionsTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">ROM Restrictions</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Range of Motion Restrictions</label>
+                    <textarea id="romRestrictions" placeholder="Specific ROM limitations: no flexion > 90°, no external rotation > 30°, etc..."></textarea>
+                </div>
+                <div class="form-field">
+                    <label>Brace/Splint</label>
+                    <select id="braceType">
+                        <option value="">Select...</option>
+                        <option value="none">None</option>
+                        <option value="knee_brace">Knee Brace</option>
+                        <option value="shoulder_sling">Shoulder Sling</option>
+                        <option value="hip_brace">Hip Brace</option>
+                        <option value="ankle_brace">Ankle Brace</option>
+                        <option value="wrist_splint">Wrist Splint</option>
+                        <option value="custom">Custom Orthosis</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Brace Duration</label>
+                    <input type="text" id="braceDuration" placeholder="e.g., 6 weeks continuous">
+                </div>
+                <div class="form-field full-width">
+                    <label>Activity Restrictions</label>
+                    <textarea id="activityRestrictions" placeholder="No driving for 6 weeks, no lifting > 5 lbs, no stairs, etc..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="therapyTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Physical Therapy Orders</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>PT Start Date</label>
+                    <select id="ptStart">
+                        <option value="">Select timing...</option>
+                        <option value="immediate">Immediately</option>
+                        <option value="2_weeks">2 weeks post-op</option>
+                        <option value="6_weeks">6 weeks post-op</option>
+                        <option value="12_weeks">12 weeks post-op</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>PT Frequency</label>
+                    <select id="ptFrequency">
+                        <option value="">Select frequency...</option>
+                        <option value="1x_week">1x per week</option>
+                        <option value="2x_week">2x per week</option>
+                        <option value="3x_week">3x per week</option>
+                        <option value="daily">Daily</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>PT Duration</label>
+                    <input type="text" id="ptDuration" placeholder="e.g., 12 weeks">
+                </div>
+                <div class="form-field full-width">
+                    <label>PT Goals</label>
+                    <textarea id="ptGoals" placeholder="ROM restoration, strength, gait training, return to sport..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>PT Protocol/Guidelines</label>
+                    <textarea id="ptProtocol" placeholder="Specific protocol to follow (e.g., ACL reconstruction protocol, rotator cuff repair protocol)..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Home Exercise Program</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Home Exercises</label>
+                    <textarea id="homeExercises" style="min-height: 150px;" placeholder="Ankle pumps 10x/hour, quad sets 3x10 daily, heel slides, etc..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="followupTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Follow-up Schedule</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>First Post-Op Visit</label>
+                    <select id="firstVisit">
+                        <option value="">Select timing...</option>
+                        <option value="1_week">1 week</option>
+                        <option value="2_weeks">2 weeks</option>
+                        <option value="3_weeks">3 weeks</option>
+                        <option value="4_weeks">4 weeks</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Second Visit</label>
+                    <select id="secondVisit">
+                        <option value="">Select timing...</option>
+                        <option value="6_weeks">6 weeks</option>
+                        <option value="8_weeks">8 weeks</option>
+                        <option value="12_weeks">12 weeks</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Final Visit</label>
+                    <input type="text" id="finalVisit" placeholder="e.g., 6 months, 1 year">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Imaging Schedule</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Post-Op Imaging Plan</label>
+                    <textarea id="imagingPlan" placeholder="X-rays at 2 weeks, 6 weeks, 12 weeks; MRI at 6 months if needed..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Return to Sport/Work Clearance</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Return to Work</label>
+                    <input type="text" id="returnToWork" placeholder="e.g., Desk work 2 weeks, manual labor 12 weeks">
+                </div>
+                <div class="form-field">
+                    <label>Return to Sport (if applicable)</label>
+                    <input type="text" id="returnToSport" placeholder="e.g., 6-9 months, pending functional testing">
+                </div>
+                <div class="form-field full-width">
+                    <label>RTS Criteria</label>
+                    <textarea id="rtsCriteria" placeholder="Full ROM, quad strength ≥90% contralateral, negative hop test, clearance from PT..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Additional Instructions</label>
+                    <textarea id="additionalInstructions" placeholder="Ice 3-4x daily, elevate, wound care, medication instructions..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertMessage"></div>
+
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+                ⬅️ Back to Dashboard
+            </button>
+            <button class="btn btn-primary" onclick="savePostOp()">
+                <span class="spinner" id="saveSpinner" style="display: none;"></span>
+                💾 Save Post-Op Plan
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5ODM5MjAsImV4cCI6MjA1MDU1OTkyMH0.TJLFmscCP8JhOMx7KRqKKd38VWLq7GqEeV8v8Zg8n-I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let patientData = null;
+        let encounterId = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            validateToken();
+            setupTabs();
+        });
+
+        async function validateToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            encounterId = params.get('encounter_id');
+            const patientId = params.get('patient_id');
+
+            if (!token || !encounterId || !patientId) {
+                window.location.href = 'app.html?error=missing_params';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.rpc('validate_cross_app_token', { token_value: token });
+                
+                if (error || !data) {
+                    window.location.href = 'app.html?error=invalid_token';
+                    return;
+                }
+
+                await loadPatientData(patientId, encounterId);
+            } catch (err) {
+                console.error('Token validation error:', err);
+                window.location.href = 'app.html?error=validation_failed';
+            }
+        }
+
+        async function loadPatientData(patientId, encounterIdParam) {
+            try {
+                const { data, error } = await supabase
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('patient_id', patientId)
+                    .eq('encounter_id', encounterIdParam)
+                    .single();
+
+                if (error) throw error;
+
+                patientData = data;
+                populatePatientBanner(data);
+            } catch (err) {
+                console.error('Error loading patient data:', err);
+                showAlert('Failed to load patient data', 'error');
+            }
+        }
+
+        function populatePatientBanner(data) {
+            document.getElementById('patientName').textContent = data.patient_name || 'Unknown Patient';
+            document.getElementById('patientMRN').textContent = data.mrn || 'N/A';
+            document.getElementById('patientAge').textContent = data.age || 'N/A';
+            document.getElementById('patientSex').textContent = data.sex || 'N/A';
+            document.getElementById('patientPhone').textContent = data.phone || 'N/A';
+            
+            if (data.photo_url) {
+                document.getElementById('patientPhoto').src = data.photo_url;
+            }
+        }
+
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.dataset.tab;
+                    
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tabName}Tab`).classList.add('active');
+                });
+            });
+        }
+
+        function selectWB(status) {
+            document.querySelectorAll('.wb-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            event.target.closest('.wb-card').classList.add('selected');
+            document.getElementById('weightBearingStatus').value = status;
+        }
+
+        async function savePostOp() {
+            const spinner = document.getElementById('saveSpinner');
+            spinner.style.display = 'inline-block';
+
+            try {
+                const postOpData = {
+                    org_id: patientData.org_id,
+                    patient_id: patientData.patient_id,
+                    encounter_id: encounterId,
+                    provider_id: patientData.provider_id,
+                    
+                    // Weight-bearing
+                    weight_bearing_status: document.getElementById('weightBearingStatus').value,
+                    wb_progression: {
+                        week_0_2: document.getElementById('wb_week0_2').value,
+                        week_2_6: document.getElementById('wb_week2_6').value,
+                        week_6_12: document.getElementById('wb_week6_12').value,
+                        week_12plus: document.getElementById('wb_week12plus').value
+                    },
+                    assistive_device: document.getElementById('assistiveDevice').value,
+                    device_duration: document.getElementById('deviceDuration').value,
+                    
+                    // Restrictions
+                    rom_restrictions: document.getElementById('romRestrictions').value,
+                    brace_type: document.getElementById('braceType').value,
+                    brace_duration: document.getElementById('braceDuration').value,
+                    activity_restrictions: document.getElementById('activityRestrictions').value,
+                    
+                    // PT
+                    pt_start_timing: document.getElementById('ptStart').value,
+                    pt_frequency: document.getElementById('ptFrequency').value,
+                    pt_duration: document.getElementById('ptDuration').value,
+                    pt_goals: document.getElementById('ptGoals').value,
+                    pt_protocol: document.getElementById('ptProtocol').value,
+                    home_exercises: document.getElementById('homeExercises').value,
+                    
+                    // Follow-up
+                    first_visit_timing: document.getElementById('firstVisit').value,
+                    second_visit_timing: document.getElementById('secondVisit').value,
+                    final_visit_timing: document.getElementById('finalVisit').value,
+                    imaging_plan: document.getElementById('imagingPlan').value,
+                    
+                    // RTS
+                    return_to_work: document.getElementById('returnToWork').value,
+                    return_to_sport: document.getElementById('returnToSport').value,
+                    rts_criteria: document.getElementById('rtsCriteria').value,
+                    additional_instructions: document.getElementById('additionalInstructions').value
+                };
+
+                const { error } = await supabase
+                    .from('orthopedic_post_op')
+                    .insert([postOpData]);
+
+                if (error) throw error;
+
+                showAlert('✅ Post-op plan saved successfully!', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Save error:', err);
+                showAlert('❌ Failed to save post-op plan: ' + err.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

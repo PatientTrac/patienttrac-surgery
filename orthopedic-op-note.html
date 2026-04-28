@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthopedic Operative Note | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--blue);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--blue);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .specialty-badge {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            color: var(--blue);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--blue);
+            border-radius: 2px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+        
+        .procedure-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .procedure-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .procedure-card:hover {
+            border-color: var(--blue);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+        }
+        
+        .procedure-card.selected {
+            border-color: var(--blue);
+            background: rgba(59, 130, 246, 0.15);
+        }
+        
+        .procedure-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .procedure-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 0.5rem;
+        }
+        
+        .procedure-cpt {
+            font-size: 0.85rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        .implant-list {
+            margin-top: 1rem;
+        }
+        
+        .implant-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .implant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .implant-number {
+            font-weight: 700;
+            color: var(--blue);
+            font-size: 1.1rem;
+        }
+        
+        .remove-implant {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .timer-display {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .timer-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timer-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--blue);
+            margin: 0.5rem 0;
+        }
+        
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(201, 169, 110, 0.2);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+        
+        .btn-add {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+            margin-top: 1rem;
+        }
+        
+        .btn-timer {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--blue);
+            border: 1px solid var(--blue);
+            padding: 0.75rem 1.5rem;
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--blue);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .patient-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .patient-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .specialty-badge {
+                margin-left: 0;
+            }
+            
+            .tabs {
+                padding: 0 1rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="patient-banner">
+        <img id="patientPhoto" class="patient-photo" src="https://via.placeholder.com/80" alt="Patient">
+        <div class="patient-info">
+            <h2 id="patientName">Loading Patient...</h2>
+            <div class="patient-meta">
+                <span>📋 MRN: <strong id="patientMRN">---</strong></span>
+                <span>🎂 Age: <strong id="patientAge">---</strong></span>
+                <span>⚥ Sex: <strong id="patientSex">---</strong></span>
+                <span>📞 <strong id="patientPhone">---</strong></span>
+            </div>
+        </div>
+        <div class="specialty-badge">🦴 ORTHOPEDIC OPERATIVE NOTE</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="procedure">🔪 Procedure Details</button>
+        <button class="tab-btn" data-tab="approach">🗺️ Surgical Approach</button>
+        <button class="tab-btn" data-tab="findings">🔍 Intraoperative Findings</button>
+        <button class="tab-btn" data-tab="implants">🔧 Implants & Hardware</button>
+        <button class="tab-btn" data-tab="closure">📊 Closure & Completion</button>
+    </div>
+
+    <div id="procedureTab" class="tab-content active">
+        <div class="section">
+            <h3 class="section-header">Procedure Selection</h3>
+            <div class="procedure-cards" id="procedureGrid">
+                <!-- Procedures will be dynamically generated -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Procedure Details</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Operative Side</label>
+                    <select id="operativeSide">
+                        <option value="">Select side...</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                        <option value="bilateral">Bilateral</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Joint/Location</label>
+                    <select id="joint">
+                        <option value="">Select location...</option>
+                        <option value="shoulder">Shoulder</option>
+                        <option value="elbow">Elbow</option>
+                        <option value="wrist">Wrist</option>
+                        <option value="hand">Hand</option>
+                        <option value="hip">Hip</option>
+                        <option value="knee">Knee</option>
+                        <option value="ankle">Ankle</option>
+                        <option value="foot">Foot</option>
+                        <option value="spine_cervical">Cervical Spine</option>
+                        <option value="spine_lumbar">Lumbar Spine</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Anesthesia Type</label>
+                    <select id="anesthesiaType">
+                        <option value="general">General Anesthesia</option>
+                        <option value="regional">Regional (Nerve Block)</option>
+                        <option value="spinal">Spinal</option>
+                        <option value="local">Local with Sedation</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Patient Position</label>
+                    <select id="patientPosition">
+                        <option value="">Select position...</option>
+                        <option value="supine">Supine</option>
+                        <option value="prone">Prone</option>
+                        <option value="lateral">Lateral Decubitus</option>
+                        <option value="beach_chair">Beach Chair</option>
+                        <option value="sitting">Sitting</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Tourniquet (if applicable)</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Tourniquet Used</label>
+                    <select id="tourniquetUsed" onchange="toggleTourniquetFields()">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+                <div class="form-field" id="tourniquetPressureField" style="display: none;">
+                    <label>Tourniquet Pressure (mmHg)</label>
+                    <input type="number" id="tourniquetPressure" placeholder="mmHg">
+                </div>
+            </div>
+            <div id="tourniquetTimerSection" style="display: none; margin-top: 1rem;">
+                <div class="timer-display">
+                    <div class="timer-label">Tourniquet Time</div>
+                    <div class="timer-value" id="tourniquetTime">00:00</div>
+                    <div class="timer-controls">
+                        <button class="btn btn-timer" id="startTourniquetBtn" onclick="startTourniquetTimer()">▶️ Start</button>
+                        <button class="btn btn-timer" onclick="stopTourniquetTimer()">⏸️ Stop</button>
+                        <button class="btn btn-timer" onclick="resetTourniquetTimer()">🔄 Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="approachTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Surgical Approach</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Approach Type</label>
+                    <select id="approachType">
+                        <option value="">Select approach...</option>
+                        <option value="anterior">Anterior</option>
+                        <option value="posterior">Posterior</option>
+                        <option value="lateral">Lateral</option>
+                        <option value="medial">Medial</option>
+                        <option value="anterolateral">Anterolateral</option>
+                        <option value="posterolateral">Posterolateral</option>
+                        <option value="arthroscopic">Arthroscopic</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Incision Length (cm)</label>
+                    <input type="number" id="incisionLength" step="0.1" placeholder="cm">
+                </div>
+                <div class="form-field full-width">
+                    <label>Detailed Approach Description</label>
+                    <textarea id="approachDescription" placeholder="Describe surgical approach, planes dissected, structures identified..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Exposure & Dissection</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Muscles/Tissues Dissected</label>
+                    <textarea id="dissection" placeholder="Muscles split, tissues mobilized, neurovascular structures protected..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Key Anatomic Landmarks</label>
+                    <textarea id="landmarks" placeholder="Important anatomic structures identified during approach..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="findingsTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Intraoperative Findings</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Pathology Identified</label>
+                    <textarea id="pathologyFindings" placeholder="Describe torn ligaments, damaged cartilage, fracture pattern, bone quality, etc..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Articular Surface Condition</label>
+                    <textarea id="articularSurface" placeholder="Cartilage wear, chondral defects, grading (Outerbridge I-IV)..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Ligamentous/Soft Tissue Status</label>
+                    <textarea id="softTissue" placeholder="ACL, PCL, menisci, labrum, rotator cuff, etc..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Procedure Steps Performed</h3>
+            <div class="form-grid">
+                <div class="form-field full-width">
+                    <label>Surgical Technique</label>
+                    <textarea id="surgicalTechnique" style="min-height: 200px;" placeholder="Detailed step-by-step description of procedure performed, instruments used, bone cuts, reduction techniques, fixation methods..."></textarea>
+                </div>
+                <div class="form-field full-width">
+                    <label>Bone Preparation</label>
+                    <textarea id="bonePreparation" placeholder="Drilling, reaming, bone cuts, osteotomy details..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="implantsTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Implants & Hardware</h3>
+            <div class="implant-list" id="implantList">
+                <!-- Implants will be dynamically added -->
+            </div>
+            <button class="btn btn-add" onclick="addImplant()">+ Add Implant/Hardware</button>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Bone Grafting (if applicable)</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Bone Graft Used</label>
+                    <select id="boneGraft">
+                        <option value="no">No</option>
+                        <option value="autograft">Autograft</option>
+                        <option value="allograft">Allograft</option>
+                        <option value="synthetic">Synthetic</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Graft Source/Type</label>
+                    <input type="text" id="graftType" placeholder="Iliac crest, femoral head, DBM, etc.">
+                </div>
+                <div class="form-field full-width">
+                    <label>Graft Details</label>
+                    <textarea id="graftDetails" placeholder="Location, size, fixation method..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="closureTab" class="tab-content">
+        <div class="section">
+            <h3 class="section-header">Wound Closure</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Irrigation Solution</label>
+                    <select id="irrigation">
+                        <option value="saline">Normal Saline</option>
+                        <option value="antibiotic">Antibiotic Solution</option>
+                        <option value="betadine">Betadine</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Irrigation Volume (mL)</label>
+                    <input type="number" id="irrigationVolume" placeholder="mL">
+                </div>
+                <div class="form-field">
+                    <label>Drain Placed</label>
+                    <select id="drainPlaced">
+                        <option value="no">No</option>
+                        <option value="hemovac">Hemovac</option>
+                        <option value="jp">Jackson-Pratt</option>
+                        <option value="penrose">Penrose</option>
+                    </select>
+                </div>
+                <div class="form-field full-width">
+                    <label>Closure Technique</label>
+                    <textarea id="closureTechnique" placeholder="Layer-by-layer closure: deep fascia, subcutaneous, skin..."></textarea>
+                </div>
+                <div class="form-field">
+                    <label>Skin Closure</label>
+                    <select id="skinClosure">
+                        <option value="">Select method...</option>
+                        <option value="sutures">Sutures</option>
+                        <option value="staples">Staples</option>
+                        <option value="dermabond">Dermabond</option>
+                        <option value="steri_strips">Steri-Strips</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Dressing Applied</label>
+                    <input type="text" id="dressing" placeholder="Bacitracin, 4x4s, Ace wrap, splint, etc.">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-header">Operative Summary</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Estimated Blood Loss (mL)</label>
+                    <input type="number" id="ebl" placeholder="mL">
+                </div>
+                <div class="form-field">
+                    <label>Operative Time (minutes)</label>
+                    <input type="number" id="operativeTime" placeholder="minutes">
+                </div>
+                <div class="form-field">
+                    <label>Specimens Sent</label>
+                    <input type="text" id="specimens" placeholder="None, cartilage, bone, synovium...">
+                </div>
+                <div class="form-field">
+                    <label>Complications</label>
+                    <select id="complications">
+                        <option value="none">None</option>
+                        <option value="bleeding">Excessive Bleeding</option>
+                        <option value="nerve_injury">Nerve Injury</option>
+                        <option value="vessel_injury">Vascular Injury</option>
+                        <option value="fracture">Intraoperative Fracture</option>
+                        <option value="other">Other (see notes)</option>
+                    </select>
+                </div>
+                <div class="form-field full-width">
+                    <label>Additional Notes</label>
+                    <textarea id="additionalNotes" placeholder="Any additional relevant information, complications, patient tolerance..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertMessage"></div>
+
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+                ⬅️ Back to Dashboard
+            </button>
+            <button class="btn btn-primary" onclick="saveOperativeNote()">
+                <span class="spinner" id="saveSpinner" style="display: none;"></span>
+                💾 Save Operative Note
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5ODM5MjAsImV4cCI6MjA1MDU1OTkyMH0.TJLFmscCP8JhOMx7KRqKKd38VWLq7GqEeV8v8Zg8n-I';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let patientData = null;
+        let encounterId = null;
+        let selectedProcedure = null;
+        let implants = [];
+        let implantCounter = 0;
+        let tourniquetInterval = null;
+        let tourniquetSeconds = 0;
+
+        const procedures = [
+            { name: 'Knee Arthroscopy', cpt: '29881', icon: '🦴' },
+            { name: 'ACL Reconstruction', cpt: '29888', icon: '🦴' },
+            { name: 'Meniscus Repair', cpt: '29882', icon: '🦴' },
+            { name: 'Total Knee Arthroplasty', cpt: '27447', icon: '🦴' },
+            { name: 'Shoulder Arthroscopy', cpt: '29826', icon: '🦴' },
+            { name: 'Rotator Cuff Repair', cpt: '29827', icon: '🦴' },
+            { name: 'Total Shoulder Arthroplasty', cpt: '23472', icon: '🦴' },
+            { name: 'Hip Arthroscopy', cpt: '29914', icon: '🦴' },
+            { name: 'Total Hip Arthroplasty', cpt: '27130', icon: '🦴' },
+            { name: 'ORIF Fracture', cpt: '27524', icon: '🔧' },
+            { name: 'Carpal Tunnel Release', cpt: '64721', icon: '✋' },
+            { name: 'Ankle Arthroscopy', cpt: '29891', icon: '🦶' },
+            { name: 'Lumbar Discectomy', cpt: '63030', icon: '🔧' },
+            { name: 'Spinal Fusion', cpt: '22612', icon: '🔧' }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            validateToken();
+            setupTabs();
+            initializeProcedureGrid();
+        });
+
+        async function validateToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            encounterId = params.get('encounter_id');
+            const patientId = params.get('patient_id');
+
+            if (!token || !encounterId || !patientId) {
+                window.location.href = 'app.html?error=missing_params';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.rpc('validate_cross_app_token', { token_value: token });
+                
+                if (error || !data) {
+                    window.location.href = 'app.html?error=invalid_token';
+                    return;
+                }
+
+                await loadPatientData(patientId, encounterId);
+            } catch (err) {
+                console.error('Token validation error:', err);
+                window.location.href = 'app.html?error=validation_failed';
+            }
+        }
+
+        async function loadPatientData(patientId, encounterIdParam) {
+            try {
+                const { data, error } = await supabase
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('patient_id', patientId)
+                    .eq('encounter_id', encounterIdParam)
+                    .single();
+
+                if (error) throw error;
+
+                patientData = data;
+                populatePatientBanner(data);
+            } catch (err) {
+                console.error('Error loading patient data:', err);
+                showAlert('Failed to load patient data', 'error');
+            }
+        }
+
+        function populatePatientBanner(data) {
+            document.getElementById('patientName').textContent = data.patient_name || 'Unknown Patient';
+            document.getElementById('patientMRN').textContent = data.mrn || 'N/A';
+            document.getElementById('patientAge').textContent = data.age || 'N/A';
+            document.getElementById('patientSex').textContent = data.sex || 'N/A';
+            document.getElementById('patientPhone').textContent = data.phone || 'N/A';
+            
+            if (data.photo_url) {
+                document.getElementById('patientPhoto').src = data.photo_url;
+            }
+        }
+
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.dataset.tab;
+                    
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tabName}Tab`).classList.add('active');
+                });
+            });
+        }
+
+        function initializeProcedureGrid() {
+            const grid = document.getElementById('procedureGrid');
+            
+            procedures.forEach(proc => {
+                const card = document.createElement('div');
+                card.className = 'procedure-card';
+                card.innerHTML = `
+                    <div class="procedure-icon">${proc.icon}</div>
+                    <div class="procedure-name">${proc.name}</div>
+                    <div class="procedure-cpt">CPT ${proc.cpt}</div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    grid.querySelectorAll('.procedure-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    card.classList.add('selected');
+                    selectedProcedure = proc;
+                });
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleTourniquetFields() {
+            const used = document.getElementById('tourniquetUsed').value === 'yes';
+            document.getElementById('tourniquetPressureField').style.display = used ? 'block' : 'none';
+            document.getElementById('tourniquetTimerSection').style.display = used ? 'block' : 'none';
+        }
+
+        function startTourniquetTimer() {
+            if (tourniquetInterval) return;
+            
+            tourniquetInterval = setInterval(() => {
+                tourniquetSeconds++;
+                const mins = Math.floor(tourniquetSeconds / 60);
+                const secs = tourniquetSeconds % 60;
+                document.getElementById('tourniquetTime').textContent = 
+                    `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }, 1000);
+            
+            document.getElementById('startTourniquetBtn').textContent = '⏸️ Pause';
+            document.getElementById('startTourniquetBtn').onclick = pauseTourniquetTimer;
+        }
+
+        function pauseTourniquetTimer() {
+            clearInterval(tourniquetInterval);
+            tourniquetInterval = null;
+            document.getElementById('startTourniquetBtn').textContent = '▶️ Resume';
+            document.getElementById('startTourniquetBtn').onclick = startTourniquetTimer;
+        }
+
+        function stopTourniquetTimer() {
+            clearInterval(tourniquetInterval);
+            tourniquetInterval = null;
+            document.getElementById('startTourniquetBtn').textContent = '▶️ Start';
+            document.getElementById('startTourniquetBtn').onclick = startTourniquetTimer;
+        }
+
+        function resetTourniquetTimer() {
+            clearInterval(tourniquetInterval);
+            tourniquetInterval = null;
+            tourniquetSeconds = 0;
+            document.getElementById('tourniquetTime').textContent = '00:00';
+            document.getElementById('startTourniquetBtn').textContent = '▶️ Start';
+            document.getElementById('startTourniquetBtn').onclick = startTourniquetTimer;
+        }
+
+        function addImplant() {
+            implantCounter++;
+            const implantId = `implant_${implantCounter}`;
+            
+            const implantItem = document.createElement('div');
+            implantItem.className = 'implant-item';
+            implantItem.id = implantId;
+            
+            implantItem.innerHTML = `
+                <div class="implant-header">
+                    <div class="implant-number">Implant #${implantCounter}</div>
+                    <button class="remove-implant" onclick="removeImplant('${implantId}')">Remove</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Implant Type</label>
+                        <select data-implant="${implantId}" data-field="type">
+                            <option value="">Select type...</option>
+                            <option value="plate">Plate</option>
+                            <option value="screw">Screw(s)</option>
+                            <option value="rod">Rod</option>
+                            <option value="nail">Intramedullary Nail</option>
+                            <option value="prosthesis">Prosthesis</option>
+                            <option value="anchor">Anchor</option>
+                            <option value="button">Button</option>
+                            <option value="wire">Wire</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Manufacturer</label>
+                        <input type="text" data-implant="${implantId}" data-field="manufacturer" placeholder="DePuy, Stryker, Zimmer, etc.">
+                    </div>
+                    <div class="form-field">
+                        <label>Model/Product Name</label>
+                        <input type="text" data-implant="${implantId}" data-field="model" placeholder="Model name">
+                    </div>
+                    <div class="form-field">
+                        <label>Size/Specifications</label>
+                        <input type="text" data-implant="${implantId}" data-field="size" placeholder="Length, diameter, angle, etc.">
+                    </div>
+                    <div class="form-field">
+                        <label>Lot Number</label>
+                        <input type="text" data-implant="${implantId}" data-field="lot" placeholder="Lot #">
+                    </div>
+                    <div class="form-field">
+                        <label>Serial Number</label>
+                        <input type="text" data-implant="${implantId}" data-field="serial" placeholder="Serial #">
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('implantList').appendChild(implantItem);
+            implants.push({ id: implantId, data: {} });
+        }
+
+        function removeImplant(implantId) {
+            document.getElementById(implantId).remove();
+            implants = implants.filter(i => i.id !== implantId);
+        }
+
+        async function saveOperativeNote() {
+            const spinner = document.getElementById('saveSpinner');
+            spinner.style.display = 'inline-block';
+
+            if (!selectedProcedure) {
+                showAlert('Please select a procedure', 'error');
+                spinner.style.display = 'none';
+                return;
+            }
+
+            // Collect implant data
+            const implantData = [];
+            implants.forEach(implant => {
+                const implantEl = document.getElementById(implant.id);
+                if (implantEl) {
+                    const implantInfo = {};
+                    implantEl.querySelectorAll('[data-implant]').forEach(input => {
+                        const field = input.dataset.field;
+                        implantInfo[field] = input.value;
+                    });
+                    implantData.push(implantInfo);
+                }
+            });
+
+            try {
+                const operativeData = {
+                    org_id: patientData.org_id,
+                    patient_id: patientData.patient_id,
+                    encounter_id: encounterId,
+                    provider_id: patientData.provider_id,
+                    
+                    // Procedure
+                    procedure_name: selectedProcedure.name,
+                    procedure_cpt_code: selectedProcedure.cpt,
+                    operative_side: document.getElementById('operativeSide').value,
+                    joint_location: document.getElementById('joint').value,
+                    anesthesia_type: document.getElementById('anesthesiaType').value,
+                    patient_position: document.getElementById('patientPosition').value,
+                    
+                    // Tourniquet
+                    tourniquet_used: document.getElementById('tourniquetUsed').value === 'yes',
+                    tourniquet_pressure: parseInt(document.getElementById('tourniquetPressure').value) || null,
+                    tourniquet_time_mins: Math.floor(tourniquetSeconds / 60),
+                    
+                    // Approach
+                    approach_type: document.getElementById('approachType').value,
+                    incision_length_cm: parseFloat(document.getElementById('incisionLength').value) || null,
+                    approach_description: document.getElementById('approachDescription').value,
+                    dissection_details: document.getElementById('dissection').value,
+                    anatomic_landmarks: document.getElementById('landmarks').value,
+                    
+                    // Findings
+                    pathology_findings: document.getElementById('pathologyFindings').value,
+                    articular_surface: document.getElementById('articularSurface').value,
+                    soft_tissue_status: document.getElementById('softTissue').value,
+                    surgical_technique: document.getElementById('surgicalTechnique').value,
+                    bone_preparation: document.getElementById('bonePreparation').value,
+                    
+                    // Implants
+                    implants_used: implantData,
+                    bone_graft: document.getElementById('boneGraft').value,
+                    graft_type: document.getElementById('graftType').value,
+                    graft_details: document.getElementById('graftDetails').value,
+                    
+                    // Closure
+                    irrigation_solution: document.getElementById('irrigation').value,
+                    irrigation_volume_ml: parseInt(document.getElementById('irrigationVolume').value) || null,
+                    drain_placed: document.getElementById('drainPlaced').value,
+                    closure_technique: document.getElementById('closureTechnique').value,
+                    skin_closure: document.getElementById('skinClosure').value,
+                    dressing_applied: document.getElementById('dressing').value,
+                    
+                    // Summary
+                    ebl_ml: parseInt(document.getElementById('ebl').value) || null,
+                    operative_time_mins: parseInt(document.getElementById('operativeTime').value) || null,
+                    specimens_sent: document.getElementById('specimens').value,
+                    complications: document.getElementById('complications').value,
+                    additional_notes: document.getElementById('additionalNotes').value
+                };
+
+                const { error } = await supabase
+                    .from('orthopedic_procedure')
+                    .insert([operativeData]);
+
+                if (error) throw error;
+
+                showAlert('✅ Operative note saved successfully!', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (err) {
+                console.error('Save error:', err);
+                showAlert('❌ Failed to save operative note: ' + err.message, 'error');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
