@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardiac Post-Procedure | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --panel-bg: #0f1e35;
+            --panel-border: rgba(220, 38, 38, 0.25);
+            --cardiac: #dc2626;
+            --cardiac-glow: rgba(220, 38, 38, 0.4);
+            --cardiac-soft: rgba(220, 38, 38, 0.12);
+            --pink: #ec4899;
+            --gold: #c9a96e;
+            --cyan: #00d4ff;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --red-alert: #ef4444;
+            --text-primary: #e6ecf5;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --input-bg: rgba(15, 30, 53, 0.6);
+            --input-border: rgba(148, 163, 184, 0.2);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--darker-bg);
+            background-image:
+                radial-gradient(ellipse at top left, rgba(220, 38, 38, 0.08), transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(236, 72, 153, 0.06), transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* ==== PATIENT BANNER ==== */
+        .patient-banner {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(180deg, var(--darker-bg) 0%, rgba(10, 22, 40, 0.96) 100%);
+            border-bottom: 1px solid var(--panel-border);
+            backdrop-filter: blur(12px);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .banner-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-right: 20px;
+            border-right: 1px solid var(--input-border);
+        }
+
+        .brand-mark {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--cardiac), var(--pink));
+            border-radius: 6px;
+            display: grid; place-items: center;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700; font-size: 18px;
+            box-shadow: 0 0 16px var(--cardiac-glow);
+        }
+
+        .brand-text {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-primary);
+        }
+        .brand-text .accent { color: var(--cardiac); }
+
+        .patient-info {
+            display: flex;
+            gap: 28px;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .info-cell { display: flex; flex-direction: column; gap: 2px; }
+        .info-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+        }
+        .info-value {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+        .info-value.cardiac { color: var(--cardiac); }
+
+        .module-badge {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            background: var(--cardiac-soft);
+            border: 1px solid var(--cardiac);
+            color: var(--cardiac);
+            border-radius: 4px;
+        }
+
+        /* ==== LAYOUT ==== */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 28px 24px 80px;
+        }
+
+        .module-header {
+            margin-bottom: 24px;
+        }
+        .module-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 32px;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .module-title .pulse-dot {
+            width: 12px; height: 12px;
+            background: var(--cardiac);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--cardiac-glow);
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.15); }
+        }
+        .module-subtitle {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* ==== TABS ==== */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--input-border);
+            overflow-x: auto;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 14px 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover { color: var(--text-primary); background: rgba(220, 38, 38, 0.04); }
+        .tab-btn.active {
+            color: var(--cardiac);
+            border-bottom-color: var(--cardiac);
+            background: var(--cardiac-soft);
+        }
+        .tab-btn .num {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        .tab-panel { display: none; animation: fadeIn 0.25s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ==== PANELS ==== */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .panel-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--cardiac);
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--input-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .panel-title .icon { margin-right: 8px; }
+
+        /* ==== FORM ELEMENTS ==== */
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px 20px;
+        }
+        .field-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .field-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .field-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+        @media (max-width: 768px) {
+            .field-grid.cols-2, .field-grid.cols-3, .field-grid.cols-4 { grid-template-columns: 1fr; }
+        }
+
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field.span-2 { grid-column: span 2; }
+        .field.span-full { grid-column: 1 / -1; }
+
+        .field-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .field-label .req { color: var(--cardiac); }
+        .field-label .hint { color: var(--text-dim); text-transform: none; letter-spacing: 0; font-size: 10px; }
+
+        .field-input, .field-select, .field-textarea {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            padding: 10px 12px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .field-input:focus, .field-select:focus, .field-textarea:focus {
+            outline: none;
+            border-color: var(--cardiac);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+        }
+        .field-textarea { resize: vertical; min-height: 80px; font-family: 'DM Sans', sans-serif; }
+        .field-select option { background: var(--panel-bg); color: var(--text-primary); }
+
+        /* ==== RADIO / CHECKBOX GROUPS ==== */
+        .choice-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .choice-pill {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .choice-pill input { position: absolute; opacity: 0; pointer-events: none; }
+        .choice-pill:hover { border-color: var(--cardiac); color: var(--text-primary); }
+        .choice-pill input:checked ~ span,
+        .choice-pill.checked { color: var(--cardiac); }
+        .choice-pill:has(input:checked) {
+            background: var(--cardiac-soft);
+            border-color: var(--cardiac);
+            color: var(--cardiac);
+        }
+
+        /* ==== ALERT BOXES ==== */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            border-left: 3px solid;
+            font-size: 13px;
+            margin: 12px 0;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .alert.info { background: rgba(0, 212, 255, 0.08); border-color: var(--cyan); color: var(--cyan); }
+        .alert.warn { background: rgba(245, 158, 11, 0.08); border-color: var(--amber); color: var(--amber); }
+        .alert.danger { background: rgba(239, 68, 68, 0.1); border-color: var(--red-alert); color: var(--red-alert); }
+        .alert.ok { background: rgba(16, 185, 129, 0.08); border-color: var(--green); color: var(--green); }
+        .alert .alert-icon { font-size: 16px; flex-shrink: 0; }
+
+        /* ==== CALCULATOR / METRIC DISPLAY ==== */
+        .metric-card {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .metric-card.highlight {
+            background: var(--cardiac-soft);
+            border-color: var(--cardiac);
+        }
+        .metric-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+        }
+        .metric-value {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--text-primary);
+        }
+        .metric-card.highlight .metric-value { color: var(--cardiac); }
+        .metric-unit { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+
+        /* ==== VITAL SIGNS TABLE ==== */
+        .vitals-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .vitals-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--input-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .vitals-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--input-border);
+        }
+        .vitals-table input {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            width: 100%;
+        }
+        .vitals-table input:hover { border-color: var(--input-border); }
+        .vitals-table input:focus { outline: none; border-color: var(--cardiac); background: var(--input-bg); }
+
+        .add-row-btn {
+            background: transparent;
+            border: 1px dashed var(--input-border);
+            color: var(--text-secondary);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.15s;
+        }
+        .add-row-btn:hover { border-color: var(--cardiac); color: var(--cardiac); }
+
+        /* ==== BUTTONS ==== */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cardiac), #b91c1c);
+            border: none;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 14px 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--cardiac-glow);
+            transition: transform 0.1s, box-shadow 0.15s;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px var(--cardiac-glow); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--input-border);
+            color: var(--text-secondary);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-secondary:hover { border-color: var(--cardiac); color: var(--cardiac); }
+
+        /* ==== FOOTER / SAVE BAR ==== */
+        .save-bar {
+            position: sticky;
+            bottom: 0;
+            background: linear-gradient(0deg, var(--darker-bg) 60%, rgba(6, 14, 28, 0));
+            padding: 20px 0 12px;
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .save-status {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        /* ==== MOBILE ==== */
+        @media (max-width: 600px) {
+            .container { padding: 20px 16px 80px; }
+            .patient-banner { padding: 12px 16px; gap: 14px; }
+            .module-title { font-size: 24px; }
+            .panel { padding: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ====== PATIENT BANNER (sticky) ====== -->
+<div class="patient-banner">
+    <div class="banner-brand">
+        <div class="brand-mark">P</div>
+        <div class="brand-text">PatientTrac<span class="accent">Surg</span></div>
+    </div>
+    <div class="patient-info">
+        <div class="info-cell">
+            <span class="info-label">Patient</span>
+            <span class="info-value" id="banner-patient-name">—</span>
+        </div>
+        <div class="info-cell">
+            <span class="info-label">MRN</span>
+            <span class="info-value" id="banner-mrn">—</span>
+        </div>
+        <div class="info-cell">
+            <span class="info-label">DOB / Age</span>
+            <span class="info-value" id="banner-dob">—</span>
+        </div>
+        <div class="info-cell">
+            <span class="info-label">Procedure</span>
+            <span class="info-value cardiac" id="banner-procedure">Cardiac Catheterization</span>
+        </div>
+        <div class="info-cell">
+            <span class="info-label">Cath ID</span>
+            <span class="info-value" id="banner-encounter">—</span>
+        </div>
+    </div>
+    <div class="module-badge">Post-Procedure</div>
+</div>
+
+<div class="container">
+
+    <!-- ====== HEADER ====== -->
+    <div class="module-header">
+        <h1 class="module-title">
+            <span class="pulse-dot"></span>
+            Cardiac Post-Procedure Documentation
+        </h1>
+        <div class="module-subtitle">Hemostasis · Vitals · Labs · DAPT · Discharge</div>
+    </div>
+
+    <!-- ====== TABS ====== -->
+    <nav class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="hemostasis"><span class="num">01</span>Hemostasis &amp; Access</button>
+        <button class="tab-btn" data-tab="vitals"><span class="num">02</span>Vital Signs</button>
+        <button class="tab-btn" data-tab="labs"><span class="num">03</span>Lab Values</button>
+        <button class="tab-btn" data-tab="dapt"><span class="num">04</span>Medications &amp; DAPT</button>
+        <button class="tab-btn" data-tab="discharge"><span class="num">05</span>Discharge &amp; Follow-up</button>
+    </nav>
+
+    <!-- ============================================================ -->
+    <!-- TAB 1: HEMOSTASIS & ACCESS SITE                              -->
+    <!-- ============================================================ -->
+    <section class="tab-panel active" id="tab-hemostasis" role="tabpanel">
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🩹</span>Hemostasis Method</span></div>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">Access Site <span class="req">*</span></label>
+                    <select class="field-select" id="access_site">
+                        <option value="">Select…</option>
+                        <option value="radial_right">Right Radial</option>
+                        <option value="radial_left">Left Radial</option>
+                        <option value="femoral_right">Right Femoral</option>
+                        <option value="femoral_left">Left Femoral</option>
+                        <option value="brachial">Brachial</option>
+                        <option value="ulnar">Ulnar</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Sheath Size</label>
+                    <select class="field-select" id="sheath_size">
+                        <option value="">Select…</option>
+                        <option value="4F">4 French</option>
+                        <option value="5F">5 French</option>
+                        <option value="6F">6 French</option>
+                        <option value="7F">7 French</option>
+                        <option value="8F">8 French</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Sheath Removed At</label>
+                    <input type="datetime-local" class="field-input" id="sheath_removed_at">
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">Hemostasis Method <span class="req">*</span></label>
+                    <div class="choice-group">
+                        <label class="choice-pill"><input type="radio" name="hemostasis_method" value="manual"><span>Manual Pressure</span></label>
+                        <label class="choice-pill"><input type="radio" name="hemostasis_method" value="tr_band"><span>TR Band (Radial)</span></label>
+                        <label class="choice-pill"><input type="radio" name="hemostasis_method" value="angio_seal"><span>Angio-Seal</span></label>
+                        <label class="choice-pill"><input type="radio" name="hemostasis_method" value="perclose"><span>Perclose ProGlide</span></label>
+                        <label class="choice-pill"><input type="radio" name="hemostasis_method" value="starclose"><span>StarClose</span></label>
+                        <label class="choice-pill"><input type="radio" name="hemostasis_method" value="mynx"><span>Mynx</span></label>
+                        <label class="choice-pill"><input type="radio" name="hemostasis_method" value="other"><span>Other</span></label>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="field-label">Pressure / Compression Time <span class="hint">minutes</span></label>
+                    <input type="number" class="field-input" id="pressure_minutes" min="0" max="120" placeholder="e.g. 15">
+                </div>
+                <div class="field">
+                    <label class="field-label">TR Band Hold Time <span class="hint">if used, minutes</span></label>
+                    <input type="number" class="field-input" id="tr_band_minutes" min="0" max="240" placeholder="e.g. 90">
+                </div>
+                <div class="field">
+                    <label class="field-label">Hemostasis Achieved</label>
+                    <select class="field-select" id="hemostasis_achieved">
+                        <option value="yes_first">Yes — first attempt</option>
+                        <option value="yes_repeat">Yes — repeat compression required</option>
+                        <option value="prolonged">Prolonged hemostasis required</option>
+                        <option value="failed">Failed — surgical intervention</option>
+                    </select>
+                </div>
+            </div>
+            <div class="alert info" id="hemostasis_guide" style="display:none;">
+                <span class="alert-icon">ℹ️</span>
+                <span id="hemostasis_guide_text"></span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🔍</span>Access Site Assessment</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Hematoma Grade</label>
+                    <select class="field-select" id="hematoma_grade">
+                        <option value="none">None</option>
+                        <option value="small">Small (&lt;5 cm)</option>
+                        <option value="medium">Medium (5–10 cm)</option>
+                        <option value="large">Large (&gt;10 cm)</option>
+                        <option value="expanding">Expanding — urgent eval</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Bleeding / Oozing</label>
+                    <select class="field-select" id="bleeding_status">
+                        <option value="none">None</option>
+                        <option value="minimal">Minimal — pressure applied</option>
+                        <option value="moderate">Moderate — repeat compression</option>
+                        <option value="active">Active — intervention required</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Pseudoaneurysm Suspected</label>
+                    <select class="field-select" id="pseudoaneurysm">
+                        <option value="no">No</option>
+                        <option value="suspected">Suspected — duplex US ordered</option>
+                        <option value="confirmed">Confirmed on imaging</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">AV Fistula Suspected</label>
+                    <select class="field-select" id="av_fistula">
+                        <option value="no">No</option>
+                        <option value="suspected">Suspected — bruit / thrill</option>
+                        <option value="confirmed">Confirmed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 18px;">
+                <div class="field-label" style="margin-bottom: 10px;">Distal Neurovascular Check</div>
+                <div class="field-grid cols-4">
+                    <div class="field">
+                        <label class="field-label">Distal Pulse</label>
+                        <select class="field-select" id="distal_pulse">
+                            <option value="2_normal">2+ Normal</option>
+                            <option value="1_diminished">1+ Diminished</option>
+                            <option value="0_absent">Absent</option>
+                            <option value="3_bounding">3+ Bounding</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Color</label>
+                        <select class="field-select" id="extremity_color">
+                            <option value="normal">Normal / pink</option>
+                            <option value="pale">Pale</option>
+                            <option value="dusky">Dusky / cyanotic</option>
+                            <option value="mottled">Mottled</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Temperature</label>
+                        <select class="field-select" id="extremity_temp">
+                            <option value="warm">Warm</option>
+                            <option value="cool">Cool</option>
+                            <option value="cold">Cold</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Sensation / Motor</label>
+                        <select class="field-select" id="sensation_motor">
+                            <option value="intact">Intact</option>
+                            <option value="diminished">Diminished</option>
+                            <option value="absent">Absent</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field" style="margin-top: 16px;">
+                <label class="field-label">Access Site Notes</label>
+                <textarea class="field-textarea" id="access_notes" placeholder="Additional findings, interventions, plan…"></textarea>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB 2: VITAL SIGNS                                           -->
+    <!-- ============================================================ -->
+    <section class="tab-panel" id="tab-vitals" role="tabpanel">
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">💓</span>Post-Procedure Vital Signs Trend</span></div>
+            <div class="alert info">
+                <span class="alert-icon">ℹ️</span>
+                <span>Standard cath recovery: q15min × 4, then q30min × 2, then q1h × 2. Add rows as needed.</span>
+            </div>
+            <table class="vitals-table" id="vitals-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>BP (mmHg)</th>
+                        <th>HR (bpm)</th>
+                        <th>SpO₂ (%)</th>
+                        <th>RR</th>
+                        <th>Temp (°F)</th>
+                        <th>Pain (0–10)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="vitals-tbody">
+                    <!-- Rows added by JS -->
+                </tbody>
+            </table>
+            <button type="button" class="add-row-btn" onclick="addVitalsRow()">+ Add Row</button>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">⚠️</span>Hemodynamic Events</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Hypotension Episode</label>
+                    <select class="field-select" id="hypotension">
+                        <option value="none">None</option>
+                        <option value="transient">Transient — resolved with fluids</option>
+                        <option value="persistent">Persistent — pressors required</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Bradycardia / Vasovagal</label>
+                    <select class="field-select" id="bradycardia">
+                        <option value="none">None</option>
+                        <option value="vasovagal">Vasovagal — atropine given</option>
+                        <option value="sustained">Sustained — pacing required</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Arrhythmia</label>
+                    <select class="field-select" id="arrhythmia">
+                        <option value="none">None</option>
+                        <option value="pvc">PVCs / PACs</option>
+                        <option value="afib_new">New atrial fibrillation</option>
+                        <option value="vt_nsvt">VT / NSVT</option>
+                        <option value="vf">Ventricular fibrillation</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Chest Pain / Recurrent Ischemia</label>
+                    <select class="field-select" id="chest_pain_postop">
+                        <option value="none">None</option>
+                        <option value="minor">Minor — resolved spontaneously</option>
+                        <option value="ntg">Required nitroglycerin</option>
+                        <option value="significant">Significant — requires workup</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field" style="margin-top: 14px;">
+                <label class="field-label">Hemodynamic Notes</label>
+                <textarea class="field-textarea" id="hemodynamic_notes"></textarea>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB 3: LAB VALUES                                            -->
+    <!-- ============================================================ -->
+    <section class="tab-panel" id="tab-labs" role="tabpanel">
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🩸</span>Hemoglobin / Hematocrit Tracking</span></div>
+            <div class="field-grid cols-4">
+                <div class="field">
+                    <label class="field-label">Pre-Procedure Hgb <span class="hint">g/dL</span></label>
+                    <input type="number" step="0.1" class="field-input" id="hgb_pre" oninput="calcHgbDrop()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Post-Procedure Hgb <span class="hint">4–6h</span></label>
+                    <input type="number" step="0.1" class="field-input" id="hgb_post" oninput="calcHgbDrop()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Pre-Procedure Hct <span class="hint">%</span></label>
+                    <input type="number" step="0.1" class="field-input" id="hct_pre">
+                </div>
+                <div class="field">
+                    <label class="field-label">Post-Procedure Hct <span class="hint">%</span></label>
+                    <input type="number" step="0.1" class="field-input" id="hct_post">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px;">
+                <div class="metric-card highlight" id="hgb_drop_card">
+                    <span class="metric-label">Hgb Drop</span>
+                    <span class="metric-value" id="hgb_drop_value">— <span class="metric-unit">g/dL</span></span>
+                </div>
+                <div class="metric-card" id="transfusion_card">
+                    <span class="metric-label">Transfusion Threshold</span>
+                    <span class="metric-value" id="transfusion_status">—</span>
+                </div>
+            </div>
+            <div class="alert danger" id="hgb_alert" style="display:none;">
+                <span class="alert-icon">⚠️</span>
+                <span id="hgb_alert_text"></span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🧪</span>Cardiac Biomarkers &amp; Renal Function</span></div>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">Pre-Procedure Troponin <span class="hint">ng/mL</span></label>
+                    <input type="number" step="0.01" class="field-input" id="trop_pre">
+                </div>
+                <div class="field">
+                    <label class="field-label">Post-Procedure Troponin <span class="hint">6h</span></label>
+                    <input type="number" step="0.01" class="field-input" id="trop_6h">
+                </div>
+                <div class="field">
+                    <label class="field-label">Peak Troponin</label>
+                    <input type="number" step="0.01" class="field-input" id="trop_peak">
+                </div>
+                <div class="field">
+                    <label class="field-label">Pre-Procedure Creatinine <span class="hint">mg/dL</span></label>
+                    <input type="number" step="0.01" class="field-input" id="cr_pre" oninput="calcAKI()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Post-Procedure Creatinine</label>
+                    <input type="number" step="0.01" class="field-input" id="cr_post" oninput="calcAKI()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Contrast Volume <span class="hint">mL</span></label>
+                    <input type="number" class="field-input" id="contrast_ml">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px;">
+                <div class="metric-card" id="cr_change_card">
+                    <span class="metric-label">Creatinine Change</span>
+                    <span class="metric-value" id="cr_change_value">—</span>
+                </div>
+                <div class="metric-card" id="aki_card">
+                    <span class="metric-label">CI-AKI Status</span>
+                    <span class="metric-value" id="aki_status">—</span>
+                </div>
+            </div>
+            <div class="field" style="margin-top: 14px;">
+                <label class="field-label">Other Labs / Notes</label>
+                <textarea class="field-textarea" id="lab_notes" placeholder="Coags, electrolytes, BNP, etc."></textarea>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB 4: MEDICATIONS & DAPT                                    -->
+    <!-- ============================================================ -->
+    <section class="tab-panel" id="tab-dapt" role="tabpanel">
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">💊</span>Stent / Procedure Type</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Procedure Performed</label>
+                    <select class="field-select" id="procedure_type" onchange="updateDaptRecommendation()">
+                        <option value="diagnostic">Diagnostic angiography only</option>
+                        <option value="pci_des">PCI with Drug-Eluting Stent (DES)</option>
+                        <option value="pci_bms">PCI with Bare-Metal Stent (BMS)</option>
+                        <option value="pci_dcb">PCI with Drug-Coated Balloon</option>
+                        <option value="balloon_only">Balloon angioplasty only</option>
+                        <option value="rotablation">Rotational atherectomy + stent</option>
+                        <option value="cto">CTO intervention</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Number of Stents</label>
+                    <input type="number" class="field-input" id="stent_count" min="0" max="10">
+                </div>
+                <div class="field">
+                    <label class="field-label">Indication</label>
+                    <select class="field-select" id="indication" onchange="updateDaptRecommendation()">
+                        <option value="stable">Stable angina / SIHD</option>
+                        <option value="ua_nstemi">UA / NSTEMI (ACS)</option>
+                        <option value="stemi">STEMI</option>
+                        <option value="elective">Elective</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Vessels Treated</label>
+                    <input type="text" class="field-input" id="vessels_treated" placeholder="e.g. LAD prox, RCA mid">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🩺</span>Antiplatelet Regimen (DAPT)</span></div>
+            <div class="alert info" id="dapt_recommendation">
+                <span class="alert-icon">💡</span>
+                <span id="dapt_rec_text">Select procedure type to see DAPT duration recommendation.</span>
+            </div>
+
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Aspirin</label>
+                    <select class="field-select" id="aspirin_dose">
+                        <option value="81_indef">81 mg daily — indefinitely</option>
+                        <option value="81_short">81 mg daily — short term</option>
+                        <option value="325_load">325 mg load, then 81 mg daily</option>
+                        <option value="contraindicated">Contraindicated</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">P2Y12 Inhibitor <span class="req">*</span></label>
+                    <select class="field-select" id="p2y12" onchange="updateDaptRecommendation()">
+                        <option value="">Select…</option>
+                        <option value="clopidogrel">Clopidogrel 75 mg daily</option>
+                        <option value="ticagrelor">Ticagrelor 90 mg BID</option>
+                        <option value="prasugrel">Prasugrel 10 mg daily</option>
+                        <option value="none">None — not indicated</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">DAPT Duration <span class="hint">months</span></label>
+                    <input type="number" class="field-input" id="dapt_duration" min="0" max="36" placeholder="e.g. 12">
+                </div>
+                <div class="field">
+                    <label class="field-label">Loading Dose Given</label>
+                    <select class="field-select" id="loading_dose">
+                        <option value="no">No</option>
+                        <option value="yes_lab">Yes — in cath lab</option>
+                        <option value="yes_pre">Yes — pre-procedure</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">
+                <span><span class="icon">⚖️</span>HAS-BLED Bleeding Risk Score</span>
+                <span style="font-size: 13px; color: var(--text-dim); font-family: 'DM Mono', monospace; text-transform: none; letter-spacing: 0;">For DAPT bleeding risk assessment</span>
+            </div>
+            <div class="field-grid cols-3">
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Hypertension (uncontrolled, &gt;160 SBP)</span></label>
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Abnormal Renal Function</span></label>
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Abnormal Liver Function</span></label>
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Stroke History</span></label>
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Bleeding History / Predisposition</span></label>
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Labile INR (if on warfarin)</span></label>
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Elderly (&gt;65)</span></label>
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Drugs (NSAIDs, antiplatelets)</span></label>
+                <label class="choice-pill"><input type="checkbox" class="hasbled" value="1" onchange="calcHasBled()"><span>Alcohol (≥8 drinks/week)</span></label>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-top: 16px;">
+                <div class="metric-card highlight">
+                    <span class="metric-label">HAS-BLED Score</span>
+                    <span class="metric-value" id="hasbled_score">0 <span class="metric-unit">/ 9</span></span>
+                </div>
+                <div class="alert info" id="hasbled_interpretation" style="margin: 0;">
+                    <span class="alert-icon">📊</span>
+                    <span id="hasbled_text">Score 0–1: low risk · 2: moderate · ≥3: high bleeding risk</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">💉</span>Other Medications</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Statin</label>
+                    <select class="field-select" id="statin">
+                        <option value="">Not prescribed</option>
+                        <option value="atorvastatin_80">Atorvastatin 80 mg (high-intensity)</option>
+                        <option value="atorvastatin_40">Atorvastatin 40 mg</option>
+                        <option value="rosuvastatin_40">Rosuvastatin 40 mg (high-intensity)</option>
+                        <option value="rosuvastatin_20">Rosuvastatin 20 mg</option>
+                        <option value="continued">Continued home regimen</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Beta Blocker</label>
+                    <input type="text" class="field-input" id="beta_blocker" placeholder="e.g. Metoprolol succinate 50 mg">
+                </div>
+                <div class="field">
+                    <label class="field-label">ACE-I / ARB</label>
+                    <input type="text" class="field-input" id="acei_arb" placeholder="e.g. Lisinopril 10 mg">
+                </div>
+                <div class="field">
+                    <label class="field-label">Anticoagulant <span class="hint">if applicable</span></label>
+                    <select class="field-select" id="anticoag">
+                        <option value="">None</option>
+                        <option value="warfarin">Warfarin</option>
+                        <option value="apixaban">Apixaban</option>
+                        <option value="rivaroxaban">Rivaroxaban</option>
+                        <option value="dabigatran">Dabigatran</option>
+                        <option value="edoxaban">Edoxaban</option>
+                    </select>
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">Medication Reconciliation Notes</label>
+                    <textarea class="field-textarea" id="med_recon_notes" placeholder="Held medications, dose adjustments, new prescriptions…"></textarea>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB 5: DISCHARGE & FOLLOW-UP                                 -->
+    <!-- ============================================================ -->
+    <section class="tab-panel" id="tab-discharge" role="tabpanel">
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🏠</span>Discharge Disposition</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Discharge Status <span class="req">*</span></label>
+                    <select class="field-select" id="discharge_status">
+                        <option value="">Select…</option>
+                        <option value="home_same_day">Home — same day</option>
+                        <option value="home_obs">Home — after observation</option>
+                        <option value="admit_telemetry">Admit to telemetry</option>
+                        <option value="admit_ccu">Admit to CCU</option>
+                        <option value="transfer">Transfer to other facility</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Discharge Date / Time</label>
+                    <input type="datetime-local" class="field-input" id="discharge_datetime">
+                </div>
+                <div class="field">
+                    <label class="field-label">Ambulation Status at Discharge</label>
+                    <select class="field-select" id="ambulation">
+                        <option value="independent">Independent — steady gait</option>
+                        <option value="assist">Required assistance</option>
+                        <option value="wheelchair">Wheelchair to vehicle</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Pre-Discharge Walk Tolerance</label>
+                    <select class="field-select" id="walk_tolerance">
+                        <option value="passed">Passed — no symptoms</option>
+                        <option value="lightheaded">Lightheaded — additional rest</option>
+                        <option value="failed">Failed — admit/extend obs</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🚫</span>Activity &amp; Discharge Instructions</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">No Lifting &gt; 10 lb For</label>
+                    <select class="field-select" id="lift_restriction">
+                        <option value="48h">48 hours</option>
+                        <option value="72h">72 hours</option>
+                        <option value="1wk">1 week</option>
+                        <option value="2wk">2 weeks</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">No Driving For</label>
+                    <select class="field-select" id="drive_restriction">
+                        <option value="24h">24 hours</option>
+                        <option value="48h">48 hours</option>
+                        <option value="1wk">1 week</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Return to Work</label>
+                    <select class="field-select" id="rtw">
+                        <option value="next_day">Next day (desk job)</option>
+                        <option value="48h">48 hours</option>
+                        <option value="1wk">1 week</option>
+                        <option value="2wk">2 weeks (manual labor)</option>
+                        <option value="provider">Per provider</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Showering / Bathing</label>
+                    <select class="field-select" id="bathing">
+                        <option value="shower_24h">Shower after 24h</option>
+                        <option value="shower_48h">Shower after 48h</option>
+                        <option value="no_bath_1wk">No tub bath × 1 week</option>
+                    </select>
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">Patient Education Provided <span class="hint">check all</span></label>
+                    <div class="choice-group">
+                        <label class="choice-pill"><input type="checkbox" name="edu" value="access_care"><span>Access site care</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="edu" value="bleeding_warning"><span>Bleeding warning signs</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="edu" value="dapt_compliance"><span>DAPT compliance critical</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="edu" value="chest_pain_911"><span>Chest pain → call 911</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="edu" value="lifestyle"><span>Lifestyle / diet</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="edu" value="cardiac_rehab"><span>Cardiac rehab referral</span></label>
+                        <label class="choice-pill"><input type="checkbox" name="edu" value="medications"><span>Medication review</span></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">📅</span>Follow-up Schedule</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Cardiology Follow-up — 1 Week</label>
+                    <input type="date" class="field-input" id="fu_1wk">
+                </div>
+                <div class="field">
+                    <label class="field-label">Cardiology Follow-up — 1 Month</label>
+                    <input type="date" class="field-input" id="fu_1mo">
+                </div>
+                <div class="field">
+                    <label class="field-label">Cardiology Follow-up — 3 Months</label>
+                    <input type="date" class="field-input" id="fu_3mo">
+                </div>
+                <div class="field">
+                    <label class="field-label">Stress Test <span class="hint">3–6 months post-PCI</span></label>
+                    <input type="date" class="field-input" id="stress_test_date">
+                </div>
+                <div class="field">
+                    <label class="field-label">Echocardiogram</label>
+                    <select class="field-select" id="echo_planned">
+                        <option value="not_indicated">Not indicated</option>
+                        <option value="3mo">At 3 months</option>
+                        <option value="6mo">At 6 months</option>
+                        <option value="prn">PRN symptoms</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Cardiac Rehab Referral</label>
+                    <select class="field-select" id="rehab_referral">
+                        <option value="no">Not referred</option>
+                        <option value="referred">Referred — patient agrees</option>
+                        <option value="declined">Patient declined</option>
+                        <option value="not_eligible">Not eligible</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">📋</span>MACE Tracking</span></div>
+            <div class="alert info">
+                <span class="alert-icon">ℹ️</span>
+                <span>Capture in-stay events at discharge. 30-day &amp; 1-year fields populate from follow-up visits.</span>
+            </div>
+
+            <h4 style="font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; color: var(--text-secondary); margin: 16px 0 10px; text-transform: uppercase; font-size: 13px;">In-Stay / Pre-Discharge Events</h4>
+            <div class="field-grid cols-3">
+                <label class="choice-pill"><input type="checkbox" name="mace_inhouse" value="death"><span>Death</span></label>
+                <label class="choice-pill"><input type="checkbox" name="mace_inhouse" value="mi"><span>MI / Re-infarction</span></label>
+                <label class="choice-pill"><input type="checkbox" name="mace_inhouse" value="stroke"><span>Stroke / TIA</span></label>
+                <label class="choice-pill"><input type="checkbox" name="mace_inhouse" value="repeat_revasc"><span>Repeat revascularization</span></label>
+                <label class="choice-pill"><input type="checkbox" name="mace_inhouse" value="major_bleed"><span>Major bleeding (BARC ≥3)</span></label>
+                <label class="choice-pill"><input type="checkbox" name="mace_inhouse" value="stent_thrombosis"><span>Stent thrombosis</span></label>
+            </div>
+
+            <h4 style="font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; color: var(--text-secondary); margin: 18px 0 10px; text-transform: uppercase; font-size: 13px;">30-Day Follow-up <span style="color: var(--text-dim); font-size: 11px;">(populates from visit)</span></h4>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">30-Day MACE Status</label>
+                    <select class="field-select" id="mace_30d_status">
+                        <option value="pending">Pending follow-up</option>
+                        <option value="none">No events</option>
+                        <option value="event">Event(s) occurred</option>
+                    </select>
+                </div>
+                <div class="field span-2">
+                    <label class="field-label">30-Day Event Details</label>
+                    <input type="text" class="field-input" id="mace_30d_details" placeholder="Auto-populates from 30d visit">
+                </div>
+            </div>
+
+            <h4 style="font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; color: var(--text-secondary); margin: 18px 0 10px; text-transform: uppercase; font-size: 13px;">1-Year Follow-up <span style="color: var(--text-dim); font-size: 11px;">(populates from visit)</span></h4>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">1-Year MACE Status</label>
+                    <select class="field-select" id="mace_1yr_status">
+                        <option value="pending">Pending follow-up</option>
+                        <option value="none">No events</option>
+                        <option value="event">Event(s) occurred</option>
+                    </select>
+                </div>
+                <div class="field span-2">
+                    <label class="field-label">1-Year Event Details</label>
+                    <input type="text" class="field-input" id="mace_1yr_details" placeholder="Auto-populates from 1yr visit">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">✍️</span>Provider Sign-Off</span></div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">Attending Physician <span class="req">*</span></label>
+                    <input type="text" class="field-input" id="attending_name" placeholder="Provider name">
+                </div>
+                <div class="field">
+                    <label class="field-label">Date / Time of Note</label>
+                    <input type="datetime-local" class="field-input" id="note_datetime">
+                </div>
+                <div class="field span-full">
+                    <label class="field-label">Discharge Summary / Additional Notes</label>
+                    <textarea class="field-textarea" id="discharge_summary" rows="4" placeholder="Overall summary, key findings, plan…"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAVE BAR -->
+        <div class="save-bar">
+            <span class="save-status" id="save-status">Last saved: never</span>
+            <div style="display: flex; gap: 12px;">
+                <button type="button" class="btn-secondary" onclick="window.history.back()">Cancel</button>
+                <button type="button" class="btn-primary" id="save-btn" onclick="saveRecord()">Save Post-Procedure Record</button>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- ====================================================================== -->
+<!-- SCRIPT                                                                 -->
+<!-- ====================================================================== -->
+<script>
+    // ===== CONFIG =====
+    // NOTE: anon key must be pasted from existing platform files before deploy.
+    // Pattern across PatientTracSurg static files reads from window.__PT_CONFIG or hardcoded.
+    const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+    const SUPABASE_ANON_KEY = window.__PT_ANON_KEY || ''; // <- inject before deploy
+    const supabase = (SUPABASE_ANON_KEY && window.supabase)
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
+
+    // ===== STATE =====
+    // Note: patient_id, cath_id, encounter_id, provider_id are INTEGERs in this platform.
+    // org_id is UUID. The post-procedure record FKs to cath_id, not encounter_id directly.
+    let patientData = {
+        org_id: null,
+        patient_id: null,    // integer
+        cath_id: null,       // integer — FK target on cardiac_post_procedure
+        encounter_id: null,  // integer — passed through but not stored on this table
+        provider_id: null    // integer
+    };
+
+    function toIntOrNull(v) {
+        if (v === null || v === undefined || v === '') return null;
+        const n = parseInt(v, 10);
+        return isNaN(n) ? null : n;
+    }
+
+    // ===== TOKEN / URL PARAMS =====
+    function loadFromUrl() {
+        const p = new URLSearchParams(window.location.search);
+        patientData.patient_id   = toIntOrNull(p.get('patient_id'));
+        patientData.cath_id      = toIntOrNull(p.get('cath_id'));
+        patientData.encounter_id = toIntOrNull(p.get('encounter_id'));
+        patientData.provider_id  = toIntOrNull(p.get('provider_id'));
+        patientData.org_id       = p.get('org_id') || '00000000-0000-0000-0000-000000000001';
+
+        if (patientData.cath_id != null) {
+            document.getElementById('banner-encounter').textContent = '#' + patientData.cath_id;
+        } else if (patientData.encounter_id != null) {
+            document.getElementById('banner-encounter').textContent = 'enc #' + patientData.encounter_id;
+        }
+        if (patientData.patient_id != null) {
+            loadPatient();
+        }
+    }
+
+    async function loadPatient() {
+        if (!supabase || patientData.patient_id == null) return;
+        try {
+            const { data, error } = await supabase
+                .schema('cr')
+                .from('patient')
+                .select('first_name,last_name,patient_ext_ref,birth')
+                .eq('patient_id', patientData.patient_id)
+                .single();
+            if (error) throw error;
+            if (data) {
+                document.getElementById('banner-patient-name').textContent =
+                    `${data.first_name || ''} ${data.last_name || ''}`.trim() || '—';
+                document.getElementById('banner-mrn').textContent = data.patient_ext_ref || '—';
+                if (data.birth) {
+                    const dob = new Date(data.birth);
+                    const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 86400000));
+                    document.getElementById('banner-dob').textContent =
+                        `${dob.toLocaleDateString()} (${age} y)`;
+                }
+            }
+        } catch (e) {
+            console.warn('Patient load failed:', e.message);
+        }
+    }
+
+    // ===== TABS =====
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    // ===== HEMOSTASIS GUIDE =====
+    document.getElementById('access_site').addEventListener('change', updateHemostasisGuide);
+    document.querySelectorAll('input[name="hemostasis_method"]').forEach(r =>
+        r.addEventListener('change', updateHemostasisGuide)
+    );
+
+    function updateHemostasisGuide() {
+        const site = document.getElementById('access_site').value;
+        const method = document.querySelector('input[name="hemostasis_method"]:checked')?.value;
+        const guide = document.getElementById('hemostasis_guide');
+        const text = document.getElementById('hemostasis_guide_text');
+        if (!site || !method) { guide.style.display = 'none'; return; }
+        let msg = '';
+        if (site.startsWith('radial') && method === 'manual') msg = 'Radial manual pressure: typically 10–15 minutes. Confirm patent ulnar artery (modified Allen test).';
+        else if (site.startsWith('femoral') && method === 'manual') msg = 'Femoral manual pressure: typically 15–20 minutes (3 min per French size).';
+        else if (method === 'tr_band') msg = 'TR Band hold: typically 90–120 min with patent hemostasis technique. Reduce by 2 cc q15min after first 60 min.';
+        else if (method === 'angio_seal' || method === 'perclose' || method === 'starclose' || method === 'mynx') msg = 'Closure device deployed. Bedrest 1–2 hours. No deep flexion at access site × 24h.';
+        if (msg) { text.textContent = msg; guide.style.display = 'flex'; }
+        else guide.style.display = 'none';
+    }
+
+    // ===== VITALS TABLE =====
+    function addVitalsRow(time = '') {
+        const tbody = document.getElementById('vitals-tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="time" value="${time}"></td>
+            <td><input type="text" placeholder="120/80"></td>
+            <td><input type="number" placeholder="72"></td>
+            <td><input type="number" placeholder="98"></td>
+            <td><input type="number" placeholder="16"></td>
+            <td><input type="number" step="0.1" placeholder="98.6"></td>
+            <td><input type="number" min="0" max="10" placeholder="0"></td>
+            <td><button type="button" class="add-row-btn" style="margin: 0; padding: 4px 8px;" onclick="this.closest('tr').remove()">×</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+    // Seed with 4 q15min rows
+    for (let i = 0; i < 4; i++) addVitalsRow();
+
+    // ===== HGB DROP =====
+    function calcHgbDrop() {
+        const pre = parseFloat(document.getElementById('hgb_pre').value);
+        const post = parseFloat(document.getElementById('hgb_post').value);
+        const valEl = document.getElementById('hgb_drop_value');
+        const card = document.getElementById('hgb_drop_card');
+        const transStatus = document.getElementById('transfusion_status');
+        const transCard = document.getElementById('transfusion_card');
+        const alertEl = document.getElementById('hgb_alert');
+        const alertText = document.getElementById('hgb_alert_text');
+
+        if (isNaN(pre) || isNaN(post)) {
+            valEl.innerHTML = '— <span class="metric-unit">g/dL</span>';
+            transStatus.textContent = '—';
+            alertEl.style.display = 'none';
+            return;
+        }
+        const drop = (pre - post).toFixed(1);
+        valEl.innerHTML = `${drop > 0 ? '−' : '+'}${Math.abs(drop)} <span class="metric-unit">g/dL</span>`;
+
+        if (drop >= 3) {
+            card.classList.add('highlight');
+            alertEl.style.display = 'flex';
+            alertText.textContent = `Significant Hgb drop (${drop} g/dL). Evaluate access site, retroperitoneal bleed (femoral access). Consider imaging.`;
+        } else {
+            alertEl.style.display = 'none';
+        }
+        if (post < 7) {
+            transStatus.textContent = 'Below threshold';
+            transCard.classList.add('highlight');
+        } else if (post < 8) {
+            transStatus.textContent = 'Borderline';
+        } else {
+            transStatus.textContent = 'Adequate';
+            transCard.classList.remove('highlight');
+        }
+    }
+
+    // ===== AKI / CIN =====
+    function calcAKI() {
+        const pre = parseFloat(document.getElementById('cr_pre').value);
+        const post = parseFloat(document.getElementById('cr_post').value);
+        const changeEl = document.getElementById('cr_change_value');
+        const akiEl = document.getElementById('aki_status');
+        const akiCard = document.getElementById('aki_card');
+
+        if (isNaN(pre) || isNaN(post)) { changeEl.textContent = '—'; akiEl.textContent = '—'; return; }
+        const abs = (post - pre).toFixed(2);
+        const pct = ((post - pre) / pre * 100).toFixed(0);
+        changeEl.innerHTML = `${abs > 0 ? '+' : ''}${abs} <span class="metric-unit">(${pct}%)</span>`;
+
+        // CI-AKI: ≥0.5 mg/dL absolute or ≥25% relative within 48–72h
+        if (post - pre >= 0.5 || (post - pre) / pre >= 0.25) {
+            akiEl.textContent = 'CI-AKI Met';
+            akiCard.classList.add('highlight');
+        } else {
+            akiEl.textContent = 'No AKI';
+            akiCard.classList.remove('highlight');
+        }
+    }
+
+    // ===== HAS-BLED =====
+    function calcHasBled() {
+        const checked = document.querySelectorAll('.hasbled:checked').length;
+        document.getElementById('hasbled_score').innerHTML = `${checked} <span class="metric-unit">/ 9</span>`;
+        const text = document.getElementById('hasbled_text');
+        const interp = document.getElementById('hasbled_interpretation');
+        interp.classList.remove('warn', 'danger');
+        interp.classList.add('info');
+        if (checked >= 3) {
+            text.textContent = `Score ${checked}: HIGH bleeding risk. Reconsider DAPT duration; ensure close follow-up.`;
+            interp.classList.remove('info'); interp.classList.add('danger');
+        } else if (checked === 2) {
+            text.textContent = `Score 2: MODERATE bleeding risk. Standard DAPT with close monitoring.`;
+            interp.classList.remove('info'); interp.classList.add('warn');
+        } else {
+            text.textContent = `Score ${checked}: LOW bleeding risk. Standard DAPT regimen appropriate.`;
+        }
+    }
+
+    // ===== DAPT RECOMMENDATION =====
+    function updateDaptRecommendation() {
+        const proc = document.getElementById('procedure_type').value;
+        const ind = document.getElementById('indication').value;
+        const text = document.getElementById('dapt_rec_text');
+        const durationField = document.getElementById('dapt_duration');
+
+        let rec = '';
+        let suggestedDuration = null;
+
+        if (proc === 'pci_des') {
+            if (ind === 'stable' || ind === 'elective') { rec = 'DES + stable disease: minimum 6 months DAPT (ACC/AHA 2023).'; suggestedDuration = 6; }
+            else if (ind === 'ua_nstemi' || ind === 'stemi') { rec = 'DES + ACS: minimum 12 months DAPT.'; suggestedDuration = 12; }
+            else { rec = 'DES: 6–12 months DAPT depending on indication.'; suggestedDuration = 12; }
+        } else if (proc === 'pci_bms') { rec = 'BMS: minimum 1 month DAPT (longer if ACS — 12 months).'; suggestedDuration = ind?.includes('stemi') || ind === 'ua_nstemi' ? 12 : 1; }
+        else if (proc === 'pci_dcb') { rec = 'Drug-coated balloon: 1–3 months DAPT typical.'; suggestedDuration = 3; }
+        else if (proc === 'balloon_only') { rec = 'POBA only: DAPT not routinely required beyond aspirin.'; suggestedDuration = 0; }
+        else if (proc === 'diagnostic') { rec = 'Diagnostic angiography: no DAPT required.'; suggestedDuration = 0; }
+        else if (proc === 'cto' || proc === 'rotablation') { rec = 'Complex PCI: 12 months DAPT minimum, consider extended.'; suggestedDuration = 12; }
+        else { rec = 'Select procedure type to see DAPT duration recommendation.'; }
+
+        text.textContent = rec;
+        if (suggestedDuration !== null && !durationField.value) {
+            durationField.value = suggestedDuration;
+            durationField.placeholder = `Suggested: ${suggestedDuration} months (override OK)`;
+        }
+    }
+
+    // ===== SAVE =====
+    // Maps to real cr.cardiac_post_procedure schema:
+    //   - 15 discrete columns get direct values (with type coercion)
+    //   - Everything else (HAS-BLED, MACE, lab trends, education, follow-up dates,
+    //     vital trend, hemostasis details, etc.) goes into extras_json JSONB column
+    async function saveRecord() {
+        const btn = document.getElementById('save-btn');
+        const status = document.getElementById('save-status');
+        btn.disabled = true; btn.textContent = 'Saving…';
+
+        // ---- Helper: collect vital trend rows from table ----
+        const vitalRows = [];
+        document.querySelectorAll('#vitals-tbody tr').forEach(tr => {
+            const inputs = tr.querySelectorAll('input');
+            const row = {
+                time: inputs[0].value,
+                bp:   inputs[1].value,
+                hr:   inputs[2].value,
+                spo2: inputs[3].value,
+                rr:   inputs[4].value,
+                temp: inputs[5].value,
+                pain: inputs[6].value
+            };
+            // Skip fully empty rows
+            if (Object.values(row).some(v => v && String(v).trim())) vitalRows.push(row);
+        });
+
+        // ---- Pull values from latest vitals row for discrete BP/HR columns ----
+        let postSystolic = null, postDiastolic = null, postHr = null;
+        if (vitalRows.length) {
+            const latest = vitalRows[vitalRows.length - 1];
+            const bpMatch = (latest.bp || '').match(/^\s*(\d{2,3})\s*\/\s*(\d{2,3})\s*$/);
+            if (bpMatch) {
+                postSystolic = parseInt(bpMatch[1], 10);
+                postDiastolic = parseInt(bpMatch[2], 10);
+            }
+            postHr = toIntOrNull(latest.hr);
+        }
+
+        // ---- Discharge resolution: existing schema uses two booleans + reason ----
+        const dischargeStatus = document.getElementById('discharge_status').value;
+        const dischargedHome = (dischargeStatus === 'home_same_day' || dischargeStatus === 'home_obs');
+        const admitted = (dischargeStatus === 'admit_telemetry' || dischargeStatus === 'admit_ccu' || dischargeStatus === 'transfer');
+        const admissionReason = admitted ? dischargeStatus.replace('admit_', '').replace('_', ' ') : null;
+
+        // ---- Hemostasis achieved: existing schema is boolean ----
+        const hemAchieved = document.getElementById('hemostasis_achieved').value;
+        const hemAchievedBool = (hemAchieved === 'yes_first' || hemAchieved === 'yes_repeat');
+
+        // ---- Access-site complication: any non-"none" finding triggers true ----
+        const hematoma = document.getElementById('hematoma_grade').value;
+        const bleeding = document.getElementById('bleeding_status').value;
+        const pseudo   = document.getElementById('pseudoaneurysm').value;
+        const avFist   = document.getElementById('av_fistula').value;
+        const accessComplication = !!(
+            (hematoma && hematoma !== 'none') ||
+            (bleeding && bleeding !== 'none') ||
+            (pseudo && pseudo !== 'no') ||
+            (avFist && avFist !== 'no')
+        );
+        const complicationType = accessComplication
+            ? [
+                (hematoma !== 'none') ? `hematoma_${hematoma}` : null,
+                (bleeding !== 'none') ? `bleeding_${bleeding}` : null,
+                (pseudo !== 'no') ? `pseudoaneurysm_${pseudo}` : null,
+                (avFist !== 'no') ? `av_fistula_${avFist}` : null
+              ].filter(Boolean).join(', ').slice(0, 250)
+            : null;
+
+        // ---- Aspirin dose: existing column is integer mg ----
+        const aspirinValue = document.getElementById('aspirin_dose').value;
+        const aspirinMg = aspirinValue.startsWith('81') ? 81
+                        : aspirinValue.startsWith('325') ? 325
+                        : null;
+
+        // ---- Follow-up days: derive from earliest scheduled date ----
+        let followupDays = null;
+        const fu1wk = document.getElementById('fu_1wk').value;
+        const fu1mo = document.getElementById('fu_1mo').value;
+        const fu3mo = document.getElementById('fu_3mo').value;
+        const earliest = [fu1wk, fu1mo, fu3mo].filter(Boolean).sort()[0];
+        if (earliest) {
+            const days = Math.round((new Date(earliest) - Date.now()) / 86400000);
+            if (days > 0) followupDays = days;
+        }
+
+        // ====== EXTRAS JSON: everything not in discrete columns ======
+        const extras = {
+            schema_version: 1,
+            captured_at: new Date().toISOString(),
+
+            hemostasis: {
+                access_site:        document.getElementById('access_site').value || null,
+                sheath_size:        document.getElementById('sheath_size').value || null,
+                hemostasis_method:  document.querySelector('input[name="hemostasis_method"]:checked')?.value || null,
+                pressure_minutes:   toIntOrNull(document.getElementById('pressure_minutes').value),
+                tr_band_minutes:    toIntOrNull(document.getElementById('tr_band_minutes').value),
+                hemostasis_outcome: hemAchieved,  // full enum, not just boolean
+                hematoma_grade:     hematoma,
+                bleeding_status:    bleeding,
+                pseudoaneurysm:     pseudo,
+                av_fistula:         avFist,
+                extremity_color:    document.getElementById('extremity_color').value,
+                extremity_temp:     document.getElementById('extremity_temp').value,
+                sensation_motor:    document.getElementById('sensation_motor').value,
+                access_notes:       document.getElementById('access_notes').value || null
+            },
+
+            vitals: {
+                trend: vitalRows,
+                hypotension:        document.getElementById('hypotension').value,
+                bradycardia:        document.getElementById('bradycardia').value,
+                arrhythmia:         document.getElementById('arrhythmia').value,
+                chest_pain_postop:  document.getElementById('chest_pain_postop').value,
+                hemodynamic_notes:  document.getElementById('hemodynamic_notes').value || null
+            },
+
+            labs: {
+                hgb_pre:     parseFloat(document.getElementById('hgb_pre').value)  || null,
+                hgb_post:    parseFloat(document.getElementById('hgb_post').value) || null,
+                hct_pre:     parseFloat(document.getElementById('hct_pre').value)  || null,
+                hct_post:    parseFloat(document.getElementById('hct_post').value) || null,
+                trop_pre:    parseFloat(document.getElementById('trop_pre').value) || null,
+                trop_6h:     parseFloat(document.getElementById('trop_6h').value)  || null,
+                trop_peak:   parseFloat(document.getElementById('trop_peak').value)|| null,
+                cr_pre:      parseFloat(document.getElementById('cr_pre').value)   || null,
+                cr_post:     parseFloat(document.getElementById('cr_post').value)  || null,
+                contrast_ml: toIntOrNull(document.getElementById('contrast_ml').value),
+                lab_notes:   document.getElementById('lab_notes').value || null
+            },
+
+            dapt: {
+                procedure_type:     document.getElementById('procedure_type').value,
+                stent_count:        toIntOrNull(document.getElementById('stent_count').value),
+                indication:         document.getElementById('indication').value,
+                vessels_treated:    document.getElementById('vessels_treated').value || null,
+                aspirin_full:       aspirinValue,            // preserves "81_indef" vs "81_short" etc.
+                p2y12:              document.getElementById('p2y12').value,
+                loading_dose:       document.getElementById('loading_dose').value,
+                hasbled_score:      document.querySelectorAll('.hasbled:checked').length,
+                statin:             document.getElementById('statin').value || null,
+                beta_blocker:       document.getElementById('beta_blocker').value || null,
+                acei_arb:           document.getElementById('acei_arb').value || null,
+                anticoag:           document.getElementById('anticoag').value || null,
+                med_recon_notes:    document.getElementById('med_recon_notes').value || null
+            },
+
+            discharge: {
+                status_full:        dischargeStatus,
+                discharge_datetime: document.getElementById('discharge_datetime').value || null,
+                ambulation:         document.getElementById('ambulation').value,
+                walk_tolerance:     document.getElementById('walk_tolerance').value,
+                lift_restriction:   document.getElementById('lift_restriction').value,
+                drive_restriction:  document.getElementById('drive_restriction').value,
+                return_to_work:     document.getElementById('rtw').value,
+                bathing:            document.getElementById('bathing').value,
+                education_provided: Array.from(document.querySelectorAll('input[name="edu"]:checked')).map(c => c.value)
+            },
+
+            followup: {
+                fu_1wk:           fu1wk || null,
+                fu_1mo:           fu1mo || null,
+                fu_3mo:           fu3mo || null,
+                stress_test_date: document.getElementById('stress_test_date').value || null,
+                echo_planned:     document.getElementById('echo_planned').value,
+                rehab_referral:   document.getElementById('rehab_referral').value
+            },
+
+            mace: {
+                inhouse:        Array.from(document.querySelectorAll('input[name="mace_inhouse"]:checked')).map(c => c.value),
+                d30_status:     document.getElementById('mace_30d_status').value,
+                d30_details:    document.getElementById('mace_30d_details').value || null,
+                y1_status:      document.getElementById('mace_1yr_status').value,
+                y1_details:     document.getElementById('mace_1yr_details').value || null
+            },
+
+            signoff: {
+                attending_name:    document.getElementById('attending_name').value || null,
+                note_datetime:     document.getElementById('note_datetime').value || null,
+                discharge_summary: document.getElementById('discharge_summary').value || null
+            }
+        };
+
+        // ====== DISCRETE COLUMNS (matches real schema exactly) ======
+        const record = {
+            org_id:                              patientData.org_id,
+            patient_id:                          patientData.patient_id,
+            cath_id:                             patientData.cath_id,
+            sheath_removal_time:                 document.getElementById('sheath_removed_at').value || null,
+            hemostasis_achieved:                 hemAchievedBool,
+            access_site_complication:            accessComplication,
+            complication_type:                   complicationType,
+            post_systolic_bp:                    postSystolic,
+            post_diastolic_bp:                   postDiastolic,
+            post_heart_rate:                     postHr,
+            distal_pulse_status:                 document.getElementById('distal_pulse').value || null,
+            bed_rest_hours:                      null, // not currently captured in form
+            aspirin_dose:                        aspirinMg,
+            p2y12_inhibitor:                     document.getElementById('p2y12').value || null,
+            dual_antiplatelet_duration_months:   toIntOrNull(document.getElementById('dapt_duration').value),
+            pre_hydration_given:                 false, // not captured — reserved for future
+            post_hydration_given:                false,
+            acetylcysteine_given:                false,
+            discharged_home:                     dischargedHome,
+            admitted:                            admitted,
+            admission_reason:                    admissionReason,
+            followup_days:                       followupDays,
+            extras_json:                         extras
+        };
+
+        // ---- Validate required fields ----
+        if (record.patient_id == null) {
+            alert('Cannot save: patient_id is required (pass ?patient_id=N in the URL).');
+            btn.disabled = false; btn.textContent = 'Save Post-Procedure Record';
+            return;
+        }
+        if (record.cath_id == null) {
+            alert('Cannot save: cath_id is required (pass ?cath_id=N in the URL — the catheterization this post-procedure note belongs to).');
+            btn.disabled = false; btn.textContent = 'Save Post-Procedure Record';
+            return;
+        }
+
+        if (!supabase) {
+            console.warn('Supabase client not initialized — record:', record);
+            status.textContent = 'Saved locally (Supabase not configured)';
+            localStorage.setItem('cardiac_post_proc_draft', JSON.stringify(record));
+            btn.disabled = false; btn.textContent = 'Save Post-Procedure Record';
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .schema('cr')
+                .from('cardiac_post_procedure')
+                .insert([record]);
+            if (error) throw error;
+            status.textContent = 'Saved: ' + new Date().toLocaleString();
+            btn.textContent = 'Saved ✓';
+            setTimeout(() => { btn.disabled = false; btn.textContent = 'Save Post-Procedure Record'; }, 2000);
+        } catch (e) {
+            console.error('Save failed:', e);
+            alert('Save failed: ' + (e.message || e));
+            btn.disabled = false; btn.textContent = 'Save Post-Procedure Record';
+        }
+    }
+
+    // ===== INIT =====
+    loadFromUrl();
+    // Default note datetime to now
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('note_datetime').value = now.toISOString().slice(0, 16);
+</script>
+
+</body>
+</html>
