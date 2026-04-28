@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surgeon Pre-Operative Evaluation | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        
+        /* Header / Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--cyan);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--cyan);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .patient-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .bmi-badge {
+            background: linear-gradient(135deg, var(--orange) 0%, var(--red) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-left: auto;
+        }
+        
+        /* Tab Navigation */
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(201, 169, 110, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn.active {
+            color: var(--cyan);
+            border-bottom-color: var(--cyan);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            color: white;
+            background: rgba(0, 212, 255, 0.05);
+        }
+        
+        /* Main Content */
+        .content-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-card h3 {
+            color: var(--cyan);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-card h3::before {
+            content: "";
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--cyan) 0%, var(--purple) 100%);
+            border-radius: 2px;
+        }
+        
+        /* Form Styling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--cyan);
+            background: rgba(6, 14, 28, 0.8);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        /* Checkbox Grid */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(6, 14, 28, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-item:hover {
+            border-color: var(--cyan);
+            background: rgba(0, 212, 255, 0.05);
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            margin-top: 0.2rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .checkbox-item.expanded {
+            grid-column: 1 / -1;
+            background: rgba(0, 212, 255, 0.08);
+            border-color: var(--cyan);
+        }
+        
+        .checkbox-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .checkbox-item.expanded .checkbox-details {
+            display: block;
+        }
+        
+        /* Procedure Selector */
+        .procedure-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .procedure-card {
+            background: rgba(6, 14, 28, 0.6);
+            border: 2px solid rgba(201, 169, 110, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .procedure-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(201, 169, 110, 0.2);
+        }
+        
+        .procedure-card.selected {
+            border-color: var(--cyan);
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .procedure-card h4 {
+            color: var(--gold);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .procedure-card .cpt-code {
+            color: var(--cyan);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .procedure-card p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        /* Clearance Checklist */
+        .clearance-checklist {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .clearance-item {
+            background: rgba(6, 14, 28, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+        
+        .clearance-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-top: 0.2rem;
+        }
+        
+        .clearance-item input[type="checkbox"]:checked + .clearance-content {
+            opacity: 1;
+        }
+        
+        .clearance-content {
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        
+        .clearance-content h4 {
+            color: var(--cyan);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .clearance-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .clearance-item input[type="checkbox"]:checked ~ .clearance-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        /* Action Buttons */
+        .action-bar {
+            position: sticky;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.98) 0%, rgba(6, 14, 28, 0.98) 100%);
+            border-top: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cyan) 0%, #0891b2 100%);
+            color: white;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gold);
+            color: var(--darker-bg);
+        }
+        
+        /* Status Indicators */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .status-badge.complete {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+        
+        .status-badge.pending {
+            background: rgba(249, 115, 22, 0.2);
+            color: var(--orange);
+            border: 1px solid var(--orange);
+        }
+        
+        .status-badge.incomplete {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img id="patientPhoto" src="https://via.placeholder.com/80" alt="Patient" class="patient-photo">
+        <div class="patient-info">
+            <h2 id="patientName">Loading...</h2>
+            <div class="patient-meta">
+                <span>🆔 MRN: <strong id="patientMRN">--</strong></span>
+                <span>📅 DOB: <strong id="patientDOB">--</strong></span>
+                <span>⚥ <strong id="patientSex">--</strong></span>
+                <span>⚖️ Weight: <strong id="patientWeight">--</strong> kg</span>
+            </div>
+        </div>
+        <div class="bmi-badge">
+            BMI: <span id="patientBMI">--</span>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="switchTab(0)">History & Assessment</button>
+        <button class="tab-btn" onclick="switchTab(1)">Procedure Planning</button>
+        <button class="tab-btn" onclick="switchTab(2)">Clearances & Labs</button>
+        <button class="tab-btn" onclick="switchTab(3)">Pre-Op Instructions</button>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <!-- Tab 1: History & Assessment -->
+        <div class="tab-content active">
+            <div class="section-card">
+                <h3>Weight History</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Current Weight (kg)</label>
+                        <input type="number" id="currentWeight" step="0.1" placeholder="Enter weight">
+                    </div>
+                    <div class="form-group">
+                        <label>6 Months Ago (kg)</label>
+                        <input type="number" id="weight6mo" step="0.1" placeholder="Weight 6 months ago">
+                    </div>
+                    <div class="form-group">
+                        <label>1 Year Ago (kg)</label>
+                        <input type="number" id="weight1yr" step="0.1" placeholder="Weight 1 year ago">
+                    </div>
+                    <div class="form-group">
+                        <label>Highest Weight Ever (kg)</label>
+                        <input type="number" id="weightHighest" step="0.1" placeholder="Highest recorded weight">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Comorbidities & Risk Factors</h3>
+                <div class="checkbox-grid">
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" id="diabetes" onclick="event.stopPropagation()">
+                        <div>
+                            <strong>Type 2 Diabetes</strong>
+                            <div class="checkbox-details">
+                                <div class="form-group">
+                                    <label>HbA1c</label>
+                                    <input type="number" step="0.1" placeholder="e.g., 7.2">
+                                </div>
+                                <label><input type="checkbox"> Insulin dependent</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" id="hypertension" onclick="event.stopPropagation()">
+                        <div>
+                            <strong>Hypertension</strong>
+                            <div class="checkbox-details">
+                                <div class="form-group">
+                                    <label>Current BP</label>
+                                    <input type="text" placeholder="e.g., 140/90">
+                                </div>
+                                <label><input type="checkbox"> Controlled on medications</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" id="sleepApnea" onclick="event.stopPropagation()">
+                        <div>
+                            <strong>Sleep Apnea</strong>
+                            <div class="checkbox-details">
+                                <label><input type="checkbox"> CPAP user</label>
+                                <div class="form-group">
+                                    <label>AHI Score</label>
+                                    <input type="number" placeholder="Events per hour">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" id="gerd" onclick="event.stopPropagation()">
+                        <div>
+                            <strong>GERD</strong>
+                            <div class="checkbox-details">
+                                <label><input type="checkbox"> On PPI</label>
+                                <div class="form-group">
+                                    <label>Severity</label>
+                                    <select>
+                                        <option>Mild</option>
+                                        <option>Moderate</option>
+                                        <option>Severe</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="hyperlipidemia">
+                        <strong>Hyperlipidemia</strong>
+                    </div>
+
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="nafld">
+                        <strong>NAFLD/NASH</strong>
+                    </div>
+
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="jointPain">
+                        <strong>Joint Pain/Mobility Issues</strong>
+                    </div>
+
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="pcos">
+                        <strong>PCOS</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Interval Changes</h3>
+                <div class="form-group">
+                    <label>New medications, conditions, or changes since last visit</label>
+                    <textarea id="intervalChanges" placeholder="Document any changes in patient status..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Procedure Planning -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Select Bariatric Procedure</h3>
+                <div class="procedure-selector">
+                    <div class="procedure-card" onclick="selectProcedure(this, '43775', 'Laparoscopic Sleeve Gastrectomy')">
+                        <h4>Gastric Sleeve</h4>
+                        <div class="cpt-code">CPT 43775</div>
+                        <p>Laparoscopic sleeve gastrectomy removes 80% of the stomach. Best for patients with BMI 35-45.</p>
+                    </div>
+
+                    <div class="procedure-card" onclick="selectProcedure(this, '43644', 'Laparoscopic Gastric Bypass with Roux-en-Y')">
+                        <h4>Gastric Bypass</h4>
+                        <div class="cpt-code">CPT 43644</div>
+                        <p>Roux-en-Y gastric bypass creates a small stomach pouch. Best for BMI >45 or severe GERD.</p>
+                    </div>
+
+                    <div class="procedure-card" onclick="selectProcedure(this, '43845', 'Gastric Restrictive Procedure Revision')">
+                        <h4>Revision Procedure</h4>
+                        <div class="cpt-code">CPT 43845</div>
+                        <p>Revision of previous bariatric surgery. For inadequate weight loss or complications.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Surgical Details</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Selected Procedure</label>
+                        <input type="text" id="selectedProcedure" readonly placeholder="Select a procedure above">
+                    </div>
+                    <div class="form-group">
+                        <label>CPT Code</label>
+                        <input type="text" id="selectedCPT" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Surgical Approach</label>
+                        <select id="surgicalApproach">
+                            <option value="Laparoscopic">Laparoscopic</option>
+                            <option value="Robotic">Robotic-Assisted</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated Duration (minutes)</label>
+                        <input type="number" id="duration" value="120" min="60" max="300">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Expected Outcomes & Goals</h3>
+                <div class="form-group">
+                    <label>Weight Loss Goal (kg)</label>
+                    <input type="number" id="weightLossGoal" step="0.1" placeholder="Target weight loss">
+                </div>
+                <div class="form-group">
+                    <label>Patient Expectations & Questions</label>
+                    <textarea id="patientExpectations" placeholder="Document patient's goals and any questions answered..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Clearances & Labs -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Pre-Operative Clearances</h3>
+                <div class="clearance-checklist">
+                    <div class="clearance-item">
+                        <input type="checkbox" id="medicalClearance">
+                        <div class="clearance-content">
+                            <h4>Medical Clearance</h4>
+                            <p>Primary care physician or cardiologist clearance for surgery</p>
+                        </div>
+                        <div class="clearance-details">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="medicalClearanceDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Provider Name</label>
+                                <input type="text" placeholder="Dr. Name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clearance-item">
+                        <input type="checkbox" id="labsComplete">
+                        <div class="clearance-content">
+                            <h4>Labs Complete</h4>
+                            <p>CBC, CMP, HbA1c, Lipid Panel, TSH, Vitamin D, B12, Iron</p>
+                        </div>
+                        <div class="clearance-details">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="labsDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Results</label>
+                                <select id="labsNormal">
+                                    <option value="normal">All Normal</option>
+                                    <option value="abnormal">Abnormalities Noted</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Abnormalities (if any)</label>
+                                <textarea id="labsAbnormalities" placeholder="List any abnormal results..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clearance-item">
+                        <input type="checkbox" id="ekgComplete">
+                        <div class="clearance-content">
+                            <h4>EKG Complete</h4>
+                            <p>Electrocardiogram for cardiac assessment</p>
+                        </div>
+                        <div class="clearance-details">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="ekgDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Results</label>
+                                <select id="ekgNormal">
+                                    <option value="true">Normal</option>
+                                    <option value="false">Abnormal</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clearance-item">
+                        <input type="checkbox" id="imagingComplete">
+                        <div class="clearance-content">
+                            <h4>Imaging Complete</h4>
+                            <p>Upper GI series, EGD, abdominal ultrasound</p>
+                        </div>
+                        <div class="clearance-details">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="imagingDate">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Findings</label>
+                                <textarea id="imagingFindings" placeholder="Document imaging findings..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clearance-item">
+                        <input type="checkbox" id="nutritionClearance">
+                        <div class="clearance-content">
+                            <h4>Nutrition Evaluation</h4>
+                            <p>Registered dietitian pre-operative counseling</p>
+                        </div>
+                        <div class="clearance-details">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="nutritionDate">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clearance-item">
+                        <input type="checkbox" id="psychEvalClearance">
+                        <div class="clearance-content">
+                            <h4>Psychological Evaluation</h4>
+                            <p>Mental health assessment for bariatric surgery candidacy</p>
+                        </div>
+                        <div class="clearance-details">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="psychEvalDate">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clearance-item">
+                        <input type="checkbox" id="insuranceAuth">
+                        <div class="clearance-content">
+                            <h4>Insurance Authorization</h4>
+                            <p>Pre-authorization obtained from insurance</p>
+                        </div>
+                        <div class="clearance-details">
+                            <div class="form-group">
+                                <label>Authorization Number</label>
+                                <input type="text" placeholder="Auth #">
+                            </div>
+                            <div class="form-group">
+                                <label>Valid Through</label>
+                                <input type="date" id="authValidThrough">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Pre-Op Instructions -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Pre-Operative Instructions Given</h3>
+                <div class="checkbox-grid">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="liquidDiet">
+                        <strong>2-Week Pre-Op Liquid Diet</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="bowelPrep">
+                        <strong>Bowel Prep Instructions</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="npoInstructions">
+                        <strong>NPO After Midnight</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="medicationAdjustments">
+                        <strong>Medication Adjustments</strong>
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Surgery Day Details</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Arrival Time</label>
+                        <input type="time" id="arrivalTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Facility Location</label>
+                        <select id="facilityLocation">
+                            <option>Main Surgery Center</option>
+                            <option>ASC - North</option>
+                            <option>Hospital OR</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Financial Arrangements</h3>
+                <div class="form-grid">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="costConfirmed">
+                        <strong>Surgery Cost Confirmed</strong>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="paymentArranged">
+                        <strong>Payment Arranged</strong>
+                    </label>
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select id="paymentMethod">
+                            <option>Insurance</option>
+                            <option>Self-Pay</option>
+                            <option>Financing</option>
+                            <option>Mixed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3>Provider Notes</h3>
+                <div class="form-group">
+                    <label>Additional notes, concerns, or special instructions</label>
+                    <textarea id="providerNotes" placeholder="Document any additional relevant information..." rows="6"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <span class="status-badge incomplete">Incomplete</span>
+            <button onclick="savePreOpEval()" class="btn btn-primary">Save Pre-Op Evaluation</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTM5MTE0ODMsImV4cCI6MjAyOTQ4NzQ4M30.zAkrBNQhU4_yqvj6PaSV5eKgqd5CyLFzFhZA7Y4XQ6o';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const encounterId = urlParams.get('encounter_id');
+        const patientId = urlParams.get('patient_id');
+        const token = urlParams.get('token');
+
+        // Load patient data on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!encounterId || !patientId || !token) {
+                alert('Invalid access. Missing required parameters.');
+                window.location.href = '/app.html';
+                return;
+            }
+
+            // Validate token
+            const { data: tokenValid, error: tokenError } = await supabase.rpc('validate_cross_app_token', {
+                p_token: token
+            });
+
+            if (tokenError || !tokenValid) {
+                alert('Session expired or invalid. Please log in again.');
+                window.location.href = '/app.html';
+                return;
+            }
+
+            // Load patient data
+            const { data: patient, error: patientError } = await supabase
+                .from('surgery_encounter_view')
+                .select('*')
+                .eq('encounter_id', encounterId)
+                .single();
+
+            if (patientError || !patient) {
+                alert('Unable to load patient data.');
+                return;
+            }
+
+            // Populate patient banner
+            document.getElementById('patientName').textContent = `${patient.first_name} ${patient.last_name}`;
+            document.getElementById('patientMRN').textContent = patient.mrn || '--';
+            document.getElementById('patientDOB').textContent = patient.dob || '--';
+            document.getElementById('patientSex').textContent = patient.sex || '--';
+            document.getElementById('patientWeight').textContent = patient.weight_kg || '--';
+            
+            if (patient.photo_url) {
+                document.getElementById('patientPhoto').src = patient.photo_url;
+            }
+
+            // Calculate BMI
+            if (patient.weight_kg && patient.height_cm) {
+                const bmi = calculateBMI(patient.weight_kg, patient.height_cm);
+                document.getElementById('patientBMI').textContent = bmi;
+                document.getElementById('currentWeight').value = patient.weight_kg;
+            }
+        });
+
+        // BMI Calculator
+        function calculateBMI(weight_kg, height_cm) {
+            const height_m = height_cm / 100;
+            return (weight_kg / (height_m * height_m)).toFixed(1);
+        }
+
+        // Tab Switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            
+            contents.forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
+
+        // Toggle checkbox with details
+        function toggleCheckbox(item) {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            item.classList.toggle('expanded', checkbox.checked);
+        }
+
+        // Procedure Selection
+        function selectProcedure(card, cptCode, procedureName) {
+            // Remove previous selection
+            document.querySelectorAll('.procedure-card').forEach(c => c.classList.remove('selected'));
+            
+            // Select this card
+            card.classList.add('selected');
+            
+            // Update fields
+            document.getElementById('selectedProcedure').value = procedureName;
+            document.getElementById('selectedCPT').value = cptCode;
+        }
+
+        // Save Pre-Op Evaluation
+        async function savePreOpEval() {
+            const saveData = {
+                org_id: '00000000-0000-0000-0000-000000000001', // Will be replaced with actual org_id
+                patient_id: parseInt(patientId),
+                provider_id: 1, // Will be replaced with actual provider_id
+                visit_date: new Date().toISOString(),
+                visit_number: 1,
+                interval_changes: document.getElementById('intervalChanges').value,
+                weight_change_kg: parseFloat(document.getElementById('currentWeight').value) - parseFloat(document.getElementById('weight6mo').value || 0),
+                finalized_procedure: document.getElementById('selectedProcedure').value,
+                procedure_cpt_codes: [document.getElementById('selectedCPT').value],
+                surgical_approach: document.getElementById('surgicalApproach').value,
+                anesthesia_type: 'General',
+                estimated_duration_minutes: parseInt(document.getElementById('duration').value),
+                medical_clearance_obtained: document.getElementById('medicalClearance').checked,
+                medical_clearance_date: document.getElementById('medicalClearanceDate').value || null,
+                labs_completed: document.getElementById('labsComplete').checked,
+                labs_date: document.getElementById('labsDate').value || null,
+                labs_normal: document.getElementById('labsNormal').value === 'normal',
+                labs_abnormalities: document.getElementById('labsAbnormalities').value,
+                ekg_completed: document.getElementById('ekgComplete').checked,
+                ekg_date: document.getElementById('ekgDate').value || null,
+                ekg_normal: document.getElementById('ekgNormal').value === 'true',
+                imaging_completed: document.getElementById('imagingComplete').checked,
+                imaging_date: document.getElementById('imagingDate').value || null,
+                imaging_findings: document.getElementById('imagingFindings').value,
+                pre_op_instructions_provided: true,
+                npo_instructions_given: document.getElementById('npoInstructions').checked,
+                medication_adjustments: document.getElementById('medicationAdjustments').checked ? 'Documented' : null,
+                arrival_time: document.getElementById('arrivalTime').value || null,
+                facility_location: document.getElementById('facilityLocation').value,
+                surgery_cost_confirmed: document.getElementById('costConfirmed').checked,
+                payment_arranged: document.getElementById('paymentArranged').checked,
+                payment_method: document.getElementById('paymentMethod').value,
+                provider_notes: document.getElementById('providerNotes').value
+            };
+
+            const { data, error } = await supabase
+                .from('pre_op_visit')
+                .insert(saveData);
+
+            if (error) {
+                console.error('Error saving:', error);
+                alert('Error saving pre-op evaluation: ' + error.message);
+            } else {
+                alert('✅ Pre-op evaluation saved successfully!');
+                window.location.href = '/dashboard.html?encounter_id=' + encounterId + '&patient_id=' + patientId + '&token=' + token;
+            }
+        }
+    </script>
+</body>
+</html>
