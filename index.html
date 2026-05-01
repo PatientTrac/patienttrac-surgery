@@ -3,102 +3,118 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PatientTrac Surgical Intelligence | AI-Powered Surgical Workflow</title>
-  <meta name="description" content="The future of surgical care is here. AI-powered documentation, smart consent, intelligent billing, and real-time clinical intelligence in one seamless platform." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>PatientTracSurg | AI-Powered Surgical Intelligence Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#050914;--cyan:#28dfff;--blue:#248cff;--violet:#a855f7;--gold:#ffd76a;--green:#35f2b4;--text:#f7fbff;--muted:rgba(235,246,255,.76);--shadow:0 32px 90px rgba(0,0,0,.55)}
-    *{box-sizing:border-box;margin:0;padding:0} html{scroll-behavior:smooth;background:#02040a} body{font-family:'Exo 2',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden} img{max-width:100%;display:block} a{color:inherit;text-decoration:none}.shell{width:min(1180px,calc(100% - 40px));margin:0 auto}
-    .nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(3,8,18,.7);backdrop-filter:blur(18px);border-bottom:1px solid rgba(40,223,255,.16)}.nav-inner{height:74px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:12px;font-family:'Orbitron',monospace;font-weight:800;letter-spacing:.06em}.brand img{width:42px;height:42px;border-radius:10px;object-fit:cover;filter:drop-shadow(0 0 18px rgba(40,223,255,.8))}.nav-links{display:flex;align-items:center;gap:24px;font-size:.9rem;color:rgba(255,255,255,.78)}.nav-links a:hover{color:var(--cyan)}.nav-cta{padding:.72rem 1.05rem;border:1px solid rgba(40,223,255,.55);border-radius:999px;color:var(--cyan);box-shadow:0 0 26px rgba(40,223,255,.16) inset}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;background:#000}
+    body{font-family:'Exo 2',sans-serif;background:#050914;color:#fff;overflow-x:hidden}
+    img{max-width:100%;display:block}
+    a{color:inherit;text-decoration:none}
+    .shell{width:min(1280px,calc(100% - 40px));margin:0 auto}
     
-    /* Hero with TopImage.jpg */
-    .hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:130px 0 72px;overflow:hidden;background:#030711}
-    .hero:before{content:"";position:absolute;inset:0;background:url('assets/TopImage.jpg') center/cover no-repeat;opacity:.95;filter:saturate(1.1) contrast(1.08)}
-    .hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,5,12,.95) 0%,rgba(2,5,12,.75) 40%,rgba(2,5,12,.85) 100%)}
+    /* Navigation */
+    .nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(3,8,18,.8);backdrop-filter:blur(18px);border-bottom:1px solid rgba(40,223,255,.2)}
+    .nav-inner{height:74px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 2rem}
+    .brand{display:flex;align-items:center;gap:12px;font-family:'Orbitron';font-weight:800;letter-spacing:.06em;font-size:1.1rem}
+    .brand img{width:42px;height:42px;border-radius:10px;filter:drop-shadow(0 0 18px rgba(40,223,255,.8))}
+    .nav-links{display:flex;align-items:center;gap:24px;font-size:.9rem}
+    .nav-links a:hover{color:#28dfff}
+    .nav-cta{padding:.75rem 1.1rem;border:1px solid rgba(40,223,255,.6);border-radius:999px;color:#28dfff;transition:.3s}
+    .nav-cta:hover{background:rgba(40,223,255,.15)}
     
-    .hero-content{position:relative;z-index:10;max-width:1400px;margin:0 auto;padding:0 2rem}
-    .hero-grid{display:grid;grid-template-columns:1.2fr 480px;gap:60px;align-items:center}
+    /* Hero Section - Split Layout */
+    .hero{padding:140px 0 80px;background:#030711;min-height:85vh;display:flex;align-items:center}
+    .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center}
     
-    .hero-left h1{font-family:'Orbitron',monospace;font-size:clamp(3.5rem,8vw,7rem);line-height:.96;letter-spacing:.02em;margin-bottom:30px;text-transform:uppercase}
-    .hero-left h1 .gold-text{display:block;background:linear-gradient(135deg,#ffd76a 0%,#c9a96e 50%,#ffd76a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .hero-left h1 .cyan-text{display:block;color:var(--cyan);font-size:.38em;letter-spacing:.15em;margin-top:12px;font-weight:600}
+    /* Left side - Text */
+    .hero-left h1{font-family:'Orbitron';font-size:clamp(3.5rem,7vw,6.5rem);line-height:.95;letter-spacing:.02em;margin-bottom:28px}
+    .hero-left h1 .gold{display:block;background:linear-gradient(135deg,#ffd76a 0%,#c9a96e 50%,#ffd76a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-transform:uppercase}
+    .hero-left h1 .cyan{display:block;color:#28dfff;font-size:.36em;letter-spacing:.16em;margin-top:14px;font-weight:600;text-transform:uppercase}
+    .hero-left .lead{font-size:clamp(1.2rem,2vw,1.6rem);line-height:1.75;color:rgba(255,255,255,.85);margin-bottom:32px;max-width:620px}
+    .hero-left .lead strong{color:#fff;font-weight:700}
     
-    .hero-left .tagline{font-size:clamp(1.3rem,2.2vw,1.8rem);line-height:1.7;color:var(--muted);margin-bottom:36px;max-width:680px}
-    .hero-left .tagline strong{color:#fff;font-weight:700}
+    /* Right side - Surgeon Image */
+    .hero-right{position:relative}
+    .surgeon-img{width:100%;height:auto;border-radius:24px;border:3px solid rgba(40,223,255,.3);box-shadow:0 30px 80px rgba(40,223,255,.25);filter:saturate(1.1)}
     
-    .dual-cta{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:40px}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:58px;padding:0 28px;border-radius:14px;font-family:'Orbitron',monospace;font-size:.9rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;transition:.25s}
-    .btn:hover{transform:translateY(-3px)}
-    .btn.primary{background:linear-gradient(135deg,#ff1cf7,#b249f8);color:#fff;box-shadow:0 20px 60px rgba(255,28,247,.4)}
-    .btn.secondary{border:1px solid rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.08);box-shadow:0 0 35px rgba(255,255,255,.08) inset}
+    /* CTAs */
+    .hero-cta{display:flex;gap:18px;margin-bottom:36px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:1rem 2rem;border-radius:12px;font-family:'Orbitron';font-size:.9rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:.3s}
+    .btn-pink{background:linear-gradient(135deg,#ff1cf7,#b249f8);color:#fff;box-shadow:0 15px 50px rgba(255,28,247,.35)}
+    .btn-pink:hover{transform:translateY(-3px);box-shadow:0 20px 60px rgba(255,28,247,.5)}
+    .btn-outline{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.06);color:#fff}
+    .btn-outline:hover{background:rgba(255,255,255,.12);transform:translateY(-3px)}
     
-    /* Practice to Procedure Room Card */
-    .practice-card{background:linear-gradient(145deg,rgba(11,21,40,.85),rgba(10,13,26,.55));border:2px solid rgba(40,223,255,.35);border-radius:32px;padding:32px;box-shadow:var(--shadow),0 0 80px rgba(40,223,255,.15);backdrop-filter:blur(14px)}
-    .practice-card img{width:160px;margin:0 auto 24px;border-radius:24px;filter:drop-shadow(0 0 40px rgba(40,223,255,.7))}
-    .practice-card h2{font-family:'Orbitron';font-size:1.65rem;margin-bottom:16px;text-align:center;line-height:1.3}
-    .practice-card p{text-align:center;color:var(--muted);line-height:1.75;margin-bottom:24px;font-size:1.05rem}
-    .workflow-steps{display:grid;gap:12px}
-    .workflow-steps div{display:flex;align-items:center;gap:14px;border:1px solid rgba(168,85,247,.28);background:rgba(168,85,247,.08);border-radius:16px;padding:14px;color:rgba(255,255,255,.9);font-size:.95rem}
-    .workflow-steps i{font-style:normal;color:var(--cyan);font-family:'Orbitron';font-weight:700;font-size:1.1rem}
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:700px}
+    .stat{background:linear-gradient(180deg,rgba(16,31,55,.6),rgba(8,18,34,.4));border:1px solid rgba(40,223,255,.2);border-radius:16px;padding:20px 16px;text-align:center}
+    .stat b{display:block;font-family:'Orbitron';color:#28dfff;font-size:1.6rem;margin-bottom:6px}
+    .stat span{font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)}
     
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}
-    .stat{background:linear-gradient(180deg,rgba(16,31,55,.65),rgba(8,18,34,.42));border:1px solid rgba(40,223,255,.2);border-radius:18px;padding:18px 16px;text-align:center}
-    .stat b{display:block;font-family:'Orbitron',monospace;color:var(--cyan);font-size:1.5rem;margin-bottom:6px}
-    .stat span{font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)}
+    /* Practice to Procedure Room Card - Full width below hero */
+    .practice-section{background:#000;padding:4rem 0}
+    .practice-card{max-width:1100px;margin:0 auto;background:linear-gradient(145deg,rgba(11,21,40,.85),rgba(10,13,26,.6));border:2px solid rgba(40,223,255,.35);border-radius:32px;padding:3.5rem 3rem;box-shadow:0 30px 80px rgba(0,0,0,.4);text-align:center}
+    .practice-card img{width:140px;margin:0 auto 28px;border-radius:24px;filter:drop-shadow(0 0 40px rgba(40,223,255,.7))}
+    .practice-card h2{font-family:'Orbitron';font-size:2.2rem;margin-bottom:20px;line-height:1.3;color:#fff}
+    .practice-card>p{color:rgba(255,255,255,.8);line-height:1.8;margin-bottom:32px;font-size:1.15rem;max-width:800px;margin-left:auto;margin-right:auto}
+    .workflow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:900px;margin:0 auto}
+    .workflow-steps div{display:flex;align-items:center;justify-content:center;gap:12px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.08);border-radius:14px;padding:18px 14px;font-size:.95rem}
+    .workflow-steps i{font-style:normal;color:#28dfff;font-family:'Orbitron';font-weight:700;font-size:1.1rem}
     
-    .product-duo{background:linear-gradient(180deg,#030711,#050a15);padding:6rem 0}.product-duo .section-head{text-align:center;margin-bottom:4rem}.section-kicker{display:inline-block;padding:.6rem 1.1rem;border:1px solid rgba(40,223,255,.35);border-radius:999px;background:rgba(8,18,34,.5);color:var(--cyan);font-family:'Orbitron',monospace;font-size:.82rem;letter-spacing:.13em;text-transform:uppercase;margin-bottom:1.5rem}.section-title{font-family:'Orbitron';font-size:clamp(2.2rem,4.5vw,3.8rem);margin-bottom:1.2rem;background:linear-gradient(135deg,#fff,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.section-desc{color:var(--muted);font-size:1.2rem;line-height:1.7;max-width:850px;margin:0 auto}
-    .duo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3rem}.product-panel{background:linear-gradient(135deg,rgba(11,21,40,.7),rgba(6,14,28,.9));border:2px solid rgba(40,223,255,.25);border-radius:28px;padding:3rem;transition:.4s}.product-panel:hover{border-color:var(--cyan);box-shadow:0 20px 70px rgba(40,223,255,.25);transform:translateY(-8px)}.product-panel h3{font-family:'Orbitron';font-size:2.5rem;margin-bottom:1rem;color:#fff}.product-panel .tagline{color:var(--cyan);font-size:1.2rem;margin-bottom:1.5rem;font-weight:600}.product-panel p{color:var(--muted);line-height:1.75;margin-bottom:2rem;font-size:1.05rem}.feature-list{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin-bottom:2.5rem}.feature-list li{padding:.7rem;background:rgba(40,223,255,.06);border-left:3px solid rgba(40,223,255,.4);border-radius:8px;font-size:.95rem}.panel-link{display:inline-flex;padding:1rem 2rem;background:linear-gradient(135deg,var(--cyan),#1275ff);color:#00111a;border-radius:12px;font-family:'Orbitron';font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em;transition:.3s}.panel-link:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(40,223,255,.4)}
+    /* Product Duo */
+    .product-duo{background:linear-gradient(180deg,#000,#050a15);padding:6rem 0}
+    .section-head{text-align:center;margin-bottom:4rem}
+    .section-kicker{display:inline-block;padding:.65rem 1.2rem;border:1px solid rgba(40,223,255,.35);border-radius:999px;background:rgba(8,18,34,.5);color:#28dfff;font-family:'Orbitron';font-size:.85rem;letter-spacing:.13em;text-transform:uppercase;margin-bottom:1.5rem}
+    .section-title{font-family:'Orbitron';font-size:clamp(2.2rem,4.5vw,3.8rem);margin-bottom:1.2rem;background:linear-gradient(135deg,#fff,#28dfff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .section-desc{color:rgba(255,255,255,.75);font-size:1.2rem;line-height:1.7;max-width:850px;margin:0 auto}
+    .duo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3rem}
+    .product-panel{background:linear-gradient(135deg,rgba(11,21,40,.7),rgba(6,14,28,.9));border:2px solid rgba(40,223,255,.25);border-radius:28px;padding:3rem;transition:.4s}
+    .product-panel:hover{border-color:#28dfff;box-shadow:0 20px 70px rgba(40,223,255,.25);transform:translateY(-8px)}
+    .product-panel h3{font-family:'Orbitron';font-size:2.5rem;margin-bottom:1rem}
+    .product-panel .tagline{color:#28dfff;font-size:1.2rem;margin-bottom:1.5rem;font-weight:600}
+    .product-panel p{color:rgba(255,255,255,.75);line-height:1.75;margin-bottom:2rem}
+    .feature-list{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem;margin-bottom:2.5rem}
+    .feature-list li{padding:.75rem;background:rgba(40,223,255,.06);border-left:3px solid rgba(40,223,255,.4);border-radius:8px;font-size:.95rem}
+    .panel-link{display:inline-flex;padding:1rem 2rem;background:linear-gradient(135deg,#28dfff,#1275ff);color:#000;border-radius:12px;font-family:'Orbitron';font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em;transition:.3s}
+    .panel-link:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(40,223,255,.4)}
     
-    .feature-section{background:#000;padding:6rem 0}.feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2.5rem}.feature-card{background:linear-gradient(135deg,rgba(10,22,40,.6),rgba(6,14,28,.85));border:2px solid rgba(40,223,255,.25);border-radius:24px;overflow:hidden;transition:.4s}.feature-card:hover{border-color:var(--cyan);box-shadow:0 25px 70px rgba(40,223,255,.3);transform:translateY(-8px)}.feature-card img{width:100%;height:280px;object-fit:cover;border-bottom:2px solid rgba(40,223,255,.2)}.feature-card div{padding:2rem}.feature-card h3{font-family:'Orbitron';font-size:1.75rem;color:var(--cyan);margin-bottom:1rem}.feature-card p{color:var(--muted);line-height:1.75;font-size:1.05rem}
+    footer{padding:40px 0;background:#02040a;border-top:1px solid rgba(40,223,255,.2);text-align:center;font-family:'Orbitron';font-size:.95rem;color:rgba(255,255,255,.6)}
     
-    .specialties{background:linear-gradient(180deg,#000,#050a15);padding:6rem 0}.specialty-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem}.specialty{background:linear-gradient(135deg,rgba(10,22,40,.7),rgba(6,14,28,.9));border:2px solid rgba(168,85,247,.3);border-radius:20px;overflow:hidden;transition:.45s;cursor:pointer}.specialty:hover{border-color:var(--violet);box-shadow:0 25px 70px rgba(168,85,247,.4);transform:translateY(-12px) scale(1.02)}.specialty img{width:100%;height:260px;object-fit:cover;transition:.6s}.specialty:hover img{transform:scale(1.12)}.specialty h4{padding:1.5rem;font-family:'Orbitron';font-size:1.3rem;text-align:center;color:#fff}
-    
-    .journey{background:linear-gradient(180deg,#050a15,#030711);padding:6rem 0}.journey-bar{display:grid;grid-template-columns:repeat(7,1fr);gap:12px}.step{text-align:center;padding:22px 12px;border-radius:18px;background:linear-gradient(180deg,rgba(40,223,255,.1),rgba(168,85,247,.09));border:1px solid rgba(40,223,255,.2);transition:.3s}.step:hover{background:linear-gradient(180deg,rgba(40,223,255,.18),rgba(168,85,247,.14));transform:translateY(-4px)}.step b{display:block;font-family:'Orbitron';color:var(--cyan);font-size:1.4rem;margin-bottom:10px}.step span{font-size:.82rem;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.75)}
-    
-    .final-cta{background:radial-gradient(circle at 50% 0,rgba(40,223,255,.18),transparent 45%),#030711;text-align:center;padding:6rem 0}.final-cta .cta-box{border:1px solid rgba(40,223,255,.28);border-radius:36px;background:linear-gradient(145deg,rgba(13,27,50,.75),rgba(5,9,20,.92));padding:4.5rem;box-shadow:var(--shadow);max-width:1000px;margin:0 auto}.final-cta h2{font-family:'Orbitron';font-size:clamp(2.2rem,4.5vw,4.8rem);margin-bottom:24px;background:linear-gradient(135deg,#fff,var(--gold),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15}.final-cta p{color:var(--muted);font-size:1.3rem;line-height:1.8;max-width:880px;margin:0 auto 32px}
-    
-    footer{padding:40px 0;background:#02040a;border-top:1px solid rgba(40,223,255,.2);color:rgba(255,255,255,.6);font-size:.95rem;text-align:center;font-family:'Orbitron',monospace;letter-spacing:.05em}
-    
-    @media(max-width:1100px){.hero-grid{grid-template-columns:1fr}.practice-card{max-width:580px;margin:0 auto}.specialty-grid{grid-template-columns:repeat(2,1fr)}.journey-bar{grid-template-columns:repeat(4,1fr)}.duo-grid,.feature-grid{grid-template-columns:1fr}}
-    @media(max-width:760px){.nav-links{display:none}.hero{padding-top:110px}.stats,.feature-list{grid-template-columns:1fr}.specialty-grid{grid-template-columns:1fr}.journey-bar{grid-template-columns:repeat(2,1fr)}.practice-card{display:none}.feature-card img{height:220px}}
+    @media(max-width:1024px){
+      .hero-grid{grid-template-columns:1fr;gap:50px}
+      .duo-grid{grid-template-columns:1fr}
+      .workflow-steps{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:768px){
+      .nav-links{display:none}
+      .stats,.feature-list,.workflow-steps{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
   <nav class="nav">
-    <div class="shell nav-inner">
-      <a class="brand" href="#top">
-        <img src="assets/patienttrac-surg-shield.jpg" alt="PatientTrac Surg Shield">
-        <span>PatientTrac Surgical Intelligence</span>
-      </a>
+    <div class="nav-inner">
+      <a class="brand" href="#"><img src="assets/patienttrac-surg-shield.jpg" alt="Shield">PatientTrac Surgical Intelligence</a>
       <div class="nav-links">
         <a href="#platform">Platform</a>
         <a href="#surg">Surg</a>
         <a href="#or">OR</a>
-        <a href="#features">AI Features</a>
-        <a href="#specialties">Specialties</a>
         <a class="nav-cta" href="/app.html">Launch Platform</a>
-        <a class="nav-cta" href="https://patienttracsurgery.com">See Demo OR</a>
+        <a class="nav-cta" href="https://patienttracsurgery.com">Demo OR</a>
       </div>
     </div>
   </nav>
   
-  <header class="hero" id="top">
-    <div class="hero-content">
+  <section class="hero">
+    <div class="shell">
       <div class="hero-grid">
         <div class="hero-left">
-          <h1>
-            <span class="gold-text">PatientTracSurg</span>
-            <span class="cyan-text">Futuristic Surgical Workflow</span>
-          </h1>
-          <p class="tagline">
-            <strong>The future of surgical care is here.</strong><br>
-            AI-powered documentation, smart consent, intelligent billing, and real-time clinical intelligence — all in one seamless platform.
-          </p>
-          <div class="dual-cta">
-            <a class="btn primary" href="/app.html">Launch Platform Now</a>
-            <a class="btn secondary" href="#platform">90-Second Demo</a>
+          <h1><span class="gold">PatientTracSurg</span><span class="cyan">Futuristic Surgical Workflow</span></h1>
+          <p class="lead"><strong>The future of surgical care is here.</strong><br>AI-powered documentation, smart consent, intelligent billing, and real-time clinical intelligence — all in one seamless platform.</p>
+          <div class="hero-cta">
+            <a href="/app.html" class="btn btn-pink">Launch Platform Now</a>
+            <a href="#platform" class="btn btn-outline">90-Second Demo</a>
           </div>
           <div class="stats">
             <div class="stat"><b>98%</b><span>AI Accuracy</span></div>
@@ -107,28 +123,35 @@
             <div class="stat"><b>100%</b><span>HIPAA</span></div>
           </div>
         </div>
-        
-        <aside class="practice-card">
-          <img src="assets/patienttrac-surg-shield.jpg" alt="PatientTrac Surg shield">
-          <h2>From Practice to Procedure Room</h2>
-          <p>Connect outpatient documentation, consent, coding, OR coordination, case flow, and analytics in one premium surgical ecosystem.</p>
-          <div class="workflow-steps">
-            <div><i>01</i> Schedule + Intake</div>
-            <div><i>02</i> Consent + Document</div>
-            <div><i>03</i> Operate + Coordinate</div>
-            <div><i>04</i> Recover + Analyze</div>
-          </div>
-        </aside>
+        <div class="hero-right">
+          <img src="assets/TopImage.jpg" alt="Futuristic Surgical Care" class="surgeon-img">
+        </div>
       </div>
     </div>
-  </header>
+  </section>
+  
+  <section class="practice-section">
+    <div class="shell">
+      <div class="practice-card">
+        <img src="assets/patienttrac-surg-shield.jpg" alt="Shield">
+        <h2>From Practice to Procedure Room</h2>
+        <p>Connect outpatient documentation, consent, coding, OR coordination, case flow, and analytics in one premium surgical ecosystem.</p>
+        <div class="workflow-steps">
+          <div><i>01</i> Schedule + Intake</div>
+          <div><i>02</i> Consent + Document</div>
+          <div><i>03</i> Operate + Coordinate</div>
+          <div><i>04</i> Recover + Analyze</div>
+        </div>
+      </div>
+    </div>
+  </section>
   
   <section class="product-duo" id="platform">
     <div class="shell">
       <div class="section-head">
         <div class="section-kicker">Two Applications · One Surgical Ecosystem</div>
         <h2 class="section-title">Built for the Complete Surgical Journey</h2>
-        <p class="section-desc">PatientTracSurg.com markets both the surgeon-facing documentation platform and the surgery-center operating room workflow application.</p>
+        <p class="section-desc">PatientTracSurg markets both the surgeon-facing documentation platform and the surgery-center operating room workflow application.</p>
       </div>
       <div class="duo-grid">
         <article class="product-panel" id="surg">
@@ -159,97 +182,6 @@
           </ul>
           <a class="panel-link" href="https://patienttracsurgery.com">Explore PatientTrac OR</a>
         </article>
-      </div>
-    </div>
-  </section>
-  
-  <section class="feature-section" id="features">
-    <div class="shell">
-      <div class="section-head">
-        <div class="section-kicker">AI-Powered Features</div>
-        <h2 class="section-title">Clinical, Operational, and Revenue Intelligence</h2>
-        <p class="section-desc">Advanced machine learning delivering real-time insights, predictive analytics, and intelligent automation across every surgical workflow.</p>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-card">
-          <img src="assets/clinical-intelligence.png" alt="Clinical Intelligence">
-          <div>
-            <h3>Clinical Intelligence</h3>
-            <p>Risk scoring, airway analysis, vital signs monitoring, comorbidity impact analysis, and decision support for smarter surgical workflows.</p>
-          </div>
-        </article>
-        <article class="feature-card">
-          <img src="assets/billing-optimization.png" alt="Billing Optimization">
-          <div>
-            <h3>Billing Optimization</h3>
-            <p>AI-assisted CPT and ICD coding, claim validation, denial prevention, reimbursement analytics, and revenue performance tracking.</p>
-          </div>
-        </article>
-        <article class="feature-card">
-          <img src="assets/smart-consent-management.png" alt="Smart Consent Management">
-          <div>
-            <h3>Smart Consent Management</h3>
-            <p>Secure e-signature, multilingual consent, audit trail, verification checklists, version control, and compliance-forward document workflow.</p>
-          </div>
-        </article>
-        <article class="feature-card">
-          <img src="assets/real-time-analytics.png" alt="Real-Time Analytics">
-          <div>
-            <h3>Real-Time Analytics</h3>
-            <p>Live patient monitoring, workflow completion, predictive trends, case status visibility, and outcome intelligence for OR and practice teams.</p>
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-  
-  <section class="specialties" id="specialties">
-    <div class="shell">
-      <div class="section-head">
-        <div class="section-kicker">Surgical Specialties</div>
-        <h2 class="section-title">Futuristic Surgical Specialties</h2>
-        <p class="section-desc">Purpose-built documentation systems for each surgical specialty with precision workflows and specialty-specific intelligence.</p>
-      </div>
-      <div class="specialty-grid">
-        <article class="specialty"><img src="assets/bariatric-surgery.png" alt="Bariatric Surgery"><h4>Bariatric Surgery</h4></article>
-        <article class="specialty"><img src="assets/plastic-surgery.png" alt="Plastic Surgery"><h4>Plastic Surgery</h4></article>
-        <article class="specialty"><img src="assets/ophthalmic-surgery.png" alt="Ophthalmic Surgery"><h4>Ophthalmic Surgery</h4></article>
-        <article class="specialty"><img src="assets/orthopedic-surgery.png" alt="Orthopedic Surgery"><h4>Orthopedic Surgery</h4></article>
-        <article class="specialty"><img src="assets/cardiac-surgery.png" alt="Cardiac Surgery"><h4>Cardiac Surgery</h4></article>
-        <article class="specialty"><img src="assets/endoscopy-procedures.png" alt="Endoscopy Procedures"><h4>Endoscopy Procedures</h4></article>
-        <article class="specialty"><img src="assets/oral-surgery.png" alt="Oral Surgery"><h4>Oral Surgery</h4></article>
-        <article class="specialty"><img src="assets/dermatology.png" alt="Dermatology"><h4>Dermatology</h4></article>
-      </div>
-    </div>
-  </section>
-  
-  <section class="journey">
-    <div class="shell">
-      <div class="section-head">
-        <div class="section-kicker">Complete Surgical Lifecycle</div>
-        <h2 class="section-title">From Documentation to Operating Room Execution</h2>
-      </div>
-      <div class="journey-bar">
-        <div class="step"><b>01</b><span>Schedule</span></div>
-        <div class="step"><b>02</b><span>Intake</span></div>
-        <div class="step"><b>03</b><span>Consent</span></div>
-        <div class="step"><b>04</b><span>Document</span></div>
-        <div class="step"><b>05</b><span>Operate</span></div>
-        <div class="step"><b>06</b><span>Recover</span></div>
-        <div class="step"><b>07</b><span>Analyze</span></div>
-      </div>
-    </div>
-  </section>
-  
-  <section class="final-cta" id="contact">
-    <div class="shell">
-      <div class="cta-box">
-        <h2>Ready to Transform Your Surgical Practice?</h2>
-        <p>Join leading surgical practices and surgery centers using PatientTrac's AI-powered platform to deliver exceptional patient care and maximize operational efficiency.</p>
-        <div class="dual-cta" style="justify-content:center;margin:0">
-          <a class="btn primary" href="/app.html">Launch Platform Now</a>
-          <a class="btn secondary" href="https://patienttracsurgery.com">See Demo OR</a>
-        </div>
       </div>
     </div>
   </section>
