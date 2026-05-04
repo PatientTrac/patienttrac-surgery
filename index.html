@@ -1,191 +1,1114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PatientTracSurg | AI-Powered Surgical Intelligence Platform</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html{scroll-behavior:smooth;background:#000}
-    body{font-family:'Exo 2',sans-serif;background:#050914;color:#fff;overflow-x:hidden}
-    img{max-width:100%;display:block}
-    a{color:inherit;text-decoration:none}
-    .shell{width:min(1280px,calc(100% - 40px));margin:0 auto}
-    
-    /* Navigation */
-    .nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(3,8,18,.8);backdrop-filter:blur(18px);border-bottom:1px solid rgba(40,223,255,.2)}
-    .nav-inner{height:74px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 2rem}
-    .brand{display:flex;align-items:center;gap:12px;font-family:'Orbitron';font-weight:800;letter-spacing:.06em;font-size:1.1rem}
-    .brand img{width:42px;height:42px;border-radius:10px;filter:drop-shadow(0 0 18px rgba(40,223,255,.8))}
-    .nav-links{display:flex;align-items:center;gap:24px;font-size:.9rem}
-    .nav-links a:hover{color:#28dfff}
-    .nav-cta{padding:.75rem 1.1rem;border:1px solid rgba(40,223,255,.6);border-radius:999px;color:#28dfff;transition:.3s}
-    .nav-cta:hover{background:rgba(40,223,255,.15)}
-    
-    /* Hero Section - Split Layout */
-    .hero{padding:140px 0 80px;background:#030711;min-height:85vh;display:flex;align-items:center}
-    .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center}
-    
-    /* Left side - Text */
-    .hero-left h1{font-family:'Orbitron';font-size:clamp(3.5rem,7vw,6.5rem);line-height:.95;letter-spacing:.02em;margin-bottom:28px}
-    .hero-left h1 .gold{display:block;background:linear-gradient(135deg,#ffd76a 0%,#c9a96e 50%,#ffd76a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-transform:uppercase}
-    .hero-left h1 .cyan{display:block;color:#28dfff;font-size:.36em;letter-spacing:.16em;margin-top:14px;font-weight:600;text-transform:uppercase}
-    .hero-left .lead{font-size:clamp(1.2rem,2vw,1.6rem);line-height:1.75;color:rgba(255,255,255,.85);margin-bottom:32px;max-width:620px}
-    .hero-left .lead strong{color:#fff;font-weight:700}
-    
-    /* Right side - Surgeon Image */
-    .hero-right{position:relative}
-    .surgeon-img{width:100%;height:auto;border-radius:24px;border:3px solid rgba(40,223,255,.3);box-shadow:0 30px 80px rgba(40,223,255,.25);filter:saturate(1.1)}
-    
-    /* CTAs */
-    .hero-cta{display:flex;gap:18px;margin-bottom:36px;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:10px;padding:1rem 2rem;border-radius:12px;font-family:'Orbitron';font-size:.9rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:.3s}
-    .btn-pink{background:linear-gradient(135deg,#ff1cf7,#b249f8);color:#fff;box-shadow:0 15px 50px rgba(255,28,247,.35)}
-    .btn-pink:hover{transform:translateY(-3px);box-shadow:0 20px 60px rgba(255,28,247,.5)}
-    .btn-outline{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.06);color:#fff}
-    .btn-outline:hover{background:rgba(255,255,255,.12);transform:translateY(-3px)}
-    
-    /* Stats */
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:700px}
-    .stat{background:linear-gradient(180deg,rgba(16,31,55,.6),rgba(8,18,34,.4));border:1px solid rgba(40,223,255,.2);border-radius:16px;padding:20px 16px;text-align:center}
-    .stat b{display:block;font-family:'Orbitron';color:#28dfff;font-size:1.6rem;margin-bottom:6px}
-    .stat span{font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)}
-    
-    /* Practice to Procedure Room Card - Full width below hero */
-    .practice-section{background:#000;padding:4rem 0}
-    .practice-card{max-width:1100px;margin:0 auto;background:linear-gradient(145deg,rgba(11,21,40,.85),rgba(10,13,26,.6));border:2px solid rgba(40,223,255,.35);border-radius:32px;padding:3.5rem 3rem;box-shadow:0 30px 80px rgba(0,0,0,.4);text-align:center}
-    .practice-card img{width:140px;margin:0 auto 28px;border-radius:24px;filter:drop-shadow(0 0 40px rgba(40,223,255,.7))}
-    .practice-card h2{font-family:'Orbitron';font-size:2.2rem;margin-bottom:20px;line-height:1.3;color:#fff}
-    .practice-card>p{color:rgba(255,255,255,.8);line-height:1.8;margin-bottom:32px;font-size:1.15rem;max-width:800px;margin-left:auto;margin-right:auto}
-    .workflow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:900px;margin:0 auto}
-    .workflow-steps div{display:flex;align-items:center;justify-content:center;gap:12px;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.08);border-radius:14px;padding:18px 14px;font-size:.95rem}
-    .workflow-steps i{font-style:normal;color:#28dfff;font-family:'Orbitron';font-weight:700;font-size:1.1rem}
-    
-    /* Product Duo */
-    .product-duo{background:linear-gradient(180deg,#000,#050a15);padding:6rem 0}
-    .section-head{text-align:center;margin-bottom:4rem}
-    .section-kicker{display:inline-block;padding:.65rem 1.2rem;border:1px solid rgba(40,223,255,.35);border-radius:999px;background:rgba(8,18,34,.5);color:#28dfff;font-family:'Orbitron';font-size:.85rem;letter-spacing:.13em;text-transform:uppercase;margin-bottom:1.5rem}
-    .section-title{font-family:'Orbitron';font-size:clamp(2.2rem,4.5vw,3.8rem);margin-bottom:1.2rem;background:linear-gradient(135deg,#fff,#28dfff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .section-desc{color:rgba(255,255,255,.75);font-size:1.2rem;line-height:1.7;max-width:850px;margin:0 auto}
-    .duo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3rem}
-    .product-panel{background:linear-gradient(135deg,rgba(11,21,40,.7),rgba(6,14,28,.9));border:2px solid rgba(40,223,255,.25);border-radius:28px;padding:3rem;transition:.4s}
-    .product-panel:hover{border-color:#28dfff;box-shadow:0 20px 70px rgba(40,223,255,.25);transform:translateY(-8px)}
-    .product-panel h3{font-family:'Orbitron';font-size:2.5rem;margin-bottom:1rem}
-    .product-panel .tagline{color:#28dfff;font-size:1.2rem;margin-bottom:1.5rem;font-weight:600}
-    .product-panel p{color:rgba(255,255,255,.75);line-height:1.75;margin-bottom:2rem}
-    .feature-list{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem;margin-bottom:2.5rem}
-    .feature-list li{padding:.75rem;background:rgba(40,223,255,.06);border-left:3px solid rgba(40,223,255,.4);border-radius:8px;font-size:.95rem}
-    .panel-link{display:inline-flex;padding:1rem 2rem;background:linear-gradient(135deg,#28dfff,#1275ff);color:#000;border-radius:12px;font-family:'Orbitron';font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em;transition:.3s}
-    .panel-link:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(40,223,255,.4)}
-    
-    footer{padding:40px 0;background:#02040a;border-top:1px solid rgba(40,223,255,.2);text-align:center;font-family:'Orbitron';font-size:.95rem;color:rgba(255,255,255,.6)}
-    
-    @media(max-width:1024px){
-      .hero-grid{grid-template-columns:1fr;gap:50px}
-      .duo-grid{grid-template-columns:1fr}
-      .workflow-steps{grid-template-columns:repeat(2,1fr)}
-    }
-    @media(max-width:768px){
-      .nav-links{display:none}
-      .stats,.feature-list,.workflow-steps{grid-template-columns:1fr}
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AegisIQ Equity AI | Global Deal Flow Intelligence Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --navy: #0a0f1a;
+            --navy-light: #151d2e;
+            --gold: #d4af37;
+            --gold-light: #f4d467;
+            --blue: #1e90ff;
+            --white: #ffffff;
+            --gray: #a0aec0;
+            --gray-dark: #4a5568;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--navy);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .background-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(30, 144, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(212, 175, 55, 0.06) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0f1a 0%, #151d2e 100%);
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            padding: 32px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            height: 70px;
+            width: auto;
+        }
+
+        .tagline {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .created-by {
+            text-align: right;
+            font-size: 11px;
+            color: var(--gray);
+            line-height: 1.8;
+            max-width: 380px;
+        }
+
+        .created-by strong {
+            color: var(--white);
+            display: block;
+            font-size: 13px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .hero {
+            padding: 100px 0 80px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 68px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 22px;
+            color: var(--gray);
+            max-width: 800px;
+            margin: 0 auto 48px;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        .global-markets {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+        }
+
+        .market-badge {
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 12px 28px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .market-badge:hover {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        .transaction-types {
+            padding: 80px 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(21, 29, 46, 0.6) 50%, transparent 100%);
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 60px;
+            color: var(--white);
+        }
+
+        .types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .type-card {
+            background: linear-gradient(135deg, rgba(21, 29, 46, 0.9) 0%, rgba(10, 15, 26, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .type-card:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 60px rgba(212, 175, 55, 0.15);
+        }
+
+        .type-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .type-card.selected {
+            border-color: var(--gold);
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(21, 29, 46, 0.9) 100%);
+        }
+
+        .type-card.selected::before {
+            transform: scaleX(1);
+        }
+
+        .card-image {
+            height: 160px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .card-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(180deg, transparent 0%, rgba(10, 15, 26, 0.95) 100%);
+        }
+
+        .spac-image {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0a192f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: rgba(212, 175, 55, 0.15);
+        }
+
+        .ipo-image {
+            background: linear-gradient(135deg, #2d1b4e 0%, #0a192f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: rgba(212, 175, 55, 0.15);
+        }
+
+        .private-image {
+            background: linear-gradient(135deg, #1a3a3a 0%, #0a192f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            font-weight: 700;
+            color: rgba(212, 175, 55, 0.15);
+        }
+
+        .reverse-image {
+            background: linear-gradient(135deg, #3a1f4e 0%, #0a192f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            font-weight: 700;
+            color: rgba(212, 175, 55, 0.15);
+        }
+
+        .microcap-image {
+            background: linear-gradient(135deg, #1f3a4e 0%, #0a192f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            font-weight: 700;
+            color: rgba(212, 175, 55, 0.15);
+        }
+
+        .card-content {
+            padding: 28px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--white);
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .card-markets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .market-tag {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 3px;
+            color: var(--gold);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .form-section {
+            padding: 80px 0 100px;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, rgba(21, 29, 46, 0.95) 0%, rgba(10, 15, 26, 0.95) 100%);
+            border: 2px solid rgba(212, 175, 55, 0.2);
+            border-radius: 16px;
+            padding: 60px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .form-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .form-header p {
+            font-size: 17px;
+            color: var(--gray);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(10, 15, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+            background: rgba(10, 15, 26, 0.95);
+        }
+
+        .form-input::placeholder {
+            color: var(--gray-dark);
+        }
+
+        .form-select {
+            cursor: pointer;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            background: rgba(10, 15, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 28px;
+        }
+
+        .checkbox-group-title {
+            grid-column: 1 / -1;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            margin-top: 3px;
+            cursor: pointer;
+            accent-color: var(--gold);
+        }
+
+        .checkbox-label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .checkbox-label strong {
+            display: block;
+            color: var(--white);
+            margin-bottom: 3px;
+        }
+
+        .checkbox-label span {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .region-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .region-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px;
+            background: rgba(10, 15, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .region-checkbox:hover {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            color: var(--navy);
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(212, 175, 55, 0.4);
+        }
+
+        .submit-btn:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .privacy-notice {
+            margin-top: 28px;
+            padding-top: 28px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 11px;
+            color: var(--gray);
+            line-height: 1.8;
+            text-align: center;
+        }
+
+        .privacy-notice a {
+            color: var(--gold);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .privacy-notice a:hover {
+            border-bottom-color: var(--gold);
+        }
+
+        .tracking-section {
+            padding: 80px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .tracking-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .tracking-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .tracking-card {
+            background: rgba(21, 29, 46, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tracking-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(212, 175, 55, 0.1);
+        }
+
+        .tracking-symbol {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        .tracking-name {
+            font-size: 16px;
+            color: var(--white);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .tracking-type {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        footer {
+            padding: 60px 0 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+
+        .footer-content {
+            font-size: 11px;
+            color: var(--gray);
+            line-height: 2;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .footer-content strong {
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .hero h1 {
+                font-size: 52px;
+            }
+
+            .types-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+
+            .form-grid,
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .region-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 24px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .created-by {
+                text-align: center;
+            }
+
+            .logo {
+                height: 55px;
+            }
+
+            .hero h1 {
+                font-size: 38px;
+            }
+
+            .hero-subtitle {
+                font-size: 18px;
+            }
+
+            .global-markets {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .form-container {
+                padding: 40px 24px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <nav class="nav">
-    <div class="nav-inner">
-      <a class="brand" href="#"><img src="assets/patienttrac-surg-shield.jpg" alt="Shield">PatientTrac Surgical Intelligence</a>
-      <div class="nav-links">
-        <a href="#platform">Platform</a>
-        <a href="#surg">Surg</a>
-        <a href="#or">OR</a>
-        <a class="nav-cta" href="/app.html">Launch Platform</a>
-        <a class="nav-cta" href="https://patienttracsurgery.com">Demo OR</a>
-      </div>
+    <div class="background-gradient"></div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo-container">
+                    <img src="AegisIq_Financial_Logo.png" alt="AegisIQ" class="logo">
+                    <span class="tagline">Equity AI Intelligence</span>
+                </div>
+                <div class="created-by">
+                    <strong>Created by International Capital Managers</strong>
+                    and Merger & Acquisition Specialists
+                </div>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>
+                Global <span class="gradient-text">Deal Flow</span><br>
+                Intelligence Platform
+            </h1>
+            <p class="hero-subtitle">
+                AI-powered intelligence across US, Asian, and European markets. Real-time tracking of 
+                SPACs, IPOs, private placements, reverse mergers, and microcap opportunities.
+            </p>
+
+            <div class="global-markets">
+                <div class="market-badge">United States</div>
+                <div class="market-badge">Asia Pacific</div>
+                <div class="market-badge">European Markets</div>
+            </div>
+        </section>
+
+        <section class="transaction-types">
+            <h2 class="section-title">Transaction Intelligence Coverage</h2>
+            
+            <div class="types-grid">
+                <div class="type-card" onclick="toggleCard(this, 'spac')">
+                    <div class="card-image spac-image">SPAC</div>
+                    <div class="card-content">
+                        <h3 class="card-title">SPAC Transactions</h3>
+                        <p class="card-description">
+                            De-SPAC announcements, target reveals, PIPE investments, warrant structures, 
+                            and merger completion tracking across global exchanges.
+                        </p>
+                        <div class="card-markets">
+                            <span class="market-tag">NASDAQ</span>
+                            <span class="market-tag">NYSE</span>
+                            <span class="market-tag">LSE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="type-card" onclick="toggleCard(this, 'ipo')">
+                    <div class="card-image ipo-image">IPO</div>
+                    <div class="card-content">
+                        <h3 class="card-title">IPOs & Direct Listings</h3>
+                        <p class="card-description">
+                            Traditional IPOs, direct public offerings, secondary offerings, 
+                            and greenshoe options across major global exchanges.
+                        </p>
+                        <div class="card-markets">
+                            <span class="market-tag">NASDAQ</span>
+                            <span class="market-tag">NYSE</span>
+                            <span class="market-tag">FSE</span>
+                            <span class="market-tag">LSE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="type-card" onclick="toggleCard(this, 'private')">
+                    <div class="card-image private-image">PRIVATE</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Private Placements</h3>
+                        <p class="card-description">
+                            Reg D, Reg S, Reg A+ offerings, 506(b)/506(c) deals, PIPE transactions, 
+                            EU private placements, and accredited investor opportunities across global markets.
+                        </p>
+                        <div class="card-markets">
+                            <span class="market-tag">REG D</span>
+                            <span class="market-tag">REG S</span>
+                            <span class="market-tag">REG A+</span>
+                            <span class="market-tag">EU PLACEMENTS</span>
+                            <span class="market-tag">PIPE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="type-card" onclick="toggleCard(this, 'reverse')">
+                    <div class="card-image reverse-image">REVERSE</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Reverse Mergers</h3>
+                        <p class="card-description">
+                            Shell company acquisitions, backdoor listings, RTO transactions, 
+                            and alternative public market entry strategies.
+                        </p>
+                        <div class="card-markets">
+                            <span class="market-tag">OTC</span>
+                            <span class="market-tag">NASDAQ</span>
+                            <span class="market-tag">FSE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="type-card" onclick="toggleCard(this, 'microcap')">
+                    <div class="card-image microcap-image">MICROCAP</div>
+                    <div class="card-content">
+                        <h3 class="card-title">Microcap Opportunities</h3>
+                        <p class="card-description">
+                            OTCQB/OTCQX companies, uplisting candidates, penny stocks, 
+                            and emerging market opportunities with growth potential.
+                        </p>
+                        <div class="card-markets">
+                            <span class="market-tag">OTC</span>
+                            <span class="market-tag">FSE</span>
+                            <span class="market-tag">LSE AIM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="form-section" id="signup">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Join Global Deal Flow Network</h2>
+                    <p>Access institutional-grade intelligence across US, Asian, and European markets</p>
+                </div>
+
+                <form id="aegisiqForm" action="https://api.aegisiq.io/api/subscribe" method="POST">
+                    <input type="hidden" name="transaction_types" id="transactionTypes" value="">
+                    <input type="hidden" name="regions" id="regions" value="">
+                    <input type="hidden" name="timestamp" id="timestamp">
+                    <input type="hidden" name="source" value="aegisiq-equity-ai">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="firstName">First Name *</label>
+                            <input 
+                                type="text" 
+                                id="firstName" 
+                                name="first_name" 
+                                class="form-input"
+                                placeholder="John" 
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="lastName">Last Name *</label>
+                            <input 
+                                type="text" 
+                                id="lastName" 
+                                name="last_name" 
+                                class="form-input"
+                                placeholder="Smith" 
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address *</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            class="form-input"
+                            placeholder="investor@example.com" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Mobile Number *</label>
+                        <input 
+                            type="tel" 
+                            id="phone" 
+                            name="phone" 
+                            class="form-input"
+                            placeholder="+1 (555) 123-4567" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="investorType">Investor Classification *</label>
+                        <select id="investorType" name="investor_type" class="form-select" required>
+                            <option value="">Select your classification...</option>
+                            <option value="accredited-individual">Accredited Investor (Individual)</option>
+                            <option value="accredited-entity">Accredited Entity</option>
+                            <option value="qualified-purchaser">Qualified Purchaser</option>
+                            <option value="institutional">Institutional Investor</option>
+                            <option value="family-office">Family Office</option>
+                            <option value="private-equity">Private Equity / VC</option>
+                            <option value="hedge-fund">Hedge Fund</option>
+                            <option value="corporate">Corporate / Strategic</option>
+                            <option value="retail">Retail Investor</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Geographic Focus *</label>
+                        <div class="region-selector">
+                            <div class="region-checkbox">
+                                <input type="checkbox" name="regions[]" value="US" id="regionUS" class="checkbox-input">
+                                <label for="regionUS" class="checkbox-label">United States</label>
+                            </div>
+                            <div class="region-checkbox">
+                                <input type="checkbox" name="regions[]" value="ASIA" id="regionAsia" class="checkbox-input">
+                                <label for="regionAsia" class="checkbox-label">Asia Pacific</label>
+                            </div>
+                            <div class="region-checkbox">
+                                <input type="checkbox" name="regions[]" value="EUROPE" id="regionEurope" class="checkbox-input">
+                                <label for="regionEurope" class="checkbox-label">Europe</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-grid">
+                            <div class="checkbox-group-title">Transaction Types of Interest *</div>
+                            
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="interests[]" value="SPAC" class="checkbox-input">
+                                <div class="checkbox-label">
+                                    <strong>SPAC Transactions</strong>
+                                    <span>De-SPAC, mergers, PIPE</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="interests[]" value="IPO" class="checkbox-input">
+                                <div class="checkbox-label">
+                                    <strong>IPOs & Direct Listings</strong>
+                                    <span>Traditional & DPO</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="interests[]" value="PRIVATE_PLACEMENT" class="checkbox-input">
+                                <div class="checkbox-label">
+                                    <strong>Private Placements</strong>
+                                    <span>Reg D, Reg S, Reg A+, EU Placements, PIPE</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="interests[]" value="REVERSE_MERGER" class="checkbox-input">
+                                <div class="checkbox-label">
+                                    <strong>Reverse Mergers</strong>
+                                    <span>Shell, backdoor listings</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="interests[]" value="MICROCAP" class="checkbox-input">
+                                <div class="checkbox-label">
+                                    <strong>Microcap Opportunities</strong>
+                                    <span>OTC, FSE, LSE AIM</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="interests[]" value="M&A" class="checkbox-input">
+                                <div class="checkbox-label">
+                                    <strong>M&A Activity</strong>
+                                    <span>Strategic acquisitions</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="sectorFocus">Primary Sector Focus</label>
+                        <select id="sectorFocus" name="sector_focus" class="form-select">
+                            <option value="">All Sectors</option>
+                            <option value="healthcare-biotech">Healthcare & Biotechnology</option>
+                            <option value="pharmaceuticals">Pharmaceuticals</option>
+                            <option value="diagnostics">Diagnostics & Medical Devices</option>
+                            <option value="technology">Technology & Software</option>
+                            <option value="fintech">FinTech & Financial Services</option>
+                            <option value="energy-cleantech">Energy & CleanTech</option>
+                            <option value="industrial">Industrial & Manufacturing</option>
+                            <option value="consumer">Consumer & Retail</option>
+                            <option value="real-estate">Real Estate & REITs</option>
+                            <option value="telecommunications">Telecommunications</option>
+                            <option value="diversified">Diversified / Opportunistic</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        Activate Global Deal Flow Intelligence
+                    </button>
+
+                    <div class="privacy-notice">
+                        By submitting this form, you consent to receive email and SMS notifications about investment opportunities, 
+                        deal flow intelligence, and market updates. Message & data rates may apply. Reply STOP to opt out anytime. 
+                        This communication is not an offer to sell securities. All investments are subject to suitability requirements.<br><br>
+                        <a href="/privacy-policy.html">Privacy Policy</a> • <a href="/terms.html">Terms of Service</a> • 
+                        <a href="/accredited-investor.html">Accredited Investor Information</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="tracking-section">
+            <h2 class="tracking-title">Currently Tracking</h2>
+            <div class="tracking-grid">
+                <div class="tracking-card">
+                    <div class="tracking-symbol">CSDX</div>
+                    <div class="tracking-name">CS Diagnostics</div>
+                    <div class="tracking-type">OTCQB • Diagnostic Technology</div>
+                </div>
+                <div class="tracking-card">
+                    <div class="tracking-symbol">DOSE</div>
+                    <div class="tracking-name">Dose Therapeutics</div>
+                    <div class="tracking-type">Listed • Pharmaceutical Development</div>
+                </div>
+                <div class="tracking-card">
+                    <div class="tracking-symbol">GRASSAR</div>
+                    <div class="tracking-name">Grassar Prime Management</div>
+                    <div class="tracking-type">Private Placement Opportunities</div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="footer-content">
+                <p>
+                    <strong>© 2026 AegisIQ Financial Intelligence Platform.</strong><br>
+                    For informational purposes only. Not investment, legal, or tax advice.<br>
+                    Past performance does not guarantee future results. All investments involve risk of loss.<br>
+                    Private placements and certain offerings are available only to accredited investors and qualified purchasers.<br>
+                    This communication is not an offer to sell securities. Securities offered through licensed broker-dealers only.
+                </p>
+            </div>
+        </footer>
     </div>
-  </nav>
-  
-  <section class="hero">
-    <div class="shell">
-      <div class="hero-grid">
-        <div class="hero-left">
-          <h1><span class="gold">PatientTracSurg</span><span class="cyan">Futuristic Surgical Workflow</span></h1>
-          <p class="lead"><strong>The future of surgical care is here.</strong><br>AI-powered documentation, smart consent, intelligent billing, and real-time clinical intelligence — all in one seamless platform.</p>
-          <div class="hero-cta">
-            <a href="/app.html" class="btn btn-pink">Launch Platform Now</a>
-            <a href="#platform" class="btn btn-outline">90-Second Demo</a>
-          </div>
-          <div class="stats">
-            <div class="stat"><b>98%</b><span>AI Accuracy</span></div>
-            <div class="stat"><b>$2.5M</b><span>Recovered</span></div>
-            <div class="stat"><b>8+</b><span>Specialties</span></div>
-            <div class="stat"><b>100%</b><span>HIPAA</span></div>
-          </div>
-        </div>
-        <div class="hero-right">
-          <img src="assets/TopImage.jpg" alt="Futuristic Surgical Care" class="surgeon-img">
-        </div>
-      </div>
-    </div>
-  </section>
-  
-  <section class="practice-section">
-    <div class="shell">
-      <div class="practice-card">
-        <img src="assets/patienttrac-surg-shield.jpg" alt="Shield">
-        <h2>From Practice to Procedure Room</h2>
-        <p>Connect outpatient documentation, consent, coding, OR coordination, case flow, and analytics in one premium surgical ecosystem.</p>
-        <div class="workflow-steps">
-          <div><i>01</i> Schedule + Intake</div>
-          <div><i>02</i> Consent + Document</div>
-          <div><i>03</i> Operate + Coordinate</div>
-          <div><i>04</i> Recover + Analyze</div>
-        </div>
-      </div>
-    </div>
-  </section>
-  
-  <section class="product-duo" id="platform">
-    <div class="shell">
-      <div class="section-head">
-        <div class="section-kicker">Two Applications · One Surgical Ecosystem</div>
-        <h2 class="section-title">Built for the Complete Surgical Journey</h2>
-        <p class="section-desc">PatientTracSurg markets both the surgeon-facing documentation platform and the surgery-center operating room workflow application.</p>
-      </div>
-      <div class="duo-grid">
-        <article class="product-panel" id="surg">
-          <h3>PatientTrac Surg</h3>
-          <p class="tagline">AI-powered outpatient surgical documentation</p>
-          <p>Designed for surgeons and specialty practices that need faster, cleaner, more complete clinical documentation with smart consent, coding, billing, and specialty-specific workflows.</p>
-          <ul class="feature-list">
-            <li>Procedure documentation</li>
-            <li>Smart consent management</li>
-            <li>AI operative notes</li>
-            <li>CPT / ICD-10 coding</li>
-            <li>Billing optimization</li>
-            <li>Recovery tracking</li>
-          </ul>
-          <a class="panel-link" href="/app.html">Explore PatientTrac Surg</a>
-        </article>
-        <article class="product-panel" id="or">
-          <h3>PatientTrac OR</h3>
-          <p class="tagline">Surgery center and operating room workflow</p>
-          <p>Designed for ASCs, surgical centers, OR managers, and perioperative teams that need visibility across rooms, cases, staff, patient flow, and facility-level performance.</p>
-          <ul class="feature-list">
-            <li>OR scheduling</li>
-            <li>Room utilization</li>
-            <li>Case status dashboards</li>
-            <li>Team coordination</li>
-            <li>Pre-op to post-op flow</li>
-            <li>Facility analytics</li>
-          </ul>
-          <a class="panel-link" href="https://patienttracsurgery.com">Explore PatientTrac OR</a>
-        </article>
-      </div>
-    </div>
-  </section>
-  
-  <footer>© 2026 PatientTrac Corp · HIPAA Compliant · Surgical Intelligence Platform</footer>
+
+    <script>
+        document.getElementById('timestamp').value = new Date().toISOString();
+
+        let selectedTransactionTypes = new Set();
+
+        function toggleCard(card, type) {
+            if (selectedTransactionTypes.has(type)) {
+                selectedTransactionTypes.delete(type);
+                card.classList.remove('selected');
+            } else {
+                selectedTransactionTypes.add(type);
+                card.classList.add('selected');
+            }
+            
+            document.getElementById('transactionTypes').value = Array.from(selectedTransactionTypes).join(',');
+        }
+
+        // Phone number formatting
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                if (value.length <= 3) {
+                    value = '+1 (' + value;
+                } else if (value.length <= 6) {
+                    value = '+1 (' + value.slice(0, 3) + ') ' + value.slice(3);
+                } else {
+                    value = '+1 (' + value.slice(0, 3) + ') ' + value.slice(3, 6) + '-' + value.slice(6, 10);
+                }
+            }
+            e.target.value = value;
+        });
+
+        // Form submission
+        document.getElementById('aegisiqForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            // Validation
+            const interests = formData.getAll('interests[]');
+            if (interests.length === 0) {
+                alert('Please select at least one transaction type of interest');
+                return;
+            }
+
+            const regions = formData.getAll('regions[]');
+            if (regions.length === 0) {
+                alert('Please select at least one geographic focus');
+                return;
+            }
+
+            const phone = formData.get('phone');
+            const cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length !== 10 && cleanPhone.length !== 11) {
+                alert('Please enter a valid phone number');
+                return;
+            }
+
+            // Submit to backend
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                window.location.href = '/thank-you.html?source=aegisiq-equity-ai';
+            })
+            .catch(error => {
+                console.error('Submission error:', error);
+                alert('There was an error submitting your information. Please try again.');
+            });
+        });
+    </script>
 </body>
 </html>
