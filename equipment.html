@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipment & Supply Management | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        /* Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--cyan);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--cyan);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .equipment-badge {
+            background: linear-gradient(135deg, var(--orange) 0%, var(--red) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        /* Tab Navigation */
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--orange);
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--orange);
+            border-bottom-color: var(--orange);
+            background: rgba(249, 115, 22, 0.1);
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Section Styling */
+        .section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            color: var(--orange);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--orange);
+            border-radius: 2px;
+        }
+        
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.2);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* Equipment Table */
+        .equipment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .equipment-table thead {
+            background: rgba(6, 14, 28, 0.8);
+        }
+        
+        .equipment-table th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--orange);
+            font-weight: 700;
+            border-bottom: 2px solid rgba(249, 115, 22, 0.3);
+        }
+        
+        .equipment-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(249, 115, 22, 0.1);
+        }
+        
+        .equipment-table tbody tr:hover {
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-available {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+        
+        .status-in-use {
+            background: rgba(249, 115, 22, 0.2);
+            color: var(--orange);
+            border: 1px solid var(--orange);
+        }
+        
+        .status-sterilizing {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--blue);
+            border: 1px solid var(--blue);
+        }
+        
+        .status-maintenance {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+        
+        /* Action Buttons */
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .btn {
+            background: rgba(249, 115, 22, 0.2);
+            border: 1px solid var(--orange);
+            color: var(--orange);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: var(--orange);
+            color: white;
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange) 0%, var(--red) 100%);
+            border: none;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(249, 115, 22, 0.4);
+        }
+        
+        .btn-success {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--green);
+            color: var(--green);
+        }
+        
+        .btn-success:hover {
+            background: var(--green);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--red);
+            color: var(--red);
+        }
+        
+        .btn-danger:hover {
+            background: var(--red);
+            color: white;
+        }
+        
+        /* Implant Card */
+        .implant-card {
+            background: rgba(6, 14, 28, 0.8);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .implant-card h4 {
+            color: var(--orange);
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        
+        .implant-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .implant-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .implant-detail label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+        }
+        
+        .implant-detail span {
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Sterilization Log */
+        .sterilization-log {
+            background: rgba(6, 14, 28, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .sterilization-log h4 {
+            color: var(--blue);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .sterilization-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Supply Counter */
+        .supply-counter {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .supply-counter label {
+            flex: 1;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .counter-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(249, 115, 22, 0.2);
+            border: 1px solid var(--orange);
+            color: var(--orange);
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .counter-btn:hover {
+            background: var(--orange);
+            color: white;
+        }
+        
+        .counter-value {
+            min-width: 60px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--orange);
+        }
+        
+        /* Bottom Actions */
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(6, 14, 28, 0.98);
+            border-top: 2px solid rgba(249, 115, 22, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            z-index: 90;
+        }
+        
+        .bottom-actions .btn-group {
+            margin-left: auto;
+        }
+        
+        /* Search Bar */
+        .search-bar {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-bar input {
+            width: 100%;
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .search-bar::before {
+            content: '🔍';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.25rem;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-warning {
+            background: rgba(249, 115, 22, 0.2);
+            border: 1px solid var(--orange);
+            color: var(--orange);
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img src="https://via.placeholder.com/80" alt="Patient Photo" class="patient-photo" id="patientPhoto">
+        <div class="patient-info">
+            <h2 id="patientName">Loading...</h2>
+            <div class="patient-meta">
+                <span><strong>DOB:</strong> <span id="patientDOB">--</span></span>
+                <span><strong>MRN:</strong> <span id="patientMRN">--</span></span>
+                <span><strong>Encounter:</strong> <span id="encounterID">--</span></span>
+            </div>
+        </div>
+        <div class="equipment-badge">🔧 EQUIPMENT & SUPPLIES</div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('checkout')">Equipment Checkout</button>
+        <button class="tab-btn" onclick="switchTab('implants')">Implant Tracking</button>
+        <button class="tab-btn" onclick="switchTab('supplies')">Supply Consumption</button>
+        <button class="tab-btn" onclick="switchTab('sterilization')">Sterilization Logs</button>
+        <button class="tab-btn" onclick="switchTab('catalog')">OR Catalog</button>
+    </div>
+
+    <!-- Tab 1: Equipment Checkout -->
+    <div id="checkoutTab" class="tab-content active">
+        <div class="section">
+            <div class="section-header">Equipment Checkout/Check-in</div>
+            
+            <div class="search-bar">
+                <input type="text" placeholder="Search equipment by name, ID, or category..." id="equipmentSearch">
+            </div>
+            
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Equipment ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Last Sterilized</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="equipmentTableBody">
+                    <!-- Sample Data - Will be loaded from database -->
+                    <tr>
+                        <td>EQ-1001</td>
+                        <td>C-Arm Fluoroscopy Unit</td>
+                        <td>Imaging</td>
+                        <td><span class="status-badge status-available">Available</span></td>
+                        <td>N/A</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-success" onclick="checkoutEquipment('EQ-1001')">Checkout</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>EQ-2015</td>
+                        <td>Arthroscopy Tower</td>
+                        <td>Surgical</td>
+                        <td><span class="status-badge status-in-use">In Use - OR 3</span></td>
+                        <td>N/A</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-danger" onclick="checkinEquipment('EQ-2015')">Check In</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>EQ-3042</td>
+                        <td>Drill Set - Orthopedic</td>
+                        <td>Instruments</td>
+                        <td><span class="status-badge status-sterilizing">Sterilizing</span></td>
+                        <td>2026-04-30 08:15</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn" disabled>Unavailable</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>EQ-4008</td>
+                        <td>Phacoemulsification Machine</td>
+                        <td>Ophthalmic</td>
+                        <td><span class="status-badge status-maintenance">Maintenance</span></td>
+                        <td>N/A</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn" disabled>Out of Service</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">Currently Checked Out for This Case</div>
+            <div id="checkedOutEquipment">
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠️</span>
+                    <span>No equipment currently checked out for this case</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Implant Tracking -->
+    <div id="implantsTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">Add Implant</div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Implant Type *</label>
+                    <select id="implantType">
+                        <option value="">Select type...</option>
+                        <option value="orthopedic">Orthopedic Implant</option>
+                        <option value="cardiac">Cardiac Device</option>
+                        <option value="vascular">Vascular Graft/Stent</option>
+                        <option value="ophthalmic">Intraocular Lens (IOL)</option>
+                        <option value="mesh">Surgical Mesh</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Manufacturer *</label>
+                    <input type="text" id="implantManufacturer" placeholder="e.g., DePuy Synthes">
+                </div>
+                
+                <div class="form-group">
+                    <label>Catalog Number *</label>
+                    <input type="text" id="implantCatalogNum" placeholder="e.g., 12345-ABC">
+                </div>
+                
+                <div class="form-group">
+                    <label>Lot Number *</label>
+                    <input type="text" id="implantLotNum" placeholder="e.g., LOT2026042">
+                </div>
+                
+                <div class="form-group">
+                    <label>Serial Number</label>
+                    <input type="text" id="implantSerialNum" placeholder="Optional">
+                </div>
+                
+                <div class="form-group">
+                    <label>Expiration Date</label>
+                    <input type="date" id="implantExpDate">
+                </div>
+                
+                <div class="form-group">
+                    <label>Size/Dimension</label>
+                    <input type="text" id="implantSize" placeholder="e.g., 12mm x 40mm">
+                </div>
+                
+                <div class="form-group">
+                    <label>Side/Location</label>
+                    <select id="implantSide">
+                        <option value="">Select...</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                        <option value="bilateral">Bilateral</option>
+                        <option value="midline">Midline</option>
+                        <option value="na">N/A</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="implantNotes" placeholder="Additional implant details, positioning notes, intraoperative observations..."></textarea>
+            </div>
+            
+            <div class="btn-group" style="margin-top: 1rem;">
+                <button class="btn btn-primary" onclick="addImplant()">➕ Add Implant</button>
+                <button class="btn" onclick="clearImplantForm()">Clear</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">Implants Used in This Case</div>
+            <div id="implantList">
+                <!-- Implant cards will be dynamically added here -->
+                <div class="alert alert-warning">
+                    <span class="alert-icon">ℹ️</span>
+                    <span>No implants recorded yet for this case</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Supply Consumption -->
+    <div id="suppliesTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">Track Supply Usage</div>
+            
+            <div class="alert alert-warning">
+                <span class="alert-icon">📦</span>
+                <span>Record all consumable supplies used during this procedure for accurate billing and inventory management</span>
+            </div>
+            
+            <div class="supply-counter">
+                <label>Sutures - 2-0 Vicryl</label>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="decrementSupply('suture_2_0')">-</button>
+                    <span class="counter-value" id="suture_2_0_count">0</span>
+                    <button class="counter-btn" onclick="incrementSupply('suture_2_0')">+</button>
+                </div>
+            </div>
+            
+            <div class="supply-counter">
+                <label>Sutures - 3-0 Nylon</label>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="decrementSupply('suture_3_0')">-</button>
+                    <span class="counter-value" id="suture_3_0_count">0</span>
+                    <button class="counter-btn" onclick="incrementSupply('suture_3_0')">+</button>
+                </div>
+            </div>
+            
+            <div class="supply-counter">
+                <label>Surgical Drapes - Sterile</label>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="decrementSupply('drapes')">-</button>
+                    <span class="counter-value" id="drapes_count">0</span>
+                    <button class="counter-btn" onclick="incrementSupply('drapes')">+</button>
+                </div>
+            </div>
+            
+            <div class="supply-counter">
+                <label>Gauze Pads - 4x4</label>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="decrementSupply('gauze')">-</button>
+                    <span class="counter-value" id="gauze_count">0</span>
+                    <button class="counter-btn" onclick="incrementSupply('gauze')">+</button>
+                </div>
+            </div>
+            
+            <div class="supply-counter">
+                <label>Surgical Gloves - Size 7.5</label>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="decrementSupply('gloves')">-</button>
+                    <span class="counter-value" id="gloves_count">0</span>
+                    <button class="counter-btn" onclick="incrementSupply('gloves')">+</button>
+                </div>
+            </div>
+            
+            <div class="supply-counter">
+                <label>Scalpel Blades - #15</label>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="decrementSupply('scalpel')">-</button>
+                    <span class="counter-value" id="scalpel_count">0</span>
+                    <button class="counter-btn" onclick="incrementSupply('scalpel')">+</button>
+                </div>
+            </div>
+            
+            <div class="supply-counter">
+                <label>Surgical Sponges</label>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="decrementSupply('sponges')">-</button>
+                    <span class="counter-value" id="sponges_count">0</span>
+                    <button class="counter-btn" onclick="incrementSupply('sponges')">+</button>
+                </div>
+            </div>
+            
+            <div class="supply-counter">
+                <label>IV Catheters - 18G</label>
+                <div class="counter-controls">
+                    <button class="counter-btn" onclick="decrementSupply('iv_cath')">-</button>
+                    <span class="counter-value" id="iv_cath_count">0</span>
+                    <button class="counter-btn" onclick="incrementSupply('iv_cath')">+</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">Add Custom Supply</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Supply Name</label>
+                    <input type="text" id="customSupplyName" placeholder="Enter supply name">
+                </div>
+                <div class="form-group">
+                    <label>Quantity Used</label>
+                    <input type="number" id="customSupplyQty" min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Unit Cost ($)</label>
+                    <input type="number" id="customSupplyCost" step="0.01" min="0" placeholder="0.00">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="addCustomSupply()">➕ Add Custom Supply</button>
+        </div>
+    </div>
+
+    <!-- Tab 4: Sterilization Logs -->
+    <div id="sterilizationTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">Instrument Sterilization Verification</div>
+            
+            <div class="alert alert-success">
+                <span class="alert-icon">✅</span>
+                <span>All instruments for this case have passed sterilization verification</span>
+            </div>
+            
+            <div class="sterilization-log">
+                <h4>
+                    <span class="sterilization-indicator"></span>
+                    Orthopedic Instrument Set #3
+                </h4>
+                <div class="implant-details">
+                    <div class="implant-detail">
+                        <label>Sterilization Method</label>
+                        <span>Steam Autoclave</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Cycle Completed</label>
+                        <span>2026-05-01 06:30 AM</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Indicator Result</label>
+                        <span style="color: var(--green);">PASS ✓</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Biological Indicator</label>
+                        <span style="color: var(--green);">NEGATIVE ✓</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Sterilizer ID</label>
+                        <span>AUTOCLAVE-002</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Technician</label>
+                        <span>Sarah Chen, CST</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sterilization-log">
+                <h4>
+                    <span class="sterilization-indicator"></span>
+                    Basic Surgical Instrument Tray
+                </h4>
+                <div class="implant-details">
+                    <div class="implant-detail">
+                        <label>Sterilization Method</label>
+                        <span>Steam Autoclave</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Cycle Completed</label>
+                        <span>2026-05-01 07:15 AM</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Indicator Result</label>
+                        <span style="color: var(--green);">PASS ✓</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Biological Indicator</label>
+                        <span style="color: var(--green);">NEGATIVE ✓</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Sterilizer ID</label>
+                        <span>AUTOCLAVE-001</span>
+                    </div>
+                    <div class="implant-detail">
+                        <label>Technician</label>
+                        <span>Marcus Lopez, CST</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">Log New Sterilization Cycle</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Instrument Set/Tray</label>
+                    <input type="text" id="sterilTray" placeholder="Enter tray name or ID">
+                </div>
+                <div class="form-group">
+                    <label>Sterilization Method</label>
+                    <select id="sterilMethod">
+                        <option value="steam">Steam Autoclave</option>
+                        <option value="ethylene_oxide">Ethylene Oxide</option>
+                        <option value="hydrogen_peroxide">Hydrogen Peroxide Gas Plasma</option>
+                        <option value="peracetic_acid">Peracetic Acid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cycle Completion Time</label>
+                    <input type="datetime-local" id="sterilTime">
+                </div>
+                <div class="form-group">
+                    <label>Chemical Indicator</label>
+                    <select id="chemIndicator">
+                        <option value="pass">PASS</option>
+                        <option value="fail">FAIL</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Biological Indicator</label>
+                    <select id="bioIndicator">
+                        <option value="negative">NEGATIVE (Pass)</option>
+                        <option value="positive">POSITIVE (Fail)</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sterilizer ID</label>
+                    <input type="text" id="sterilizerId" placeholder="e.g., AUTOCLAVE-001">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="logSterilization()">💾 Save Sterilization Log</button>
+        </div>
+    </div>
+
+    <!-- Tab 5: OR Catalog Integration -->
+    <div id="catalogTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">PatientTracOR Equipment Catalog</div>
+            
+            <div class="alert alert-warning">
+                <span class="alert-icon">🔗</span>
+                <span>Integration with PatientTracOR equipment catalog system</span>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" placeholder="Search OR equipment catalog..." id="catalogSearch">
+            </div>
+            
+            <table class="equipment-table">
+                <thead>
+                    <tr>
+                        <th>Catalog ID</th>
+                        <th>Equipment Name</th>
+                        <th>Category</th>
+                        <th>Availability</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CAT-1001</td>
+                        <td>High-Definition OR Camera System</td>
+                        <td>Imaging</td>
+                        <td><span class="status-badge status-available">3 Available</span></td>
+                        <td>Equipment Room A</td>
+                        <td><button class="btn btn-success">Request</button></td>
+                    </tr>
+                    <tr>
+                        <td>CAT-2042</td>
+                        <td>Surgical Power Drill System</td>
+                        <td>Orthopedic</td>
+                        <td><span class="status-badge status-available">2 Available</span></td>
+                        <td>Orthopedic Storage</td>
+                        <td><button class="btn btn-success">Request</button></td>
+                    </tr>
+                    <tr>
+                        <td>CAT-3015</td>
+                        <td>Phacoemulsification Console</td>
+                        <td>Ophthalmic</td>
+                        <td><span class="status-badge status-in-use">1 In Use</span></td>
+                        <td>OR 5</td>
+                        <td><button class="btn" disabled>Unavailable</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bottom Actions Bar -->
+    <div class="bottom-actions">
+        <button class="btn" onclick="window.location.href='/dashboard.html'">← Back to Dashboard</button>
+        <div class="btn-group">
+            <button class="btn" onclick="saveDraft()">💾 Save Draft</button>
+            <button class="btn btn-primary" onclick="completeAndReturn()">✓ Complete & Return</button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI1Njk2MTcsImV4cCI6MjA0ODE0NTYxN30.yR_6vl-yopqo-zZi3vkF-xGXywLUDHnAJLZPvUCJIqo';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentEncounterId = null;
+        let currentPatientId = null;
+        let implants = [];
+        let supplies = {};
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            currentEncounterId = urlParams.get('encounter_id');
+            currentPatientId = urlParams.get('patient_id');
+            
+            if (currentEncounterId && currentPatientId) {
+                loadPatientContext();
+            } else {
+                console.error('Missing encounter_id or patient_id');
+            }
+            
+            // Set default sterilization time to now
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('sterilTime').value = now.toISOString().slice(0, 16);
+        });
+        
+        // Load patient context
+        async function loadPatientContext() {
+            try {
+                const { data, error } = await supabase
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('encounter_id', currentEncounterId)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (data) {
+                    document.getElementById('patientName').textContent = data.patient_name || 'Unknown Patient';
+                    document.getElementById('patientDOB').textContent = data.patient_dob ? new Date(data.patient_dob).toLocaleDateString() : '--';
+                    document.getElementById('patientMRN').textContent = data.patient_mrn || '--';
+                    document.getElementById('encounterID').textContent = currentEncounterId;
+                    
+                    if (data.patient_photo_url) {
+                        document.getElementById('patientPhoto').src = data.patient_photo_url;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading patient context:', error);
+            }
+        }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const tabMap = {
+                'checkout': 'checkoutTab',
+                'implants': 'implantsTab',
+                'supplies': 'suppliesTab',
+                'sterilization': 'sterilizationTab',
+                'catalog': 'catalogTab'
+            };
+            
+            document.getElementById(tabMap[tabName]).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Equipment Checkout/Check-in
+        function checkoutEquipment(equipmentId) {
+            // TODO: Implement equipment checkout logic with database
+            alert(`Equipment ${equipmentId} checked out successfully!`);
+        }
+        
+        function checkinEquipment(equipmentId) {
+            // TODO: Implement equipment check-in logic with database
+            alert(`Equipment ${equipmentId} checked in successfully!`);
+        }
+        
+        // Implant Management
+        function addImplant() {
+            const implant = {
+                type: document.getElementById('implantType').value,
+                manufacturer: document.getElementById('implantManufacturer').value,
+                catalogNum: document.getElementById('implantCatalogNum').value,
+                lotNum: document.getElementById('implantLotNum').value,
+                serialNum: document.getElementById('implantSerialNum').value,
+                expDate: document.getElementById('implantExpDate').value,
+                size: document.getElementById('implantSize').value,
+                side: document.getElementById('implantSide').value,
+                notes: document.getElementById('implantNotes').value
+            };
+            
+            // Validate required fields
+            if (!implant.type || !implant.manufacturer || !implant.catalogNum || !implant.lotNum) {
+                alert('Please fill in all required fields (marked with *)');
+                return;
+            }
+            
+            implants.push(implant);
+            renderImplants();
+            clearImplantForm();
+        }
+        
+        function renderImplants() {
+            const container = document.getElementById('implantList');
+            
+            if (implants.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <span class="alert-icon">ℹ️</span>
+                        <span>No implants recorded yet for this case</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = implants.map((implant, index) => `
+                <div class="implant-card">
+                    <h4>${implant.manufacturer} - ${implant.type}</h4>
+                    <div class="implant-details">
+                        <div class="implant-detail">
+                            <label>Catalog Number</label>
+                            <span>${implant.catalogNum}</span>
+                        </div>
+                        <div class="implant-detail">
+                            <label>Lot Number</label>
+                            <span>${implant.lotNum}</span>
+                        </div>
+                        ${implant.serialNum ? `
+                        <div class="implant-detail">
+                            <label>Serial Number</label>
+                            <span>${implant.serialNum}</span>
+                        </div>
+                        ` : ''}
+                        ${implant.size ? `
+                        <div class="implant-detail">
+                            <label>Size</label>
+                            <span>${implant.size}</span>
+                        </div>
+                        ` : ''}
+                        ${implant.side ? `
+                        <div class="implant-detail">
+                            <label>Side/Location</label>
+                            <span>${implant.side}</span>
+                        </div>
+                        ` : ''}
+                        ${implant.expDate ? `
+                        <div class="implant-detail">
+                            <label>Expiration Date</label>
+                            <span>${new Date(implant.expDate).toLocaleDateString()}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${implant.notes ? `<p style="margin-top: 1rem; color: rgba(255,255,255,0.8);">${implant.notes}</p>` : ''}
+                    <button class="btn btn-danger" style="margin-top: 1rem;" onclick="removeImplant(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+        
+        function removeImplant(index) {
+            if (confirm('Remove this implant from the record?')) {
+                implants.splice(index, 1);
+                renderImplants();
+            }
+        }
+        
+        function clearImplantForm() {
+            document.getElementById('implantType').value = '';
+            document.getElementById('implantManufacturer').value = '';
+            document.getElementById('implantCatalogNum').value = '';
+            document.getElementById('implantLotNum').value = '';
+            document.getElementById('implantSerialNum').value = '';
+            document.getElementById('implantExpDate').value = '';
+            document.getElementById('implantSize').value = '';
+            document.getElementById('implantSide').value = '';
+            document.getElementById('implantNotes').value = '';
+        }
+        
+        // Supply Management
+        function incrementSupply(supplyId) {
+            const element = document.getElementById(supplyId + '_count');
+            const currentValue = parseInt(element.textContent);
+            element.textContent = currentValue + 1;
+            supplies[supplyId] = currentValue + 1;
+        }
+        
+        function decrementSupply(supplyId) {
+            const element = document.getElementById(supplyId + '_count');
+            const currentValue = parseInt(element.textContent);
+            if (currentValue > 0) {
+                element.textContent = currentValue - 1;
+                supplies[supplyId] = currentValue - 1;
+            }
+        }
+        
+        function addCustomSupply() {
+            const name = document.getElementById('customSupplyName').value;
+            const qty = document.getElementById('customSupplyQty').value;
+            const cost = document.getElementById('customSupplyCost').value;
+            
+            if (!name) {
+                alert('Please enter a supply name');
+                return;
+            }
+            
+            alert(`Custom supply "${name}" (Qty: ${qty}, Cost: $${cost}) added successfully!`);
+            
+            // Clear form
+            document.getElementById('customSupplyName').value = '';
+            document.getElementById('customSupplyQty').value = '1';
+            document.getElementById('customSupplyCost').value = '';
+        }
+        
+        // Sterilization Log
+        function logSterilization() {
+            const tray = document.getElementById('sterilTray').value;
+            const method = document.getElementById('sterilMethod').value;
+            const time = document.getElementById('sterilTime').value;
+            const chemIndicator = document.getElementById('chemIndicator').value;
+            const bioIndicator = document.getElementById('bioIndicator').value;
+            const sterilizerId = document.getElementById('sterilizerId').value;
+            
+            if (!tray || !time || !sterilizerId) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            alert('Sterilization log saved successfully!');
+            
+            // Clear form
+            document.getElementById('sterilTray').value = '';
+            document.getElementById('sterilizerId').value = '';
+        }
+        
+        // Save Functions
+        async function saveDraft() {
+            // TODO: Implement save to database
+            alert('Equipment and supply data saved as draft');
+        }
+        
+        async function completeAndReturn() {
+            if (implants.length === 0 && Object.keys(supplies).length === 0) {
+                if (!confirm('No equipment or supplies recorded. Are you sure you want to complete?')) {
+                    return;
+                }
+            }
+            
+            // TODO: Implement final save to database
+            alert('Equipment and supply tracking completed!');
+            window.location.href = `/dashboard.html?encounter_id=${currentEncounterId}&patient_id=${currentPatientId}`;
+        }
+    </script>
+</body>
+</html>

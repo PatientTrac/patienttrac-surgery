@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dermatology Procedure | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+            --pink: #ec4899;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(236, 72, 153, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--pink);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--pink);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .specialty-badge {
+            background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        /* Tab Navigation */
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(236, 72, 153, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--pink);
+            background: rgba(236, 72, 153, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--pink);
+            border-bottom-color: var(--pink);
+            background: rgba(236, 72, 153, 0.1);
+        }
+        
+        /* Content Area */
+        .content-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Section Headers */
+        .section-title {
+            font-size: 2rem;
+            color: var(--pink);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .section-title::before {
+            content: "";
+            width: 5px;
+            height: 35px;
+            background: linear-gradient(180deg, var(--pink) 0%, var(--purple) 100%);
+            border-radius: 3px;
+        }
+        
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 2px solid rgba(236, 72, 153, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .form-card h3 {
+            color: var(--pink);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(6, 14, 28, 0.8);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--pink);
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        /* Checkbox Groups */
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--pink);
+        }
+        
+        .checkbox-item label {
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+        }
+        
+        /* Lesion Mapper */
+        .lesion-mapper {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .body-diagram {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .diagram-view {
+            background: rgba(10, 22, 40, 0.8);
+            border: 2px solid rgba(236, 72, 153, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .diagram-label {
+            color: var(--pink);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .diagram-svg {
+            width: 100%;
+            max-width: 300px;
+            height: 400px;
+            margin: 0 auto;
+            background: rgba(6, 14, 28, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(236, 72, 153, 0.2);
+        }
+        
+        /* Lesion List */
+        .lesion-list {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .lesion-item {
+            background: rgba(10, 22, 40, 0.6);
+            border-left: 4px solid var(--pink);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .lesion-number {
+            background: var(--pink);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .lesion-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+        
+        .lesion-detail strong {
+            color: white;
+        }
+        
+        /* Photo Documentation */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .photo-card {
+            background: rgba(10, 22, 40, 0.6);
+            border: 2px solid rgba(236, 72, 153, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .photo-placeholder {
+            width: 100%;
+            height: 200px;
+            background: rgba(6, 14, 28, 0.8);
+            border: 2px dashed rgba(236, 72, 153, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 3rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .photo-placeholder:hover {
+            border-color: var(--pink);
+            background: rgba(236, 72, 153, 0.05);
+        }
+        
+        .photo-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        /* Pathology */
+        .pathology-section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .specimen-grid {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .specimen-item {
+            background: rgba(6, 14, 28, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .specimen-info {
+            flex: 1;
+        }
+        
+        .specimen-name {
+            font-weight: 700;
+            color: var(--purple);
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .specimen-meta {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        .specimen-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .status-pending {
+            background: rgba(249, 115, 22, 0.2);
+            color: var(--orange);
+            border: 1px solid var(--orange);
+        }
+        
+        .status-received {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: auto;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(236, 72, 153, 0.4);
+        }
+        
+        .btn-add {
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=derm-patient" alt="Patient" class="patient-photo">
+        <div class="patient-info">
+            <h2>Michael Rodriguez</h2>
+            <div class="patient-meta">
+                <span><strong>MRN:</strong> 987654321</span>
+                <span><strong>DOB:</strong> 07/22/1965 (58y)</span>
+                <span><strong>Procedure:</strong> Skin Lesion Excision</span>
+            </div>
+        </div>
+        <div class="specialty-badge">🔬 Dermatology</div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('procedure')">Procedure Details</button>
+        <button class="tab-btn" onclick="switchTab('lesions')">Lesion Mapping</button>
+        <button class="tab-btn" onclick="switchTab('photos')">Photo Documentation</button>
+        <button class="tab-btn" onclick="switchTab('pathology')">Pathology</button>
+    </div>
+
+    <!-- Content -->
+    <div class="content-wrapper">
+        <!-- Procedure Details Tab -->
+        <div id="procedure-tab" class="tab-content active">
+            <h2 class="section-title">Procedure Information</h2>
+
+            <div class="form-grid">
+                <div class="form-card">
+                    <h3>Procedure Type</h3>
+                    <div class="form-group">
+                        <label class="form-label">Primary Procedure *</label>
+                        <select class="form-select" id="procedureType" required>
+                            <option value="">Select procedure...</option>
+                            <option value="excision">Excision of Lesion</option>
+                            <option value="mohs">Mohs Micrographic Surgery</option>
+                            <option value="biopsy">Skin Biopsy</option>
+                            <option value="cryotherapy">Cryotherapy</option>
+                            <option value="electrosurgery">Electrosurgery/Curettage</option>
+                            <option value="laser">Laser Treatment</option>
+                            <option value="injection">Intralesional Injection</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Indication</label>
+                        <select class="form-select" id="indication">
+                            <option value="diagnostic">Diagnostic</option>
+                            <option value="therapeutic">Therapeutic</option>
+                            <option value="cosmetic">Cosmetic</option>
+                            <option value="prophylactic">Prophylactic</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <h3>Anesthesia</h3>
+                    <div class="form-group">
+                        <label class="form-label">Anesthesia Type *</label>
+                        <select class="form-select" id="anesthesiaType" required>
+                            <option value="local">Local Anesthesia</option>
+                            <option value="topical">Topical Anesthesia</option>
+                            <option value="regional">Regional Block</option>
+                            <option value="conscious">Conscious Sedation</option>
+                            <option value="general">General Anesthesia</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Agent Used</label>
+                        <input type="text" class="form-input" id="anesthesiaAgent" placeholder="e.g., Lidocaine 1% with Epinephrine">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Volume (mL)</label>
+                        <input type="number" class="form-input" id="anesthesiaVolume" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <h3>Technique</h3>
+                    <div class="form-group">
+                        <label class="form-label">Surgical Technique</label>
+                        <select class="form-select" id="technique">
+                            <option value="excision">Excision with Primary Closure</option>
+                            <option value="excision-graft">Excision with Skin Graft</option>
+                            <option value="excision-flap">Excision with Flap</option>
+                            <option value="shave">Shave Removal</option>
+                            <option value="punch">Punch Biopsy</option>
+                            <option value="curettage">Curettage</option>
+                            <option value="mohs-layer">Mohs Layer-by-Layer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Closure Type</label>
+                        <select class="form-select" id="closureType">
+                            <option value="primary">Primary Closure</option>
+                            <option value="secondary">Secondary Intention</option>
+                            <option value="graft">Skin Graft</option>
+                            <option value="flap">Local Flap</option>
+                            <option value="none">No Closure Required</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card" style="margin-bottom: 2rem;">
+                <h3>Complications & Notes</h3>
+                <div class="form-group">
+                    <label class="form-label">Intraoperative Complications</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="compNone" checked>
+                            <label for="compNone">None</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="compBleeding">
+                            <label for="compBleeding">Excessive Bleeding</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="compNerve">
+                            <label for="compNerve">Nerve Injury</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="compVessel">
+                            <label for="compVessel">Vessel Injury</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Operative Notes</label>
+                    <textarea class="form-textarea" id="operativeNotes" placeholder="Detailed description of procedure, findings, technique, and any special considerations..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lesion Mapping Tab -->
+        <div id="lesions-tab" class="tab-content">
+            <h2 class="section-title">Lesion Mapping</h2>
+
+            <div class="lesion-mapper">
+                <h3 style="color: var(--pink); margin-bottom: 1rem;">Body Diagram</h3>
+                <div class="body-diagram">
+                    <div class="diagram-view">
+                        <div class="diagram-label">Anterior View</div>
+                        <div class="diagram-svg">
+                            <!-- Simple body outline placeholder -->
+                            <svg viewBox="0 0 200 400" style="width: 100%; height: 100%;">
+                                <ellipse cx="100" cy="50" rx="30" ry="40" fill="rgba(236, 72, 153, 0.1)" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <rect x="85" y="90" width="30" height="80" fill="rgba(236, 72, 153, 0.1)" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <line x1="85" y1="100" x2="50" y2="150" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <line x1="115" y1="100" x2="150" y2="150" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <rect x="85" y="170" width="15" height="120" fill="rgba(236, 72, 153, 0.1)" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <rect x="100" y="170" width="15" height="120" fill="rgba(236, 72, 153, 0.1)" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <!-- Lesion markers -->
+                                <circle cx="110" cy="60" r="5" fill="var(--red)" stroke="white" stroke-width="2"/>
+                                <text x="110" y="65" text-anchor="middle" fill="white" font-size="10" font-weight="bold">1</text>
+                                <circle cx="120" cy="130" r="5" fill="var(--red)" stroke="white" stroke-width="2"/>
+                                <text x="120" y="135" text-anchor="middle" fill="white" font-size="10" font-weight="bold">2</text>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="diagram-view">
+                        <div class="diagram-label">Posterior View</div>
+                        <div class="diagram-svg">
+                            <svg viewBox="0 0 200 400" style="width: 100%; height: 100%;">
+                                <ellipse cx="100" cy="50" rx="30" ry="40" fill="rgba(236, 72, 153, 0.1)" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <rect x="85" y="90" width="30" height="80" fill="rgba(236, 72, 153, 0.1)" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <line x1="85" y1="100" x2="50" y2="150" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <line x1="115" y1="100" x2="150" y2="150" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <rect x="85" y="170" width="15" height="120" fill="rgba(236, 72, 153, 0.1)" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                                <rect x="100" y="170" width="15" height="120" fill="rgba(236, 72, 153, 0.1)" stroke="rgba(236, 72, 153, 0.5)" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-add" onclick="addLesion()">+ Add Lesion</button>
+            </div>
+
+            <h3 style="color: var(--cyan); margin-bottom: 1rem; font-size: 1.25rem;">Documented Lesions</h3>
+            <div class="lesion-list" id="lesionList">
+                <!-- Lesions will be populated here -->
+            </div>
+        </div>
+
+        <!-- Photo Documentation Tab -->
+        <div id="photos-tab" class="tab-content">
+            <h2 class="section-title">Photo Documentation</h2>
+
+            <div class="photo-grid">
+                <div class="photo-card">
+                    <div class="photo-placeholder" onclick="uploadPhoto('preop')">📷</div>
+                    <div class="photo-label">Pre-Operative</div>
+                </div>
+                <div class="photo-card">
+                    <div class="photo-placeholder" onclick="uploadPhoto('closeup')">📷</div>
+                    <div class="photo-label">Lesion Close-Up</div>
+                </div>
+                <div class="photo-card">
+                    <div class="photo-placeholder" onclick="uploadPhoto('intraop')">📷</div>
+                    <div class="photo-label">Intra-Operative</div>
+                </div>
+                <div class="photo-card">
+                    <div class="photo-placeholder" onclick="uploadPhoto('postop')">📷</div>
+                    <div class="photo-label">Post-Operative</div>
+                </div>
+                <div class="photo-card">
+                    <div class="photo-placeholder" onclick="uploadPhoto('closure')">📷</div>
+                    <div class="photo-label">Closure/Repair</div>
+                </div>
+                <div class="photo-card">
+                    <div class="photo-placeholder" onclick="uploadPhoto('additional')">📷</div>
+                    <div class="photo-label">Additional View</div>
+                </div>
+            </div>
+
+            <div class="form-card" style="margin-top: 2rem;">
+                <h3>Photo Documentation Notes</h3>
+                <div class="form-group">
+                    <label class="form-label">Documentation Notes</label>
+                    <textarea class="form-textarea" id="photoNotes" placeholder="Notes about photo documentation, lighting conditions, special views, consent obtained, etc..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pathology Tab -->
+        <div id="pathology-tab" class="tab-content">
+            <h2 class="section-title">Pathology & Specimens</h2>
+
+            <div class="pathology-section">
+                <h3 style="color: var(--purple); margin-bottom: 1rem;">Specimen Information</h3>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Pathology Lab</label>
+                        <select class="form-select" id="pathologyLab">
+                            <option value="">Select lab...</option>
+                            <option value="internal">Internal Pathology</option>
+                            <option value="dermpath">DermPath Diagnostics</option>
+                            <option value="quest">Quest Diagnostics</option>
+                            <option value="labcorp">LabCorp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Accession Number</label>
+                        <input type="text" class="form-input" id="accessionNumber" placeholder="Lab accession #">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specimen Collection Date</label>
+                        <input type="date" class="form-input" id="specimenDate">
+                    </div>
+                </div>
+
+                <div class="specimen-grid" id="specimenList">
+                    <!-- Specimens will be populated here -->
+                </div>
+
+                <button class="btn-add" onclick="addSpecimen()" style="margin-top: 1rem;">+ Add Specimen</button>
+            </div>
+
+            <div class="form-card" style="margin-top: 2rem;">
+                <h3>Clinical Information for Pathologist</h3>
+                <div class="form-group">
+                    <label class="form-label">Clinical History</label>
+                    <textarea class="form-textarea" id="clinicalHistory" placeholder="Relevant clinical history, previous biopsies, family history, risk factors..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Clinical Differential Diagnosis</label>
+                    <textarea class="form-textarea" id="differentialDx" placeholder="Suspected diagnoses to guide pathologist..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="action-buttons">
+            <button class="btn-back" onclick="goToDashboard()">← Back to Dashboard</button>
+            <button class="btn-save" onclick="saveProcedure()">💾 Save Procedure</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://lazieeewetgxixdvfmmq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhemllZWV3ZXRneGl4ZHZmbW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU1MTY1MTcsImV4cCI6MjA1MTA5MjUxN30.4uQKGpWfJ8G8kIJQyOvY1Uqcjkz8VNfUqQ9gZXFuqHk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Sample data
+        let lesions = [
+            {
+                id: 1,
+                location: 'Right Forehead',
+                size: '8 x 6 mm',
+                type: 'Basal Cell Carcinoma (suspected)',
+                characteristics: 'Pearly border, central ulceration',
+                excisionMargins: '4mm circumferential'
+            },
+            {
+                id: 2,
+                location: 'Left Upper Back',
+                size: '12 x 10 mm',
+                type: 'Melanocytic Nevus (atypical)',
+                characteristics: 'Irregular borders, color variegation',
+                excisionMargins: '5mm circumferential'
+            }
+        ];
+
+        let specimens = [
+            {
+                id: 1,
+                name: 'Specimen A - Right Forehead',
+                container: 'Formalin, 10% buffered',
+                status: 'pending',
+                notes: 'Oriented with suture at 12 o\'clock position'
+            },
+            {
+                id: 2,
+                name: 'Specimen B - Left Upper Back',
+                container: 'Formalin, 10% buffered',
+                status: 'pending',
+                notes: 'Deep margin marked with blue ink'
+            }
+        ];
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Render lesions
+        function renderLesions() {
+            const container = document.getElementById('lesionList');
+            container.innerHTML = lesions.map(lesion => `
+                <div class="lesion-item">
+                    <div class="lesion-number">${lesion.id}</div>
+                    <div class="lesion-details">
+                        <div><strong>Location:</strong> ${lesion.location}</div>
+                        <div><strong>Size:</strong> ${lesion.size}</div>
+                        <div><strong>Type:</strong> ${lesion.type}</div>
+                        <div><strong>Characteristics:</strong> ${lesion.characteristics}</div>
+                        <div><strong>Excision Margins:</strong> ${lesion.excisionMargins}</div>
+                    </div>
+                    <button class="btn-sm" style="background: var(--red); color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer;" onclick="removeLesion(${lesion.id})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Render specimens
+        function renderSpecimens() {
+            const container = document.getElementById('specimenList');
+            container.innerHTML = specimens.map(specimen => `
+                <div class="specimen-item">
+                    <div class="specimen-info">
+                        <div class="specimen-name">${specimen.name}</div>
+                        <div class="specimen-meta">Container: ${specimen.container} | ${specimen.notes}</div>
+                    </div>
+                    <span class="specimen-status status-${specimen.status}">${specimen.status === 'pending' ? 'Pending' : 'Received'}</span>
+                </div>
+            `).join('');
+        }
+
+        // Add lesion
+        function addLesion() {
+            const location = prompt('Lesion location:');
+            if (location) {
+                const newLesion = {
+                    id: lesions.length + 1,
+                    location: location,
+                    size: prompt('Size (mm):') || 'Not specified',
+                    type: prompt('Type/Diagnosis:') || 'Unknown',
+                    characteristics: prompt('Characteristics:') || 'None noted',
+                    excisionMargins: prompt('Excision margins:') || 'Standard'
+                };
+                lesions.push(newLesion);
+                renderLesions();
+            }
+        }
+
+        function removeLesion(id) {
+            lesions = lesions.filter(l => l.id !== id);
+            renderLesions();
+        }
+
+        // Add specimen
+        function addSpecimen() {
+            const name = prompt('Specimen name/description:');
+            if (name) {
+                const newSpecimen = {
+                    id: specimens.length + 1,
+                    name: name,
+                    container: prompt('Container type:') || 'Formalin, 10%',
+                    status: 'pending',
+                    notes: prompt('Notes:') || ''
+                };
+                specimens.push(newSpecimen);
+                renderSpecimens();
+            }
+        }
+
+        // Photo upload placeholder
+        function uploadPhoto(type) {
+            alert(`Photo upload for ${type} view\n\nIn production, this would open the device camera or file picker.`);
+        }
+
+        // Navigation
+        function goToDashboard() {
+            window.location.href = 'dashboard.html';
+        }
+
+        function saveProcedure() {
+            alert('✅ Dermatology procedure saved successfully!');
+        }
+
+        // Initialize
+        renderLesions();
+        renderSpecimens();
+
+        // Set current date as default for specimen date
+        document.getElementById('specimenDate').valueAsDate = new Date();
+    </script>
+</body>
+</html>

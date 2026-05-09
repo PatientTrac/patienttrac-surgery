@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Operative Note | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--cyan);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--cyan);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .specialty-badge {
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        /* Content */
+        .content-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* AI Toolbar */
+        .ai-toolbar {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+            border: 2px solid rgba(168, 85, 247, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .ai-toolbar-title {
+            color: var(--purple);
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .ai-btn {
+            background: linear-gradient(135deg, var(--purple) 0%, var(--blue) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .ai-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(168, 85, 247, 0.4);
+        }
+        
+        .ai-btn.secondary {
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
+        }
+        
+        .ai-btn.success {
+            background: linear-gradient(135deg, var(--green) 0%, var(--cyan) 100%);
+        }
+        
+        .ai-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Template Selector */
+        .template-section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .template-card {
+            background: rgba(6, 14, 28, 0.8);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .template-card:hover {
+            border-color: var(--cyan);
+            background: rgba(0, 212, 255, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        .template-card.selected {
+            border-color: var(--purple);
+            background: rgba(168, 85, 247, 0.1);
+        }
+        
+        .template-name {
+            font-weight: 700;
+            color: var(--cyan);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .template-desc {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        /* Note Editor */
+        .note-editor {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .editor-title {
+            color: var(--cyan);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .voice-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .voice-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .voice-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        .voice-btn.recording {
+            animation: pulse 1.5s infinite;
+            background: var(--red);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+        }
+        
+        .note-textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 1.5rem;
+            background: rgba(6, 14, 28, 0.8);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            line-height: 1.8;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .note-textarea:focus {
+            outline: none;
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        /* AI Suggestions Panel */
+        .suggestions-panel {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .suggestions-header {
+            color: var(--purple);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .suggestion-item {
+            background: rgba(6, 14, 28, 0.8);
+            border-left: 4px solid var(--purple);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .suggestion-item:hover {
+            background: rgba(168, 85, 247, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .suggestion-label {
+            color: var(--purple);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .suggestion-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+        
+        /* Quality Checks */
+        .quality-panel {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .quality-header {
+            color: var(--green);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: rgba(6, 14, 28, 0.6);
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+        }
+        
+        .check-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        .check-icon.complete {
+            background: var(--green);
+            color: white;
+        }
+        
+        .check-icon.incomplete {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+            border: 2px solid var(--red);
+        }
+        
+        .check-label {
+            flex: 1;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Loading Indicator */
+        .ai-loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: var(--purple);
+        }
+        
+        .ai-loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(168, 85, 247, 0.2);
+            border-top-color: var(--purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=patient123" alt="Patient" class="patient-photo">
+        <div class="patient-info">
+            <h2>Sarah Johnson</h2>
+            <div class="patient-meta">
+                <span><strong>MRN:</strong> 123456789</span>
+                <span><strong>DOB:</strong> 03/15/1978 (46y)</span>
+                <span><strong>Procedure:</strong> Total Knee Arthroplasty</span>
+            </div>
+        </div>
+        <div class="specialty-badge">🤖 AI-Powered Note</div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-wrapper">
+        <!-- AI Toolbar -->
+        <div class="ai-toolbar">
+            <div class="ai-toolbar-title">
+                🤖 AI Assistant Tools
+            </div>
+            <button class="ai-btn secondary" onclick="loadTemplate()">
+                📋 Load Template
+            </button>
+            <button class="ai-btn" onclick="generateSuggestions()">
+                ✨ AI Suggestions
+            </button>
+            <button class="ai-btn" onclick="autoComplete()">
+                🔮 Smart Complete
+            </button>
+            <button class="ai-btn success" onclick="runQualityCheck()">
+                ✓ Quality Check
+            </button>
+        </div>
+
+        <!-- Template Selector -->
+        <div class="template-section" id="templateSection" style="display: none;">
+            <h3 style="color: var(--cyan); margin-bottom: 1rem;">Select Procedure Template</h3>
+            <div class="template-grid" id="templateGrid">
+                <!-- Templates will be populated here -->
+            </div>
+        </div>
+
+        <!-- Note Editor -->
+        <div class="note-editor">
+            <div class="editor-header">
+                <div class="editor-title">Operative Note</div>
+                <div class="voice-controls">
+                    <button class="voice-btn" id="voiceBtn" onclick="toggleVoiceRecording()" title="Voice Dictation">
+                        🎤
+                    </button>
+                </div>
+            </div>
+            <textarea class="note-textarea" id="operativeNote" placeholder="Start typing or use voice dictation...
+
+Use AI tools to:
+- Load procedure-specific templates
+- Get smart suggestions for documentation
+- Auto-complete common surgical phrases
+- Run quality checks for completeness
+
+Or speak your note using the microphone button above."></textarea>
+            <div style="margin-top: 1rem; color: rgba(255, 255, 255, 0.6); font-size: 0.9rem;">
+                <strong>Word Count:</strong> <span id="wordCount">0</span> words | 
+                <strong>Last Saved:</strong> <span id="lastSaved">Never</span>
+            </div>
+        </div>
+
+        <!-- AI Loading -->
+        <div class="ai-loading" id="aiLoading">
+            <div class="spinner"></div>
+            <div>AI is processing your request...</div>
+        </div>
+
+        <!-- AI Suggestions Panel -->
+        <div class="suggestions-panel" id="suggestionsPanel" style="display: none;">
+            <div class="suggestions-header">
+                ✨ AI Suggestions
+            </div>
+            <div id="suggestionsList">
+                <!-- Suggestions will be populated here -->
+            </div>
+        </div>
+
+        <!-- Quality Checks Panel -->
+        <div class="quality-panel" id="qualityPanel" style="display: none;">
+            <div class="quality-header">
+                ✓ Documentation Quality Check
+            </div>
+            <div id="qualityChecks">
+                <!-- Quality checks will be populated here -->
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn-secondary" onclick="goBack()">← Back</button>
+            <button class="btn-secondary" onclick="saveDraft()">💾 Save Draft</button>
+            <button class="btn-primary" onclick="finalizeNote()">✅ Sign & Finalize</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://lazieeewetgxixdvfmmq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhemllZWV3ZXRneGl4ZHZmbW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU1MTY1MTcsImV4cCI6MjA1MTA5MjUxN30.4uQKGpWfJ8G8kIJQyOvY1Uqcjkz8VNfUqQ9gZXFuqHk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Procedure templates
+        const templates = [
+            {
+                id: 'tka',
+                name: 'Total Knee Arthroplasty',
+                description: 'Complete TKA operative note template',
+                content: `PREOPERATIVE DIAGNOSIS: Osteoarthritis, right knee
+
+POSTOPERATIVE DIAGNOSIS: Same
+
+PROCEDURE: Total knee arthroplasty, right knee
+
+SURGEON: [Surgeon Name]
+ASSISTANT: [Assistant Name]
+ANESTHESIA: General/Spinal
+
+INDICATIONS: The patient is a [age]-year-old [gender] with progressive osteoarthritis of the right knee with pain refractory to conservative management including NSAIDs, physical therapy, and intra-articular injections. After discussion of risks and benefits, the patient elected to proceed with total knee arthroplasty.
+
+DESCRIPTION OF PROCEDURE:
+The patient was brought to the operating room and placed supine on the operating table. After adequate anesthesia was achieved, a timeout was performed confirming correct patient, correct side, and planned procedure. 
+
+The right lower extremity was prepped and draped in standard sterile fashion. A pneumatic tourniquet was applied to the right thigh and inflated to [pressure] mmHg. An anterior midline incision was made from [location] to [location]. Dissection was carried down through subcutaneous tissue. A medial parapatellar arthrotomy was performed. The patella was everted.
+
+Osteophytes were removed from the femur and tibia. The ACL and PCL were [preserved/sacrificed]. Tibial cut was made using an intramedullary guide, removing [mm] of bone. Femoral cuts were made using [technique], removing [mm] of bone. 
+
+Trial components were placed with excellent stability in extension and flexion. Final components: [Implant manufacturer] tibial component size [X], femoral component size [Y], polyethylene insert [thickness]mm, all cemented in place.
+
+The tourniquet was deflated. Hemostasis was achieved. The wound was irrigated copiously. Layered closure was performed.
+
+ESTIMATED BLOOD LOSS: [amount]
+COMPLICATIONS: None
+CONDITION: Stable to PACU`
+            },
+            {
+                id: 'cataract',
+                name: 'Cataract Surgery - Phacoemulsification',
+                description: 'Phaco with IOL implantation',
+                content: `PREOPERATIVE DIAGNOSIS: Cataract, [right/left] eye
+
+POSTOPERATIVE DIAGNOSIS: Same
+
+PROCEDURE: Phacoemulsification with intraocular lens implantation, [right/left] eye
+
+ANESTHESIA: Topical with monitored anesthesia care
+
+DESCRIPTION OF PROCEDURE:
+After informed consent, the patient was brought to the operating room. Topical anesthesia was administered to the [right/left] eye. A timeout was performed.
+
+The eye was prepped and draped in sterile fashion. A lid speculum was placed. A clear corneal incision was created at [location]. Viscoelastic was injected into the anterior chamber. 
+
+Continuous curvilinear capsulorrhexis was performed. Hydrodissection and hydrodelineation were completed. Phacoemulsification of the nucleus was performed using [technique]. Cortical material was aspirated.
+
+A [IOL type] intraocular lens, power [X] diopters, was inserted into the capsular bag. The IOL was well-positioned. Viscoelastic was removed. The wound was hydrated and found to be self-sealing.
+
+The eye was dressed with antibiotic ointment and shield.
+
+COMPLICATIONS: None
+CONDITION: Stable`
+            },
+            {
+                id: 'appy',
+                name: 'Laparoscopic Appendectomy',
+                description: 'Lap appy operative note',
+                content: `PREOPERATIVE DIAGNOSIS: Acute appendicitis
+
+POSTOPERATIVE DIAGNOSIS: [Perforated/Non-perforated] appendicitis
+
+PROCEDURE: Laparoscopic appendectomy
+
+DESCRIPTION OF PROCEDURE:
+Timeout was performed. The patient was placed in supine position. General anesthesia was induced. The abdomen was prepped and draped in sterile fashion.
+
+A 10mm umbilical trocar was placed using [open/Veress] technique. Pneumoperitoneum was established to 15mmHg. Two additional 5mm trocars were placed in the [locations].
+
+Diagnostic laparoscopy revealed [findings]. The appendix was [description]. Using graspers, the appendix was elevated. The mesoappendix was divided using [device]. The appendiceal base was secured with [stapler/clips/ligature].
+
+The appendix was removed through the [location] port in an endoscopic bag. The abdomen was irrigated. All trocar sites were closed.
+
+ESTIMATED BLOOD LOSS: Minimal
+COMPLICATIONS: None
+CONDITION: Stable to PACU`
+            },
+            {
+                id: 'colonoscopy',
+                name: 'Colonoscopy with Polypectomy',
+                description: 'Diagnostic colonoscopy',
+                content: `INDICATIONS: [Screening/Surveillance/Symptoms]
+
+PROCEDURE: Colonoscopy with polypectomy
+
+SEDATION: Moderate sedation with [medications]
+
+DESCRIPTION:
+Digital rectal examination was normal. The colonoscope was inserted into the rectum and advanced to the cecum, identified by [landmarks]. The cecal intubation time was [X] minutes.
+
+During withdrawal, the following was noted:
+- Rectum: [findings]
+- Sigmoid: [findings]
+- Descending: [findings]
+- Transverse: [findings]
+- Ascending: [findings]
+- Cecum: [findings]
+
+POLYPS/LESIONS:
+- Location: [location], Size: [X]mm, Morphology: [sessile/pedunculated], Method: [cold snare/hot snare/EMR]
+- [Additional polyps]
+
+Biopsies were taken from [locations] for [indication].
+
+IMPRESSION:
+1. [Primary findings]
+2. [Additional findings]
+
+RECOMMENDATIONS:
+- [Follow-up interval]
+- [Additional workup]
+
+COMPLICATIONS: None
+ESTIMATED BLOOD LOSS: Minimal`
+            }
+        ];
+
+        // Quality check items
+        const qualityChecks = [
+            { id: 'diagnosis', label: 'Preoperative & postoperative diagnosis documented' },
+            { id: 'procedure', label: 'Procedure name clearly stated' },
+            { id: 'surgeon', label: 'Surgeon and assistant names included' },
+            { id: 'anesthesia', label: 'Anesthesia type documented' },
+            { id: 'indications', label: 'Indications for procedure stated' },
+            { id: 'timeout', label: 'Timeout performed and documented' },
+            { id: 'technique', label: 'Surgical technique described in detail' },
+            { id: 'findings', label: 'Operative findings documented' },
+            { id: 'specimens', label: 'Specimens sent to pathology noted (if applicable)' },
+            { id: 'ebl', label: 'Estimated blood loss documented' },
+            { id: 'complications', label: 'Complications documented (or none stated)' },
+            { id: 'condition', label: 'Patient condition at end of case noted' }
+        ];
+
+        // Voice recording state
+        let isRecording = false;
+        let recognition = null;
+
+        // Initialize speech recognition if available
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                if (finalTranscript) {
+                    const textarea = document.getElementById('operativeNote');
+                    textarea.value += finalTranscript;
+                    updateWordCount();
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                stopVoiceRecording();
+            };
+        }
+
+        // Load template
+        function loadTemplate() {
+            const section = document.getElementById('templateSection');
+            const grid = document.getElementById('templateGrid');
+            
+            grid.innerHTML = templates.map(template => `
+                <div class="template-card" onclick="selectTemplate('${template.id}')">
+                    <div class="template-name">${template.name}</div>
+                    <div class="template-desc">${template.description}</div>
+                </div>
+            `).join('');
+            
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function selectTemplate(templateId) {
+            const template = templates.find(t => t.id === templateId);
+            if (template) {
+                const textarea = document.getElementById('operativeNote');
+                textarea.value = template.content;
+                updateWordCount();
+                document.getElementById('templateSection').style.display = 'none';
+                
+                // Highlight the selected template
+                document.querySelectorAll('.template-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                event.target.closest('.template-card').classList.add('selected');
+            }
+        }
+
+        // Generate AI suggestions
+        async function generateSuggestions() {
+            showLoading();
+            
+            // Simulate API call to Claude
+            setTimeout(() => {
+                const suggestions = [
+                    {
+                        label: 'Missing Detail',
+                        text: 'Consider adding the specific implant sizes and manufacturer details for complete documentation.'
+                    },
+                    {
+                        label: 'Completeness',
+                        text: 'Document the range of motion achieved after implant placement (extension/flexion degrees).'
+                    },
+                    {
+                        label: 'Best Practice',
+                        text: 'Include antibiotic prophylaxis given and timing relative to incision.'
+                    },
+                    {
+                        label: 'Billing Optimization',
+                        text: 'Consider documenting any additional procedures (e.g., synovectomy, loose body removal) for accurate coding.'
+                    }
+                ];
+                
+                displaySuggestions(suggestions);
+                hideLoading();
+            }, 1500);
+        }
+
+        function displaySuggestions(suggestions) {
+            const panel = document.getElementById('suggestionsPanel');
+            const list = document.getElementById('suggestionsList');
+            
+            list.innerHTML = suggestions.map(suggestion => `
+                <div class="suggestion-item" onclick="applySuggestion(\`${suggestion.text}\`)">
+                    <div class="suggestion-label">${suggestion.label}</div>
+                    <div class="suggestion-text">${suggestion.text}</div>
+                </div>
+            `).join('');
+            
+            panel.style.display = 'block';
+        }
+
+        function applySuggestion(text) {
+            const textarea = document.getElementById('operativeNote');
+            textarea.value += '\n\n' + text;
+            updateWordCount();
+        }
+
+        // Smart auto-complete
+        function autoComplete() {
+            const textarea = document.getElementById('operativeNote');
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            
+            showLoading();
+            
+            // Simulate AI completion
+            setTimeout(() => {
+                const completions = {
+                    'The patient was brought': ' to the operating room and placed in supine position on the operating table. After adequate anesthesia was achieved, a timeout was performed confirming correct patient, correct side, and planned procedure.',
+                    'Estimated blood loss': ': Approximately 150mL',
+                    'The wound was': ' irrigated copiously with normal saline. Hemostasis was achieved. Layered closure was performed using absorbable sutures for deep layers and subcuticular closure for skin.',
+                    'Complications': ': None\nCONDITION: Stable to PACU'
+                };
+                
+                for (const [trigger, completion] of Object.entries(completions)) {
+                    if (textBefore.toLowerCase().endsWith(trigger.toLowerCase())) {
+                        textarea.value = textBefore + completion + textarea.value.substring(cursorPos);
+                        updateWordCount();
+                        break;
+                    }
+                }
+                
+                hideLoading();
+            }, 800);
+        }
+
+        // Run quality check
+        function runQualityCheck() {
+            const noteText = document.getElementById('operativeNote').value.toLowerCase();
+            const panel = document.getElementById('qualityPanel');
+            const checksContainer = document.getElementById('qualityChecks');
+            
+            const results = qualityChecks.map(check => {
+                let isComplete = false;
+                
+                // Simple keyword matching (in production, use AI)
+                switch(check.id) {
+                    case 'diagnosis':
+                        isComplete = noteText.includes('preoperative diagnosis') && noteText.includes('postoperative diagnosis');
+                        break;
+                    case 'procedure':
+                        isComplete = noteText.includes('procedure:');
+                        break;
+                    case 'surgeon':
+                        isComplete = noteText.includes('surgeon') || noteText.includes('assistant');
+                        break;
+                    case 'anesthesia':
+                        isComplete = noteText.includes('anesthesia');
+                        break;
+                    case 'indications':
+                        isComplete = noteText.includes('indication');
+                        break;
+                    case 'timeout':
+                        isComplete = noteText.includes('timeout');
+                        break;
+                    case 'technique':
+                        isComplete = noteText.includes('incision') || noteText.includes('technique');
+                        break;
+                    case 'findings':
+                        isComplete = noteText.includes('findings') || noteText.length > 500;
+                        break;
+                    case 'specimens':
+                        isComplete = true; // Optional
+                        break;
+                    case 'ebl':
+                        isComplete = noteText.includes('blood loss') || noteText.includes('ebl');
+                        break;
+                    case 'complications':
+                        isComplete = noteText.includes('complications');
+                        break;
+                    case 'condition':
+                        isComplete = noteText.includes('condition') || noteText.includes('stable');
+                        break;
+                }
+                
+                return { ...check, isComplete };
+            });
+            
+            checksContainer.innerHTML = results.map(check => `
+                <div class="check-item">
+                    <div class="check-icon ${check.isComplete ? 'complete' : 'incomplete'}">
+                        ${check.isComplete ? '✓' : '!'}
+                    </div>
+                    <div class="check-label">${check.label}</div>
+                </div>
+            `).join('');
+            
+            panel.style.display = 'block';
+        }
+
+        // Voice recording
+        function toggleVoiceRecording() {
+            if (!recognition) {
+                alert('Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+                return;
+            }
+            
+            const btn = document.getElementById('voiceBtn');
+            
+            if (isRecording) {
+                stopVoiceRecording();
+            } else {
+                startVoiceRecording();
+            }
+        }
+
+        function startVoiceRecording() {
+            recognition.start();
+            isRecording = true;
+            const btn = document.getElementById('voiceBtn');
+            btn.classList.add('recording');
+        }
+
+        function stopVoiceRecording() {
+            if (recognition && isRecording) {
+                recognition.stop();
+            }
+            isRecording = false;
+            const btn = document.getElementById('voiceBtn');
+            btn.classList.remove('recording');
+        }
+
+        // Word count
+        function updateWordCount() {
+            const textarea = document.getElementById('operativeNote');
+            const words = textarea.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+            document.getElementById('wordCount').textContent = words;
+        }
+
+        // Auto-save
+        let saveTimer = null;
+        document.getElementById('operativeNote').addEventListener('input', function() {
+            updateWordCount();
+            
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+                saveDraft(true);
+            }, 3000); // Auto-save after 3 seconds of inactivity
+        });
+
+        // Loading states
+        function showLoading() {
+            document.getElementById('aiLoading').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('aiLoading').classList.remove('active');
+        }
+
+        // Action buttons
+        function saveDraft(auto = false) {
+            const note = document.getElementById('operativeNote').value;
+            // In production, save to Supabase
+            localStorage.setItem('draftNote', note);
+            
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('lastSaved').textContent = now;
+            
+            if (!auto) {
+                alert('✅ Draft saved successfully!');
+            }
+        }
+
+        function finalizeNote() {
+            const note = document.getElementById('operativeNote').value;
+            
+            if (note.trim().length < 100) {
+                alert('⚠️ The operative note seems too short. Please complete the documentation before finalizing.');
+                return;
+            }
+            
+            if (confirm('Sign and finalize this operative note?\n\nOnce finalized, the note cannot be edited.')) {
+                // In production, save to Supabase with signature and timestamp
+                alert('✅ Operative note signed and finalized!\n\nSigned by: Dr. Smith\nDate: ' + new Date().toLocaleString());
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        function goBack() {
+            if (confirm('Return to dashboard? Any unsaved changes will be lost.')) {
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Load saved draft on page load
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('draftNote');
+            if (saved) {
+                document.getElementById('operativeNote').value = saved;
+                updateWordCount();
+            }
+        });
+    </script>
+</body>
+</html>

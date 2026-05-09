@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Preview & Code Capture | PatientTracSurg</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        
+        /* Patient Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-bottom: 2px solid rgba(201, 169, 110, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .patient-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid var(--gold);
+            object-fit: cover;
+        }
+        
+        .patient-info h2 {
+            font-size: 1.75rem;
+            color: var(--gold);
+            margin-bottom: 0.25rem;
+        }
+        
+        .patient-meta {
+            display: flex;
+            gap: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+        
+        .billing-badge {
+            background: linear-gradient(135deg, var(--gold) 0%, #8b6f3f 100%);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-left: auto;
+        }
+        
+        /* Tab Navigation */
+        .tabs {
+            background: var(--darker-bg);
+            border-bottom: 1px solid rgba(201, 169, 110, 0.2);
+            display: flex;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 1.25rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn:hover {
+            color: var(--gold);
+            background: rgba(201, 169, 110, 0.05);
+        }
+        
+        .tab-btn.active {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+            background: rgba(201, 169, 110, 0.1);
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Section Styling */
+        .section {
+            background: rgba(10, 22, 40, 0.6);
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--gold);
+            border-radius: 2px;
+        }
+        
+        /* Insurance Card */
+        .insurance-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .insurance-card h3 {
+            color: var(--blue);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .insurance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .insurance-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .insurance-item label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+        }
+        
+        .insurance-item span {
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Code Search */
+        .code-search {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(201, 169, 110, 0.2);
+        }
+        
+        .code-search::before {
+            content: '🔍';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.25rem;
+        }
+        
+        /* Code Table */
+        .code-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .code-table thead {
+            background: rgba(6, 14, 28, 0.8);
+        }
+        
+        .code-table th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--gold);
+            font-weight: 700;
+            border-bottom: 2px solid rgba(201, 169, 110, 0.3);
+        }
+        
+        .code-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(201, 169, 110, 0.1);
+        }
+        
+        .code-table tbody tr:hover {
+            background: rgba(201, 169, 110, 0.05);
+        }
+        
+        .code-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(201, 169, 110, 0.2);
+            border: 1px solid var(--gold);
+            border-radius: 6px;
+            color: var(--gold);
+            font-weight: 700;
+            font-family: 'DM Mono', monospace;
+        }
+        
+        /* Modifier Pills */
+        .modifier-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .modifier-pill {
+            padding: 0.375rem 0.75rem;
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid var(--purple);
+            border-radius: 20px;
+            color: var(--purple);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modifier-pill:hover {
+            background: var(--purple);
+            color: white;
+        }
+        
+        .modifier-pill.selected {
+            background: var(--purple);
+            color: white;
+        }
+        
+        /* Billing Summary */
+        .billing-summary {
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.2) 0%, rgba(139, 111, 63, 0.2) 100%);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(201, 169, 110, 0.2);
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-top: 1rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--gold);
+        }
+        
+        .summary-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .summary-value {
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Anesthesia Timer */
+        .anesthesia-timer {
+            background: rgba(6, 14, 28, 0.8);
+            border: 2px solid var(--cyan);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .timer-display {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--cyan);
+            font-family: 'DM Mono', monospace;
+            margin: 1rem 0;
+        }
+        
+        .timer-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timer-units {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        
+        .timer-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .timer-unit label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timer-unit input {
+            width: 80px;
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid var(--cyan);
+            border-radius: 8px;
+            padding: 0.5rem;
+            color: white;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            background: rgba(6, 14, 28, 0.6);
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(201, 169, 110, 0.2);
+        }
+        
+        /* Action Buttons */
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: rgba(201, 169, 110, 0.2);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: var(--gold);
+            color: black;
+            box-shadow: 0 0 15px rgba(201, 169, 110, 0.4);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold) 0%, #8b6f3f 100%);
+            border: none;
+            color: black;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(201, 169, 110, 0.4);
+        }
+        
+        .btn-success {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--green);
+            color: var(--green);
+        }
+        
+        .btn-success:hover {
+            background: var(--green);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--red);
+            color: var(--red);
+        }
+        
+        .btn-danger:hover {
+            background: var(--red);
+            color: white;
+        }
+        
+        /* Bottom Actions */
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(6, 14, 28, 0.98);
+            border-top: 2px solid rgba(201, 169, 110, 0.3);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            z-index: 90;
+        }
+        
+        .bottom-actions .btn-group {
+            margin-left: auto;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .alert-info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid var(--blue);
+            color: var(--blue);
+        }
+        
+        .alert-warning {
+            background: rgba(249, 115, 22, 0.2);
+            border: 1px solid var(--orange);
+            color: var(--orange);
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+        
+        /* Selected Codes List */
+        .selected-code {
+            background: rgba(6, 14, 28, 0.8);
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .selected-code-info {
+            flex: 1;
+        }
+        
+        .selected-code-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .selected-code-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Patient Banner -->
+    <div class="patient-banner">
+        <img src="https://via.placeholder.com/80" alt="Patient Photo" class="patient-photo" id="patientPhoto">
+        <div class="patient-info">
+            <h2 id="patientName">Loading...</h2>
+            <div class="patient-meta">
+                <span><strong>DOB:</strong> <span id="patientDOB">--</span></span>
+                <span><strong>MRN:</strong> <span id="patientMRN">--</span></span>
+                <span><strong>Encounter:</strong> <span id="encounterID">--</span></span>
+            </div>
+        </div>
+        <div class="billing-badge">💰 BILLING PREVIEW</div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('insurance')">Insurance Verification</button>
+        <button class="tab-btn" onclick="switchTab('cpt')">CPT Codes</button>
+        <button class="tab-btn" onclick="switchTab('icd')">ICD-10 Codes</button>
+        <button class="tab-btn" onclick="switchTab('anesthesia')">Anesthesia Billing</button>
+        <button class="tab-btn" onclick="switchTab('implants')">Implant Codes</button>
+        <button class="tab-btn" onclick="switchTab('summary')">Billing Summary</button>
+    </div>
+
+    <!-- Tab 1: Insurance Verification -->
+    <div id="insuranceTab" class="tab-content active">
+        <div class="section">
+            <div class="section-header">Insurance Coverage Verification</div>
+            
+            <div class="alert alert-success">
+                <span class="alert-icon">✅</span>
+                <span>Insurance eligibility verified - Coverage active</span>
+            </div>
+            
+            <div class="insurance-card">
+                <h3>Primary Insurance</h3>
+                <div class="insurance-grid">
+                    <div class="insurance-item">
+                        <label>Insurance Company</label>
+                        <span>Aetna PPO</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Policy Number</label>
+                        <span>AET123456789</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Group Number</label>
+                        <span>GRP-8842</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Effective Date</label>
+                        <span>2025-01-01</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Deductible</label>
+                        <span>$1,500 / $3,000 (Met: $800)</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Out-of-Pocket Max</label>
+                        <span>$6,000 / $12,000 (Met: $2,150)</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Surgery Copay</label>
+                        <span>$250</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Coinsurance</label>
+                        <span>20% after deductible</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">Pre-Authorization Status</div>
+                <div class="insurance-grid">
+                    <div class="insurance-item">
+                        <label>Auth Required</label>
+                        <span style="color: var(--green);">✓ Yes - Obtained</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Auth Number</label>
+                        <span>PA2026-04-12345</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Auth Date</label>
+                        <span>2026-04-25</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Valid Through</label>
+                        <span>2026-06-25</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Approved Procedure</label>
+                        <span>Right Knee Arthroscopy</span>
+                    </div>
+                    <div class="insurance-item">
+                        <label>Approved CPT</label>
+                        <span>29881</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: CPT Codes -->
+    <div id="cptTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">CPT Code Search & Selection</div>
+            
+            <div class="code-search">
+                <input type="text" id="cptSearch" class="search-input" placeholder="Search CPT codes by code number or description...">
+            </div>
+            
+            <table class="code-table">
+                <thead>
+                    <tr>
+                        <th>CPT Code</th>
+                        <th>Description</th>
+                        <th>RVU</th>
+                        <th>Fee</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="code-badge">29881</span></td>
+                        <td>Arthroscopy, knee, surgical; with meniscectomy (medial OR lateral)</td>
+                        <td>9.13</td>
+                        <td>$1,245.00</td>
+                        <td><button class="btn btn-success" onclick="addCPT('29881', 'Knee arthroscopy - meniscectomy', '9.13', '1245.00')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">29882</span></td>
+                        <td>Arthroscopy, knee, surgical; with meniscus repair (medial OR lateral)</td>
+                        <td>10.87</td>
+                        <td>$1,485.00</td>
+                        <td><button class="btn btn-success" onclick="addCPT('29882', 'Knee arthroscopy - meniscus repair', '10.87', '1485.00')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">23410</span></td>
+                        <td>Repair of ruptured musculotendinous cuff (eg, rotator cuff) open; acute</td>
+                        <td>17.45</td>
+                        <td>$2,380.00</td>
+                        <td><button class="btn btn-success" onclick="addCPT('23410', 'Rotator cuff repair - open', '17.45', '2380.00')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">66984</span></td>
+                        <td>Extracapsular cataract removal with insertion of intraocular lens prosthesis</td>
+                        <td>11.34</td>
+                        <td>$1,547.00</td>
+                        <td><button class="btn btn-success" onclick="addCPT('66984', 'Cataract surgery with IOL', '11.34', '1547.00')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">43235</span></td>
+                        <td>Esophagogastroduodenoscopy, flexible, transoral; diagnostic</td>
+                        <td>3.21</td>
+                        <td>$437.00</td>
+                        <td><button class="btn btn-success" onclick="addCPT('43235', 'EGD - diagnostic', '3.21', '437.00')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">93458</span></td>
+                        <td>Catheter placement in coronary artery(s) for coronary angiography</td>
+                        <td>7.83</td>
+                        <td>$1,068.00</td>
+                        <td><button class="btn btn-success" onclick="addCPT('93458', 'Coronary angiography', '7.83', '1068.00')">Add</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">CPT Modifiers</div>
+            <div class="modifier-pills">
+                <div class="modifier-pill" onclick="toggleModifier('22')">22 - Increased Procedural Services</div>
+                <div class="modifier-pill" onclick="toggleModifier('50')">50 - Bilateral Procedure</div>
+                <div class="modifier-pill" onclick="toggleModifier('51')">51 - Multiple Procedures</div>
+                <div class="modifier-pill" onclick="toggleModifier('52')">52 - Reduced Services</div>
+                <div class="modifier-pill" onclick="toggleModifier('53')">53 - Discontinued Procedure</div>
+                <div class="modifier-pill" onclick="toggleModifier('59')">59 - Distinct Procedural Service</div>
+                <div class="modifier-pill" onclick="toggleModifier('62')">62 - Two Surgeons</div>
+                <div class="modifier-pill" onclick="toggleModifier('66')">66 - Surgical Team</div>
+                <div class="modifier-pill" onclick="toggleModifier('76')">76 - Repeat Procedure by Same Physician</div>
+                <div class="modifier-pill" onclick="toggleModifier('77')">77 - Repeat Procedure by Another Physician</div>
+                <div class="modifier-pill" onclick="toggleModifier('78')">78 - Return to OR for Related Procedure</div>
+                <div class="modifier-pill" onclick="toggleModifier('79')">79 - Unrelated Procedure in Postop Period</div>
+                <div class="modifier-pill" onclick="toggleModifier('LT')">LT - Left Side</div>
+                <div class="modifier-pill" onclick="toggleModifier('RT')">RT - Right Side</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">Selected CPT Codes</div>
+            <div id="selectedCPTList">
+                <div class="alert alert-warning">
+                    <span class="alert-icon">ℹ️</span>
+                    <span>No CPT codes selected yet</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: ICD-10 Codes -->
+    <div id="icdTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">ICD-10 Diagnosis Code Search</div>
+            
+            <div class="code-search">
+                <input type="text" id="icdSearch" class="search-input" placeholder="Search ICD-10 codes by code or description...">
+            </div>
+            
+            <table class="code-table">
+                <thead>
+                    <tr>
+                        <th>ICD-10 Code</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="code-badge">M23.201</span></td>
+                        <td>Derangement of unspecified lateral meniscus due to old tear, right knee</td>
+                        <td>Musculoskeletal</td>
+                        <td><button class="btn btn-success" onclick="addICD('M23.201', 'Lateral meniscus tear - right knee')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">M75.100</span></td>
+                        <td>Unspecified rotator cuff tear or rupture of unspecified shoulder</td>
+                        <td>Musculoskeletal</td>
+                        <td><button class="btn btn-success" onclick="addICD('M75.100', 'Rotator cuff tear')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">H25.11</span></td>
+                        <td>Age-related nuclear cataract, right eye</td>
+                        <td>Ophthalmic</td>
+                        <td><button class="btn btn-success" onclick="addICD('H25.11', 'Nuclear cataract - right eye')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">K21.9</span></td>
+                        <td>Gastro-esophageal reflux disease without esophagitis</td>
+                        <td>Gastrointestinal</td>
+                        <td><button class="btn btn-success" onclick="addICD('K21.9', 'GERD')">Add</button></td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">I25.10</span></td>
+                        <td>Atherosclerotic heart disease of native coronary artery without angina</td>
+                        <td>Cardiovascular</td>
+                        <td><button class="btn btn-success" onclick="addICD('I25.10', 'CAD')">Add</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">Selected ICD-10 Codes</div>
+            <div id="selectedICDList">
+                <div class="alert alert-warning">
+                    <span class="alert-icon">ℹ️</span>
+                    <span>No ICD-10 codes selected yet</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 4: Anesthesia Billing -->
+    <div id="anesthesiaTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">Anesthesia Time Calculation</div>
+            
+            <div class="anesthesia-timer">
+                <div class="timer-label">Total Anesthesia Time</div>
+                <div class="timer-display" id="anesthesiaTime">00:00:00</div>
+                
+                <div class="timer-units">
+                    <div class="timer-unit">
+                        <label>Start Time</label>
+                        <input type="time" id="anesthesiaStart" onchange="calculateAnesthesiaTime()">
+                    </div>
+                    <div class="timer-unit">
+                        <label>End Time</label>
+                        <input type="time" id="anesthesiaEnd" onchange="calculateAnesthesiaTime()">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">Anesthesia Code Selection</div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Base Anesthesia Code</label>
+                    <select id="anesthesiaCode">
+                        <option value="">Select code...</option>
+                        <option value="01382">01382 - Anesthesia for knee arthroscopy</option>
+                        <option value="01630">01630 - Anesthesia for shoulder procedure</option>
+                        <option value="00142">00142 - Anesthesia for cataract surgery</option>
+                        <option value="00740">00740 - Anesthesia for upper GI endoscopy</option>
+                        <option value="01922">01922 - Anesthesia for cardiac catheterization</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Physical Status Modifier</label>
+                    <select id="physicalStatus">
+                        <option value="P1">P1 - Normal healthy patient</option>
+                        <option value="P2">P2 - Mild systemic disease</option>
+                        <option value="P3">P3 - Severe systemic disease</option>
+                        <option value="P4">P4 - Severe disease, constant threat to life</option>
+                        <option value="P5">P5 - Moribund, not expected to survive</option>
+                        <option value="P6">P6 - Brain dead organ donor</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <span class="alert-icon">💡</span>
+                <span>Anesthesia billing calculated as: (Base Units + Time Units + Physical Status) × Conversion Factor</span>
+            </div>
+            
+            <div class="billing-summary" style="margin-top: 1rem;">
+                <div class="summary-row">
+                    <span class="summary-label">Base Units</span>
+                    <span class="summary-value">5</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Time Units (15-min intervals)</span>
+                    <span class="summary-value" id="timeUnits">0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Physical Status Units</span>
+                    <span class="summary-value">1</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Anesthesia Units</span>
+                    <span class="summary-value" id="totalUnits">6</span>
+                </div>
+                <div class="summary-row">
+                    <span>ESTIMATED ANESTHESIA CHARGE</span>
+                    <span id="anesthesiaCharge">$450.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 5: Implant Billing Codes -->
+    <div id="implantCodesTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">Implant & Supply Billing</div>
+            
+            <div class="alert alert-info">
+                <span class="alert-icon">📦</span>
+                <span>Implants tracked in Equipment module will auto-populate here with billing codes</span>
+            </div>
+            
+            <table class="code-table">
+                <thead>
+                    <tr>
+                        <th>HCPCS/CPT Code</th>
+                        <th>Implant Description</th>
+                        <th>Manufacturer</th>
+                        <th>Catalog #</th>
+                        <th>Unit Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="code-badge">L8690</span></td>
+                        <td>Ankle-foot orthosis, single upright</td>
+                        <td>DePuy Synthes</td>
+                        <td>DS-12345</td>
+                        <td>$850.00</td>
+                        <td>1</td>
+                        <td>$850.00</td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-badge">V2632</span></td>
+                        <td>Posterior chamber intraocular lens</td>
+                        <td>Alcon</td>
+                        <td>SN60WF</td>
+                        <td>$425.00</td>
+                        <td>1</td>
+                        <td>$425.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">Add Manual Implant Code</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>HCPCS/CPT Code</label>
+                    <input type="text" id="implantCode" placeholder="e.g., L8690">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="implantDesc" placeholder="Implant description">
+                </div>
+                <div class="form-group">
+                    <label>Unit Price</label>
+                    <input type="number" id="implantPrice" step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="implantQty" min="1" value="1">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="addImplantCode()">Add Implant Code</button>
+        </div>
+    </div>
+
+    <!-- Tab 6: Billing Summary -->
+    <div id="summaryTab" class="tab-content">
+        <div class="section">
+            <div class="section-header">Billing Summary & Patient Responsibility</div>
+            
+            <div class="billing-summary">
+                <h3 style="color: var(--gold); margin-bottom: 1.5rem;">Charges Breakdown</h3>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Surgical Procedure(s)</span>
+                    <span class="summary-value" id="summaryProcedures">$0.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Anesthesia Services</span>
+                    <span class="summary-value" id="summaryAnesthesia">$0.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Implants & Devices</span>
+                    <span class="summary-value" id="summaryImplants">$0.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Surgical Supplies</span>
+                    <span class="summary-value" id="summarySupplies">$0.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Facility Fee</span>
+                    <span class="summary-value">$1,500.00</span>
+                </div>
+                
+                <div class="summary-row" style="border-top: 2px solid rgba(201, 169, 110, 0.3); margin-top: 1rem; padding-top: 1rem;">
+                    <span class="summary-label"><strong>TOTAL CHARGES</strong></span>
+                    <span class="summary-value" id="totalCharges">$1,500.00</span>
+                </div>
+            </div>
+            
+            <div class="billing-summary" style="margin-top: 2rem;">
+                <h3 style="color: var(--blue); margin-bottom: 1.5rem;">Insurance Breakdown</h3>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Total Charges</span>
+                    <span class="summary-value" id="insuranceTotal">$1,500.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Insurance Allowable</span>
+                    <span class="summary-value" id="insuranceAllowable">$1,200.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Insurance Payment (80%)</span>
+                    <span class="summary-value" id="insurancePayment">$960.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Deductible Applied</span>
+                    <span class="summary-value" id="deductibleApplied">$100.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Coinsurance (20%)</span>
+                    <span class="summary-value" id="coinsurance">$240.00</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Copay</span>
+                    <span class="summary-value">$250.00</span>
+                </div>
+                
+                <div class="summary-row" style="border-top: 2px solid var(--blue); margin-top: 1rem; padding-top: 1rem; color: var(--blue);">
+                    <span><strong>ESTIMATED PATIENT RESPONSIBILITY</strong></span>
+                    <span id="patientResponsibility">$590.00</span>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning" style="margin-top: 2rem;">
+                <span class="alert-icon">⚠️</span>
+                <span>This is an estimate only. Actual charges may vary based on final insurance adjudication and contracted rates.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Actions Bar -->
+    <div class="bottom-actions">
+        <button class="btn" onclick="window.location.href='/dashboard.html'">← Back to Dashboard</button>
+        <div class="btn-group">
+            <button class="btn" onclick="saveDraft()">💾 Save Draft</button>
+            <button class="btn" onclick="printBilling()">🖨️ Print</button>
+            <button class="btn btn-primary" onclick="submitToForge()">✓ Submit to PatientTracForge</button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1za29ybW96d2VrZXpqbXRjeWx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI1Njk2MTcsImV4cCI6MjA0ODE0NTYxN30.yR_6vl-yopqo-zZi3vkF-xGXywLUDHnAJLZPvUCJIqo';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentEncounterId = null;
+        let currentPatientId = null;
+        let selectedCPTs = [];
+        let selectedICDs = [];
+        let selectedModifiers = [];
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            currentEncounterId = urlParams.get('encounter_id');
+            currentPatientId = urlParams.get('patient_id');
+            
+            if (currentEncounterId && currentPatientId) {
+                loadPatientContext();
+            } else {
+                console.error('Missing encounter_id or patient_id');
+            }
+        });
+        
+        // Load patient context
+        async function loadPatientContext() {
+            try {
+                const { data, error } = await supabase
+                    .from('surgery_encounter_view')
+                    .select('*')
+                    .eq('encounter_id', currentEncounterId)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (data) {
+                    document.getElementById('patientName').textContent = data.patient_name || 'Unknown Patient';
+                    document.getElementById('patientDOB').textContent = data.patient_dob ? new Date(data.patient_dob).toLocaleDateString() : '--';
+                    document.getElementById('patientMRN').textContent = data.patient_mrn || '--';
+                    document.getElementById('encounterID').textContent = currentEncounterId;
+                    
+                    if (data.patient_photo_url) {
+                        document.getElementById('patientPhoto').src = data.patient_photo_url;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading patient context:', error);
+            }
+        }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const tabMap = {
+                'insurance': 'insuranceTab',
+                'cpt': 'cptTab',
+                'icd': 'icdTab',
+                'anesthesia': 'anesthesiaTab',
+                'implants': 'implantCodesTab',
+                'summary': 'summaryTab'
+            };
+            
+            document.getElementById(tabMap[tabName]).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // CPT Code Management
+        function addCPT(code, description, rvu, fee) {
+            const cpt = { code, description, rvu, fee: parseFloat(fee), modifiers: [] };
+            selectedCPTs.push(cpt);
+            renderSelectedCPTs();
+            updateSummary();
+        }
+        
+        function renderSelectedCPTs() {
+            const container = document.getElementById('selectedCPTList');
+            
+            if (selectedCPTs.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <span class="alert-icon">ℹ️</span>
+                        <span>No CPT codes selected yet</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = selectedCPTs.map((cpt, index) => `
+                <div class="selected-code">
+                    <div class="selected-code-info">
+                        <div class="selected-code-header">
+                            <span class="code-badge">${cpt.code}</span>
+                            <strong>$${cpt.fee.toFixed(2)}</strong>
+                        </div>
+                        <div class="selected-code-desc">${cpt.description}</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeCPT(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+        
+        function removeCPT(index) {
+            selectedCPTs.splice(index, 1);
+            renderSelectedCPTs();
+            updateSummary();
+        }
+        
+        // ICD-10 Code Management
+        function addICD(code, description) {
+            const icd = { code, description };
+            selectedICDs.push(icd);
+            renderSelectedICDs();
+        }
+        
+        function renderSelectedICDs() {
+            const container = document.getElementById('selectedICDList');
+            
+            if (selectedICDs.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <span class="alert-icon">ℹ️</span>
+                        <span>No ICD-10 codes selected yet</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = selectedICDs.map((icd, index) => `
+                <div class="selected-code">
+                    <div class="selected-code-info">
+                        <div class="selected-code-header">
+                            <span class="code-badge">${icd.code}</span>
+                        </div>
+                        <div class="selected-code-desc">${icd.description}</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeICD(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+        
+        function removeICD(index) {
+            selectedICDs.splice(index, 1);
+            renderSelectedICDs();
+        }
+        
+        // Modifier Management
+        function toggleModifier(modifier) {
+            const index = selectedModifiers.indexOf(modifier);
+            if (index === -1) {
+                selectedModifiers.push(modifier);
+            } else {
+                selectedModifiers.splice(index, 1);
+            }
+            
+            // Update UI
+            document.querySelectorAll('.modifier-pill').forEach(pill => {
+                if (pill.textContent.startsWith(modifier)) {
+                    pill.classList.toggle('selected');
+                }
+            });
+        }
+        
+        // Anesthesia Time Calculation
+        function calculateAnesthesiaTime() {
+            const start = document.getElementById('anesthesiaStart').value;
+            const end = document.getElementById('anesthesiaEnd').value;
+            
+            if (!start || !end) return;
+            
+            const startTime = new Date(`2000-01-01T${start}`);
+            const endTime = new Date(`2000-01-01T${end}`);
+            const diff = endTime - startTime;
+            
+            if (diff < 0) return;
+            
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            
+            document.getElementById('anesthesiaTime').textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            // Calculate time units (15-minute intervals)
+            const totalMinutes = hours * 60 + minutes;
+            const timeUnits = Math.ceil(totalMinutes / 15);
+            document.getElementById('timeUnits').textContent = timeUnits;
+            
+            // Calculate total units
+            const baseUnits = 5;
+            const physicalStatusUnits = 1;
+            const totalUnits = baseUnits + timeUnits + physicalStatusUnits;
+            document.getElementById('totalUnits').textContent = totalUnits;
+            
+            // Calculate charge ($75 per unit)
+            const charge = totalUnits * 75;
+            document.getElementById('anesthesiaCharge').textContent = `$${charge.toFixed(2)}`;
+            
+            updateSummary();
+        }
+        
+        // Implant Code Management
+        function addImplantCode() {
+            const code = document.getElementById('implantCode').value;
+            const desc = document.getElementById('implantDesc').value;
+            const price = document.getElementById('implantPrice').value;
+            const qty = document.getElementById('implantQty').value;
+            
+            if (!code || !desc || !price) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            alert(`Implant code ${code} added successfully!`);
+            
+            // Clear form
+            document.getElementById('implantCode').value = '';
+            document.getElementById('implantDesc').value = '';
+            document.getElementById('implantPrice').value = '';
+            document.getElementById('implantQty').value = '1';
+            
+            updateSummary();
+        }
+        
+        // Update Billing Summary
+        function updateSummary() {
+            // Calculate totals
+            const proceduresTotal = selectedCPTs.reduce((sum, cpt) => sum + cpt.fee, 0);
+            const anesthesiaCharge = parseFloat(document.getElementById('anesthesiaCharge')?.textContent.replace('$', '').replace(',', '') || 0);
+            const implantsTotal = 1275; // From sample data
+            const suppliesTotal = 150; // Estimate
+            const facilityFee = 1500;
+            
+            const totalCharges = proceduresTotal + anesthesiaCharge + implantsTotal + suppliesTotal + facilityFee;
+            
+            // Update summary display
+            document.getElementById('summaryProcedures').textContent = `$${proceduresTotal.toFixed(2)}`;
+            document.getElementById('summaryAnesthesia').textContent = `$${anesthesiaCharge.toFixed(2)}`;
+            document.getElementById('summaryImplants').textContent = `$${implantsTotal.toFixed(2)}`;
+            document.getElementById('summarySupplies').textContent = `$${suppliesTotal.toFixed(2)}`;
+            document.getElementById('totalCharges').textContent = `$${totalCharges.toFixed(2)}`;
+            
+            // Insurance calculations
+            const allowable = totalCharges * 0.80;
+            const insurancePayment = allowable * 0.80;
+            const deductible = 100;
+            const coinsurance = allowable * 0.20;
+            const copay = 250;
+            const patientResp = deductible + coinsurance + copay;
+            
+            document.getElementById('insuranceTotal').textContent = `$${totalCharges.toFixed(2)}`;
+            document.getElementById('insuranceAllowable').textContent = `$${allowable.toFixed(2)}`;
+            document.getElementById('insurancePayment').textContent = `$${insurancePayment.toFixed(2)}`;
+            document.getElementById('deductibleApplied').textContent = `$${deductible.toFixed(2)}`;
+            document.getElementById('coinsurance').textContent = `$${coinsurance.toFixed(2)}`;
+            document.getElementById('patientResponsibility').textContent = `$${patientResp.toFixed(2)}`;
+        }
+        
+        // Save Functions
+        async function saveDraft() {
+            // TODO: Implement save to database
+            alert('Billing data saved as draft');
+        }
+        
+        function printBilling() {
+            window.print();
+        }
+        
+        async function submitToForge() {
+            if (selectedCPTs.length === 0) {
+                alert('Please add at least one CPT code before submitting');
+                return;
+            }
+            
+            if (selectedICDs.length === 0) {
+                alert('Please add at least one ICD-10 code before submitting');
+                return;
+            }
+            
+            // TODO: Implement submission to PatientTracForge superbill
+            alert('Billing codes submitted to PatientTracForge successfully!');
+            window.location.href = `/dashboard.html?encounter_id=${currentEncounterId}&patient_id=${currentPatientId}`;
+        }
+    </script>
+</body>
+</html>

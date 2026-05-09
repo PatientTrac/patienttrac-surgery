@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PatientTracSurg - Futuristic Surgical Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Exo 2', 'Rajdhani', sans-serif;
+            background: #020408;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        .bg-tech {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 50% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                linear-gradient(180deg, #020408 0%, #0a1220 50%, #020408 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .bg-tech::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, rgba(0, 212, 255, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 212, 255, 0.03) 3px),
+                repeating-linear-gradient(90deg, rgba(0, 212, 255, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 212, 255, 0.03) 3px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 60px 60px; }
+        }
+        
+        /* Hero Section */
+        .hero {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            background: 
+                radial-gradient(circle at 50% 40%, rgba(0, 212, 255, 0.08) 0%, transparent 60%),
+                linear-gradient(180deg, rgba(2, 4, 8, 0) 0%, rgba(2, 4, 8, 0.8) 100%);
+        }
+        
+        .logo-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 3rem;
+            animation: fadeInDown 1s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .shield-logo {
+            width: 240px;
+            height: auto;
+            filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.8));
+            animation: logoFloat 6s ease-in-out infinite;
+        }
+        
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.8)); }
+            50% { transform: translateY(-15px) scale(1.02); filter: drop-shadow(0 0 70px rgba(0, 212, 255, 1)); }
+        }
+        
+        .title-container {
+            text-align: center;
+        }
+        
+        .main-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #c9a96e 25%, #ffed4e 50%, #c9a96e 75%, #ffd700 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            animation: shimmer 3s linear infinite;
+            text-shadow: 0 0 80px rgba(201, 169, 110, 0.5);
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        .subtitle {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            font-weight: 500;
+            color: #00d4ff;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+            margin-bottom: 3rem;
+        }
+        
+        .hero-description {
+            max-width: 1100px;
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1.2s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hero-description h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            color: #00d4ff;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        
+        .hero-description p {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.9;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+        
+        .hero-description .tagline {
+            font-size: 1.5rem;
+            color: #00d4ff;
+            font-weight: 600;
+            margin-top: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .cta-btn {
+            padding: 1.25rem 3rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.4s ease;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .cta-btn:hover::before {
+            left: 100%;
+        }
+        
+        .cta-primary {
+            background: linear-gradient(135deg, #00d4ff 0%, #0891b2 100%);
+            color: #020408;
+            border: 3px solid #00d4ff;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6), inset 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 50px rgba(0, 212, 255, 0.8);
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            color: #ffd700;
+            border: 3px solid #c9a96e;
+            box-shadow: 0 0 20px rgba(201, 169, 110, 0.4);
+        }
+        
+        .cta-secondary:hover {
+            background: linear-gradient(135deg, #ffd700 0%, #c9a96e 100%);
+            color: #020408;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 50px rgba(201, 169, 110, 0.6);
+        }
+        
+        /* AI Intelligence Section */
+        .ai-section {
+            position: relative;
+            z-index: 10;
+            max-width: 1600px;
+            margin: 6rem auto;
+            padding: 0 2rem;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a855f7 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+        }
+        
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .ai-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3rem;
+            margin-bottom: 6rem;
+        }
+        
+        .ai-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.6) 0%, rgba(6, 14, 28, 0.8) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ai-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .ai-card:hover::before {
+            opacity: 1;
+        }
+        
+        .ai-card:hover {
+            transform: translateY(-15px);
+            border-color: #00d4ff;
+            box-shadow: 0 30px 80px rgba(0, 212, 255, 0.4);
+        }
+        
+        .ai-card-image {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            transition: transform 0.5s ease;
+        }
+        
+        .ai-card:hover .ai-card-image {
+            transform: scale(1.03);
+        }
+        
+        .ai-card-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            color: #00d4ff;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .ai-card-description {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+        
+        /* Specialties Section */
+        .specialties-section {
+            position: relative;
+            z-index: 10;
+            max-width: 1800px;
+            margin: 6rem auto;
+            padding: 0 2rem;
+        }
+        
+        .specialties-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2.5rem;
+        }
+        
+        .specialty-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.7) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .specialty-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .specialty-card:hover::after {
+            opacity: 1;
+        }
+        
+        .specialty-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            border-color: #a855f7;
+            box-shadow: 0 25px 70px rgba(168, 85, 247, 0.5);
+        }
+        
+        .specialty-image-container {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
+            background: #0a1628;
+        }
+        
+        .specialty-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s ease;
+        }
+        
+        .specialty-card:hover .specialty-image {
+            transform: scale(1.1);
+        }
+        
+        .specialty-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem 1.5rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(2, 4, 8, 0.95) 100%);
+        }
+        
+        .specialty-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        
+        /* Product Split Section */
+        .product-split {
+            position: relative;
+            z-index: 10;
+            max-width: 1600px;
+            margin: 6rem auto;
+            padding: 0 2rem 6rem;
+        }
+        
+        .split-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4rem;
+        }
+        
+        .product-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border: 3px solid rgba(168, 85, 247, 0.4);
+            border-radius: 28px;
+            padding: 3.5rem;
+            transition: all 0.5s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-8px);
+            border-color: #a855f7;
+            box-shadow: 0 30px 80px rgba(168, 85, 247, 0.4);
+        }
+        
+        .product-card h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            background: linear-gradient(135deg, #ffd700 0%, #c9a96e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+        
+        .product-subtitle {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            color: #00d4ff;
+            margin-bottom: 2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .product-description {
+            font-size: 1.15rem;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.9;
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+        }
+        
+        .feature-list {
+            list-style: none;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-list li {
+            padding: 0.85rem 0;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 300;
+        }
+        
+        .feature-list li::before {
+            content: '▸';
+            color: #00d4ff;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .product-cta {
+            display: inline-block;
+            padding: 1.25rem 3rem;
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            color: white;
+            border-radius: 12px;
+            text-decoration: none;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.15rem;
+            transition: all 0.4s ease;
+            border: 2px solid #a855f7;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .product-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(168, 85, 247, 0.6);
+        }
+        
+        /* Footer */
+        .footer {
+            position: relative;
+            z-index: 10;
+            background: rgba(2, 4, 8, 0.98);
+            border-top: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .footer p {
+            font-family: 'Orbitron', monospace;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .specialties-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        
+        @media (max-width: 1024px) {
+            .main-title { font-size: 4rem; }
+            .subtitle { font-size: 1.5rem; }
+            .ai-grid { grid-template-columns: 1fr; }
+            .specialties-grid { grid-template-columns: repeat(2, 1fr); }
+            .split-grid { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            .logo-banner { flex-direction: column; gap: 2rem; }
+            .shield-logo { width: 160px; }
+            .main-title { font-size: 2.8rem; }
+            .subtitle { font-size: 1.2rem; letter-spacing: 4px; }
+            .section-title { font-size: 2.5rem; }
+            .specialties-grid { grid-template-columns: 1fr; }
+            .cta-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-tech"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="logo-banner">
+            <img src="/PatientTracESurg2.jpg" alt="PatientTracSurg Shield" class="shield-logo">
+            <div class="title-container">
+                <h1 class="main-title">PatientTracSurg</h1>
+                <p class="subtitle">Futuristic Surgical Specialties</p>
+            </div>
+        </div>
+        
+        <div class="hero-description">
+            <h2>PatientTrac Surgical Intelligence</h2>
+            <p><strong>Outpatient Documentation + Operating Room Workflow</strong></p>
+            <p>
+                PatientTrac brings surgeons, surgical practices, and surgery centers onto one connected AI-powered platform — 
+                from pre-op documentation and smart consent to operative notes, billing optimization, OR scheduling, case tracking, 
+                and recovery analytics.
+            </p>
+            <p class="tagline">Two applications. One surgical ecosystem.</p>
+        </div>
+        
+        <div class="cta-buttons">
+            <a href="#surgeons" class="cta-btn cta-primary">For Surgeons & Practices</a>
+            <a href="#surgerycenters" class="cta-btn cta-secondary">For Surgery Centers & OR</a>
+        </div>
+    </section>
+
+    <!-- AI Intelligence Section -->
+    <section class="ai-section">
+        <div class="section-header">
+            <h2 class="section-title">AI-Powered Intelligence</h2>
+            <p class="section-subtitle">
+                Advanced machine learning delivering real-time insights, predictive analytics, 
+                and intelligent automation across every surgical workflow.
+            </p>
+        </div>
+        
+        <div class="ai-grid">
+            <div class="ai-card">
+                <img src="/Clinical_Intellgence.png" alt="Clinical Intelligence" class="ai-card-image">
+                <h3 class="ai-card-title">Clinical Intelligence</h3>
+                <p class="ai-card-description">
+                    AI risk scoring (87 high-risk detection), airway analysis with Mallampati scoring, 
+                    real-time vital signs monitoring, and clinical decision support with 92% favorable outcome prediction.
+                </p>
+            </div>
+            
+            <div class="ai-card">
+                <img src="/RealTimeAnalysis.png" alt="Real-Time Analytics" class="ai-card-image">
+                <h3 class="ai-card-title">Real-Time Analytics</h3>
+                <p class="ai-card-description">
+                    Live patient monitoring dashboard with 87% workflow completion tracking, patient timeline visualization, 
+                    AI-powered alerts for high-risk scenarios, and predictive trend analysis.
+                </p>
+            </div>
+            
+            <div class="ai-card">
+                <img src="/Billing_Optimization.png" alt="Billing Optimization" class="ai-card-image">
+                <h3 class="ai-card-title">Billing Optimization</h3>
+                <p class="ai-card-description">
+                    Revenue performance tracking ($2.5M recovered), intelligent CPT/ICD-10 coding with 98% AI confidence, 
+                    96.7% first-pass rate, 92% denial prevention, and $3.12M reimbursement forecasting.
+                </p>
+            </div>
+            
+            <div class="ai-card">
+                <img src="/SmartContent.png" alt="Smart Consent" class="ai-card-image">
+                <h3 class="ai-card-title">Smart Consent Management</h3>
+                <p class="ai-card-description">
+                    Multi-language e-signature system (English, Español, Français, 中文, العربية), 
+                    4-item verification checklist, version control with full audit trail, and HIPAA-compliant secure storage.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Specialties Section -->
+    <section class="specialties-section">
+        <div class="section-header">
+            <h2 class="section-title">Surgical Specialties</h2>
+            <p class="section-subtitle">
+                Purpose-built documentation systems for each surgical specialty, 
+                delivering precision workflows and specialty-specific intelligence.
+            </p>
+        </div>
+        
+        <div class="specialties-grid">
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Bariatric.png" alt="Bariatric Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Bariatric Surgery</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Plastic.png" alt="Plastic Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Plastic Surgery</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Eye.png" alt="Ophthalmic Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Ophthalmic Surgery</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/OrthoPedic.png" alt="Orthopedic Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Orthopedic Surgery</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Cardiac.png" alt="Cardiac Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Cardiac Surgery</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/EndoScopy.png" alt="Endoscopy" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Endoscopy Procedures</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Dental.png" alt="Oral Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Oral Surgery</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Cardiac.png" alt="Dermatology" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Dermatology</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Split -->
+    <section class="product-split">
+        <div class="section-header">
+            <h2 class="section-title">Choose Your Platform</h2>
+            <p class="section-subtitle">Purpose-built solutions for surgical documentation and OR workflow</p>
+        </div>
+        
+        <div class="split-grid">
+            <div class="product-card" id="surgeons">
+                <h3>PatientTrac Surg</h3>
+                <p class="product-subtitle">AI-powered outpatient surgical documentation</p>
+                <p class="product-description">
+                    Designed for surgeons and specialty practices that need faster, cleaner, more complete clinical documentation.
+                </p>
+                <ul class="feature-list">
+                    <li>Specialty procedure documentation</li>
+                    <li>Smart consent management</li>
+                    <li>AI-assisted operative notes</li>
+                    <li>CPT / ICD-10 coding support</li>
+                    <li>Billing optimization</li>
+                    <li>Recovery and outcomes tracking</li>
+                    <li>Multi-specialty support</li>
+                </ul>
+                <a href="/app.html" class="product-cta">Explore PatientTrac Surg →</a>
+            </div>
+            
+            <div class="product-card" id="surgerycenters">
+                <h3>PatientTrac OR</h3>
+                <p class="product-subtitle">Surgery center and operating room workflow</p>
+                <p class="product-description">
+                    Designed for ASCs, surgical centers, and OR teams that need visibility across rooms, cases, and perioperative workflow.
+                </p>
+                <ul class="feature-list">
+                    <li>OR scheduling and case flow</li>
+                    <li>Room utilization tracking</li>
+                    <li>Pre-op, intra-op, and post-op visibility</li>
+                    <li>Surgical team coordination</li>
+                    <li>Case status dashboards</li>
+                    <li>Facility analytics</li>
+                    <li>ASC operations intelligence</li>
+                </ul>
+                <a href="https://patienttracsurgery.com" class="product-cta">Explore PatientTrac OR →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 PatientTrac Corp · HIPAA Compliant · SOC 2 Type II Certified</p>
+    </footer>
+</body>
+</html>

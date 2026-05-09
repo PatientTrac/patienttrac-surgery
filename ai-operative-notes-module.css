@@ -1,0 +1,407 @@
+/**
+ * AI-Powered Operative Notes CSS Module
+ * PatientTracSurg - Reusable styles for AI features
+ * Version 1.0.0
+ */
+
+/* ============================================
+   AI TOOLBAR
+   ============================================ */
+
+.ai-toolbar {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+    border: 2px solid rgba(168, 85, 247, 0.4);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.ai-toolbar-title {
+    color: var(--purple);
+    font-weight: 700;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.ai-btn {
+    background: linear-gradient(135deg, var(--purple) 0%, var(--blue) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.ai-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(168, 85, 247, 0.4);
+}
+
+.ai-btn.secondary {
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
+}
+
+.ai-btn.success {
+    background: linear-gradient(135deg, var(--green) 0%, var(--cyan) 100%);
+}
+
+.ai-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================
+   TEMPLATE SELECTOR
+   ============================================ */
+
+.template-section {
+    background: rgba(10, 22, 40, 0.6);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: none;
+}
+
+.template-section h3 {
+    color: var(--cyan);
+    margin-bottom: 1rem;
+}
+
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.template-card {
+    background: rgba(6, 14, 28, 0.8);
+    border: 2px solid rgba(0, 212, 255, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.template-card:hover {
+    border-color: var(--cyan);
+    background: rgba(0, 212, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+.template-card.selected {
+    border-color: var(--purple);
+    background: rgba(168, 85, 247, 0.1);
+}
+
+.template-name {
+    font-weight: 700;
+    color: var(--cyan);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.template-desc {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   NOTE EDITOR WITH VOICE
+   ============================================ */
+
+.note-editor {
+    background: rgba(10, 22, 40, 0.6);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.editor-title {
+    color: var(--cyan);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.voice-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.voice-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%);
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.voice-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
+}
+
+.voice-btn.recording {
+    animation: pulse 1.5s infinite;
+    background: var(--red);
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+        transform: scale(1.05);
+    }
+}
+
+.note-textarea {
+    width: 100%;
+    min-height: 400px;
+    padding: 1.5rem;
+    background: rgba(6, 14, 28, 0.8);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+    line-height: 1.8;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.note-textarea:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+/* ============================================
+   AI SUGGESTIONS PANEL
+   ============================================ */
+
+.suggestions-panel {
+    background: rgba(10, 22, 40, 0.6);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: none;
+}
+
+.suggestions-header {
+    color: var(--purple);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.suggestion-item {
+    background: rgba(6, 14, 28, 0.8);
+    border-left: 4px solid var(--purple);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.suggestion-item:hover {
+    background: rgba(168, 85, 247, 0.1);
+    transform: translateX(5px);
+}
+
+.suggestion-label {
+    color: var(--purple);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.suggestion-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+}
+
+/* ============================================
+   QUALITY CHECKS PANEL
+   ============================================ */
+
+.quality-panel {
+    background: rgba(10, 22, 40, 0.6);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: none;
+}
+
+.quality-header {
+    color: var(--green);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(6, 14, 28, 0.6);
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+}
+
+.check-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.check-icon.complete {
+    background: var(--green);
+    color: white;
+}
+
+.check-icon.incomplete {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--red);
+    border: 2px solid var(--red);
+}
+
+.check-label {
+    flex: 1;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ============================================
+   AI LOADING INDICATOR
+   ============================================ */
+
+.ai-loading {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+    color: var(--purple);
+}
+
+.ai-loading.active {
+    display: block;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(168, 85, 247, 0.2);
+    border-top-color: var(--purple);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+    .ai-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .ai-toolbar-title {
+        min-width: auto;
+    }
+    
+    .ai-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .template-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .voice-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .note-textarea {
+        min-height: 300px;
+        font-size: 0.95rem;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .ai-toolbar,
+    .suggestions-panel,
+    .quality-panel,
+    .voice-controls,
+    .ai-loading {
+        display: none !important;
+    }
+    
+    .note-textarea {
+        border: 1px solid #333;
+        background: white;
+        color: black;
+        min-height: auto;
+    }
+}

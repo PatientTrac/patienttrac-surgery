@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PatientTracSurg - Futuristic Surgical Workflow Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-bg: #0a1628;
+            --darker-bg: #060e1c;
+            --cyan: #00d4ff;
+            --gold: #c9a96e;
+            --purple: #a855f7;
+            --green: #10b981;
+            --blue: #3b82f6;
+        }
+        
+        body {
+            font-family: 'Rajdhani', 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+        }
+        
+        /* Hero Section with Logo */
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4rem 2rem;
+            background: 
+                radial-gradient(ellipse at top, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+        }
+        
+        .logo-container {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .logo-shield {
+            width: 320px;
+            height: auto;
+            filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.6));
+            animation: logoFloat 4s ease-in-out infinite;
+        }
+        
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.6)); }
+            50% { transform: translateY(-20px) scale(1.03); filter: drop-shadow(0 0 60px rgba(0, 212, 255, 0.8)); }
+        }
+        
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--cyan) 50%, var(--purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes titleGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+        
+        .hero-subtitle {
+            font-size: 2.25rem;
+            color: var(--cyan);
+            font-weight: 300;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+        }
+        
+        .hero-tagline {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.8;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .cta-btn {
+            padding: 1.25rem 3rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .cta-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .cta-primary {
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
+            color: white;
+            border: 2px solid var(--cyan);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.6);
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            color: var(--gold);
+            border: 2px solid var(--gold);
+        }
+        
+        .cta-secondary:hover {
+            background: var(--gold);
+            color: var(--darker-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(201, 169, 110, 0.4);
+        }
+        
+        /* AI Features Section with Dashboard Images */
+        .ai-features {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--purple) 0%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .section-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .ai-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+        }
+        
+        .ai-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ai-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .ai-card:hover::before {
+            opacity: 1;
+        }
+        
+        .ai-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--cyan);
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.3);
+        }
+        
+        .ai-card-image {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .ai-card-title {
+            font-size: 1.75rem;
+            color: var(--cyan);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .ai-card-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        
+        /* Surgical Specialties Section */
+        .specialties {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+            background: 
+                radial-gradient(ellipse at 50% 50%, rgba(168, 85, 247, 0.05) 0%, transparent 70%),
+                linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+        }
+        
+        .specialties-grid {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+        
+        .specialty-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.9) 0%, rgba(6, 14, 28, 0.95) 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            border: 2px solid rgba(168, 85, 247, 0.2);
+            position: relative;
+        }
+        
+        .specialty-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: var(--purple);
+            box-shadow: 0 25px 80px rgba(168, 85, 247, 0.4);
+        }
+        
+        .specialty-image-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            overflow: hidden;
+        }
+        
+        .specialty-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+        
+        .specialty-card:hover .specialty-image {
+            transform: scale(1.1);
+        }
+        
+        .specialty-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(6, 14, 28, 0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2rem;
+        }
+        
+        .specialty-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .specialty-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, var(--purple) 0%, var(--cyan) 100%);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .specialty-features {
+            padding: 2rem;
+            background: rgba(6, 14, 28, 0.8);
+        }
+        
+        .specialty-features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .specialty-features li {
+            padding: 0.75rem 0;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .specialty-features li::before {
+            content: '✓';
+            color: var(--cyan);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+        
+        /* Pricing Section */
+        .pricing {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+        }
+        
+        .pricing-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 3rem;
+        }
+        
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(6, 14, 28, 0.9) 100%);
+            border: 2px solid rgba(201, 169, 110, 0.3);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+            box-shadow: 0 20px 60px rgba(201, 169, 110, 0.3);
+        }
+        
+        .pricing-popular {
+            border-color: var(--cyan);
+            transform: scale(1.05);
+        }
+        
+        .pricing-popular::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .pricing-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+        
+        .pricing-price {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        .pricing-period {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+        
+        .pricing-features li {
+            padding: 0.75rem 0;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.05rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .pricing-btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, var(--gold) 0%, #8b6f3f 100%);
+            color: black;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        .pricing-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(201, 169, 110, 0.4);
+        }
+        
+        /* Footer */
+        .footer {
+            position: relative;
+            z-index: 1;
+            background: var(--darker-bg);
+            padding: 4rem 2rem 2rem;
+            border-top: 2px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-section h3 {
+            color: var(--cyan);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--cyan);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 3rem; }
+            .hero-subtitle { font-size: 1.5rem; }
+            .section-title { font-size: 2.5rem; }
+            .cta-buttons { flex-direction: column; gap: 1rem; }
+            .ai-grid { grid-template-columns: 1fr; }
+            .specialties-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="particles"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="logo-container">
+            <img src="/PatientTracESurg2.jpg" alt="PatientTracSurg Logo" class="logo-shield">
+        </div>
+        
+        <h1 class="hero-title">PatientTracSurg</h1>
+        <h2 class="hero-subtitle">Futuristic Surgical Workflow</h2>
+        <p class="hero-tagline">
+            AI-powered surgical documentation platform delivering next-generation clinical intelligence, 
+            real-time analytics, and seamless cross-specialty integration for modern operating rooms.
+        </p>
+        
+        <div class="cta-buttons">
+            <a href="/app.html" class="cta-btn cta-primary">Launch Platform</a>
+            <a href="#specialties" class="cta-btn cta-secondary">Explore Specialties</a>
+        </div>
+    </section>
+
+    <!-- AI Features Section -->
+    <section class="ai-features">
+        <div class="section-header">
+            <h2 class="section-title">AI-Powered Intelligence</h2>
+            <p class="section-subtitle">
+                Advanced machine learning systems delivering real-time insights, predictive analytics, 
+                and intelligent automation across every surgical workflow.
+            </p>
+        </div>
+        
+        <div class="ai-grid">
+            <div class="ai-card">
+                <img src="/Clinical_Intellgence.png" alt="Clinical Intelligence" class="ai-card-image">
+                <h3 class="ai-card-title">Clinical Intelligence</h3>
+                <p class="ai-card-description">
+                    AI risk scoring, airway analysis, and clinical decision support with real-time vital signs monitoring 
+                    and predictive outcome modeling for every procedure.
+                </p>
+            </div>
+            
+            <div class="ai-card">
+                <img src="/RealTimeAnalysis.png" alt="Real-Time Analytics" class="ai-card-image">
+                <h3 class="ai-card-title">Real-Time Analytics</h3>
+                <p class="ai-card-description">
+                    Live patient monitoring with workflow completion tracking, predictive trends, and AI-powered alerts 
+                    for high-risk scenarios and care gaps.
+                </p>
+            </div>
+            
+            <div class="ai-card">
+                <img src="/Billing_Optimization.png" alt="Billing Optimization" class="ai-card-image">
+                <h3 class="ai-card-title">Billing Optimization</h3>
+                <p class="ai-card-description">
+                    Intelligent CPT/ICD-10 coding suggestions with 98% AI confidence, automated claim validation, 
+                    denial prevention, and reimbursement forecasting.
+                </p>
+            </div>
+            
+            <div class="ai-card">
+                <img src="/SmartContent.png" alt="Smart Consent Management" class="ai-card-image">
+                <h3 class="ai-card-title">Smart Consent Management</h3>
+                <p class="ai-card-description">
+                    Multi-language e-signature capture with 4-item verification checklist, version control, 
+                    audit trail, and HIPAA-compliant secure storage.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Surgical Specialties Section -->
+    <section class="specialties" id="specialties">
+        <div class="section-header">
+            <h2 class="section-title">Surgical Specialties</h2>
+            <p class="section-subtitle">
+                Comprehensive documentation systems purpose-built for each surgical specialty, 
+                delivering precision workflows and specialty-specific intelligence.
+            </p>
+        </div>
+        
+        <div class="specialties-grid">
+            <!-- Orthopedic Surgery -->
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/OrthoPedic.png" alt="Orthopedic Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Orthopedic Surgery</h3>
+                        <span class="specialty-badge">Musculoskeletal</span>
+                    </div>
+                </div>
+                <div class="specialty-features">
+                    <ul>
+                        <li>Range of Motion Tracking (0-180° measurements)</li>
+                        <li>Strength Testing (0-5 scale)</li>
+                        <li>Implant Integrity Analysis (98% accuracy)</li>
+                        <li>Joint Biomechanics Modeling</li>
+                        <li>Patient Outcome Predictions</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Cardiac Surgery -->
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Cardiac.png" alt="Cardiac Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Cardiac Surgery</h3>
+                        <span class="specialty-badge">Cardiovascular</span>
+                    </div>
+                </div>
+                <div class="specialty-features">
+                    <ul>
+                        <li>Hemodynamic Monitoring</li>
+                        <li>Coronary Anatomy Assessment</li>
+                        <li>TIMI Flow Grading</li>
+                        <li>Stent Tracking System</li>
+                        <li>Post-Procedure Analytics</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Ophthalmic Surgery -->
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Eye.png" alt="Ophthalmic Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Ophthalmic Surgery</h3>
+                        <span class="specialty-badge">Vision Care</span>
+                    </div>
+                </div>
+                <div class="specialty-features">
+                    <ul>
+                        <li>Visual Acuity Tracking (20/20 - 20/400)</li>
+                        <li>IOL Power Calculation</li>
+                        <li>Keratometry & Pupilometry</li>
+                        <li>Retinal Map Analysis</li>
+                        <li>OCT Scan Integration</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Plastic Surgery -->
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Plastic.png" alt="Plastic Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Plastic Surgery</h3>
+                        <span class="specialty-badge">Reconstructive</span>
+                    </div>
+                </div>
+                <div class="specialty-features">
+                    <ul>
+                        <li>Facial Symmetry Analysis (89-95%)</li>
+                        <li>Tissue Depth Mapping</li>
+                        <li>Volume Map 3D Modeling</li>
+                        <li>Aesthetic Metrics Tracking</li>
+                        <li>Patient Side Score (92%)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Endoscopy -->
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/EndoScopy.png" alt="Endoscopy Procedures" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Endoscopy Procedures</h3>
+                        <span class="specialty-badge">Gastroenterology</span>
+                    </div>
+                </div>
+                <div class="specialty-features">
+                    <ul>
+                        <li>Vitals Monitor (HR 72, SpO2 98%)</li>
+                        <li>Insertion Depth Tracking (58cm)</li>
+                        <li>AI-Assisted Imaging Analysis</li>
+                        <li>Polyp Documentation</li>
+                        <li>Boston Bowel Prep Scoring</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Bariatric Surgery -->
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Bariatric.png" alt="Bariatric Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Bariatric Surgery</h3>
+                        <span class="specialty-badge">Metabolic</span>
+                    </div>
+                </div>
+                <div class="specialty-features">
+                    <ul>
+                        <li>Sleeve Gastrectomy Documentation</li>
+                        <li>Laparoscopic Approach Tracking</li>
+                        <li>Progress Monitoring (72% complete)</li>
+                        <li>Insufflation Pressure Analytics</li>
+                        <li>Staple Line Integrity (98%)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Dental/Oral Surgery -->
+            <div class="specialty-card">
+                <div class="specialty-image-container">
+                    <img src="/Dental.png" alt="Oral Surgery" class="specialty-image">
+                    <div class="specialty-overlay">
+                        <h3 class="specialty-title">Oral Surgery</h3>
+                        <span class="specialty-badge">Dental</span>
+                    </div>
+                </div>
+                <div class="specialty-features">
+                    <ul>
+                        <li>3D Jaw Reconstruction Mapping</li>
+                        <li>Implant Planning (torque value tracking)</li>
+                        <li>Bone Level Measurements</li>
+                        <li>Surgical Site Documentation</li>
+                        <li>Procedure Timeline Analytics</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing">
+        <div class="section-header">
+            <h2 class="section-title">Transparent Pricing</h2>
+            <p class="section-subtitle">
+                Choose the plan that fits your practice. All plans include HIPAA compliance, 
+                cross-app integration, and 24/7 technical support.
+            </p>
+        </div>
+        
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3 class="pricing-name">Starter</h3>
+                <div class="pricing-price">$299</div>
+                <div class="pricing-period">/month</div>
+                <ul class="pricing-features">
+                    <li>1 Provider License</li>
+                    <li>Core Surgical Documentation</li>
+                    <li>Equipment & Supply Tracking</li>
+                    <li>Basic Billing Preview</li>
+                    <li>Email Support</li>
+                    <li>HIPAA Compliant</li>
+                </ul>
+                <a href="/app.html" class="pricing-btn">Get Started</a>
+            </div>
+            
+            <div class="pricing-card pricing-popular">
+                <h3 class="pricing-name">Professional</h3>
+                <div class="pricing-price">$699</div>
+                <div class="pricing-period">/month</div>
+                <ul class="pricing-features">
+                    <li>5 Provider Licenses</li>
+                    <li>All AI Features</li>
+                    <li>Clinical Intelligence</li>
+                    <li>Real-Time Analytics</li>
+                    <li>Billing Optimization</li>
+                    <li>Priority Support</li>
+                    <li>Custom Workflows</li>
+                </ul>
+                <a href="/app.html" class="pricing-btn">Get Started</a>
+            </div>
+            
+            <div class="pricing-card">
+                <h3 class="pricing-name">Enterprise</h3>
+                <div class="pricing-price">$1,499</div>
+                <div class="pricing-period">/month</div>
+                <ul class="pricing-features">
+                    <li>Unlimited Providers</li>
+                    <li>Multi-Site Support</li>
+                    <li>Advanced AI Models</li>
+                    <li>Custom Integrations</li>
+                    <li>Dedicated Success Manager</li>
+                    <li>White-Label Options</li>
+                    <li>24/7 Phone Support</li>
+                </ul>
+                <a href="/app.html" class="pricing-btn">Contact Sales</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Platform</h3>
+                <ul class="footer-links">
+                    <li><a href="/app.html">Sign In</a></li>
+                    <li><a href="#specialties">Specialties</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="https://docs.patienttrac.com">API Documentation</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Company</h3>
+                <ul class="footer-links">
+                    <li><a href="https://patienttracforge.com">PatientTracForge</a></li>
+                    <li><a href="https://patienttrac-revela.com">Revela (Plastic Surgery)</a></li>
+                    <li><a href="https://patienttracmind.com">PatientTrac Mind</a></li>
+                    <li><a href="https://patienttracor.com">PatientTracOR</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul class="footer-links">
+                    <li><a href="/privacy.html">Privacy Policy</a></li>
+                    <li><a href="/terms.html">Terms of Service</a></li>
+                    <li><a href="/hipaa.html">HIPAA Compliance</a></li>
+                    <li><a href="mailto:legal@patienttrac.com">Legal Inquiries</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Support</h3>
+                <ul class="footer-links">
+                    <li><a href="mailto:support@patienttrac.com">Technical Support</a></li>
+                    <li><a href="mailto:sales@patienttrac.com">Sales Inquiries</a></li>
+                    <li><a href="https://support.claude.com">Help Center</a></li>
+                    <li><a href="tel:+1-800-PATIENT">1-800-PATIENT</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 PatientTrac Corp. All rights reserved. HIPAA Compliant · SOC 2 Type II Certified</p>
+        </div>
+    </footer>
+</body>
+</html>
