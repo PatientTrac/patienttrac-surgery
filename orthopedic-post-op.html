@@ -606,6 +606,98 @@
             </div>
         </div>
 
+        <!-- Post-Tourniquet Neurovascular Assessment — AAOS/OTA -->
+        <div style="background:rgba(15,25,45,0.6);border:1px solid rgba(201,169,110,0.25);border-radius:12px;padding:20px;margin:0 24px 16px;">
+            <h3 style="color:#c9a96e;margin-bottom:8px;">Post-Op Neurovascular Assessment</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                AAOS/OTA: Document distal neurovascular status in post-op period, especially following tourniquet use.
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px;">
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Assessment Time</label>
+                    <input type="datetime-local" id="postop_nv_time"
+                        style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Dorsalis Pedis Pulse</label>
+                    <select id="postop_pulse_dp" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="present_strong">Present — strong (2+)</option>
+                        <option value="present_weak">Present — weak (1+)</option>
+                        <option value="doppler_only">Doppler only</option>
+                        <option value="absent">Absent</option>
+                        <option value="na">N/A — upper extremity</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Posterior Tibial Pulse</label>
+                    <select id="postop_pulse_pt" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="present_strong">Present — strong (2+)</option>
+                        <option value="present_weak">Present — weak (1+)</option>
+                        <option value="doppler_only">Doppler only</option>
+                        <option value="absent">Absent</option>
+                        <option value="na">N/A</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Capillary Refill</label>
+                    <select id="postop_cap_refill" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="lt2s">&lt; 2 sec (normal)</option>
+                        <option value="2_3s">2–3 sec (borderline)</option>
+                        <option value="gt3s">&gt; 3 sec (prolonged)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Sensation</label>
+                    <select id="postop_sensation" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="intact">Intact</option>
+                        <option value="diminished">Diminished</option>
+                        <option value="absent">Absent</option>
+                        <option value="block_effect">Block still in effect</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Motor Function</label>
+                    <select id="postop_motor" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="intact">Intact (5/5)</option>
+                        <option value="reduced">Reduced (≤4/5)</option>
+                        <option value="absent">Absent</option>
+                        <option value="block_effect">Block still in effect</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px;margin-bottom:12px;">
+                <div style="font-size:0.8rem;font-weight:700;color:#ef4444;margin-bottom:8px;">Compartment Syndrome Signs</div>
+                <div style="display:flex;flex-wrap:wrap;gap:12px;">
+                    <label style="display:flex;align-items:center;gap:7px;font-size:0.87rem;cursor:pointer;"><input type="checkbox" id="postop_nv_pain_stretch" style="accent-color:#ef4444;"> Pain on passive stretch</label>
+                    <label style="display:flex;align-items:center;gap:7px;font-size:0.87rem;cursor:pointer;"><input type="checkbox" id="postop_nv_tense_comp" style="accent-color:#ef4444;"> Tense compartment</label>
+                    <label style="display:flex;align-items:center;gap:7px;font-size:0.87rem;cursor:pointer;"><input type="checkbox" id="postop_nv_paresthesia" style="accent-color:#ef4444;"> Paresthesia / numbness</label>
+                    <label style="display:flex;align-items:center;gap:7px;font-size:0.87rem;cursor:pointer;"><input type="checkbox" id="postop_nv_pallor" style="accent-color:#ef4444;"> Pallor / color change</label>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Neurovascular Notes / Escalation Actions</label>
+                <input type="text" id="postop_nv_notes" placeholder="Surgeon notified, Doppler obtained, wound check, compartment pressure measured..."
+                    style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+            </div>
+        </div>
+
+        <!-- VTE Prophylaxis Continuation — AAOS/ACCP extended prophylaxis -->
+        <div style="background:rgba(15,25,45,0.6);border:1px solid rgba(201,169,110,0.25);border-radius:12px;padding:20px;margin:0 24px 16px;">
+            <h3 style="color:#c9a96e;margin-bottom:8px;">VTE Prophylaxis Plan (Caprini Score)</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                AAOS/ACCP — Document continued VTE prophylaxis for post-op period. Extended prophylaxis (28–35 days) recommended for THA/TKA.
+            </p>
+            <div id="caprini_ortho_postop_container"></div>
+        </div>
+
         <div id="alertMessage"></div>
 
         <div class="btn-group">
@@ -763,7 +855,25 @@
                     return_to_work: document.getElementById('returnToWork').value,
                     return_to_sport: document.getElementById('returnToSport').value,
                     rts_criteria: document.getElementById('rtsCriteria').value,
-                    additional_instructions: document.getElementById('additionalInstructions').value
+                    additional_instructions: document.getElementById('additionalInstructions').value,
+
+                    // Post-op neurovascular assessment — AAOS/OTA
+                    neurovascular_assessment: {
+                        assessment_time:     document.getElementById('postop_nv_time')?.value || null,
+                        pulse_dp:            document.getElementById('postop_pulse_dp')?.value || null,
+                        pulse_pt:            document.getElementById('postop_pulse_pt')?.value || null,
+                        cap_refill:          document.getElementById('postop_cap_refill')?.value || null,
+                        sensation:           document.getElementById('postop_sensation')?.value || null,
+                        motor:               document.getElementById('postop_motor')?.value || null,
+                        pain_passive_stretch: document.getElementById('postop_nv_pain_stretch')?.checked || false,
+                        tense_compartment:   document.getElementById('postop_nv_tense_comp')?.checked || false,
+                        paresthesia:         document.getElementById('postop_nv_paresthesia')?.checked || false,
+                        pallor:              document.getElementById('postop_nv_pallor')?.checked || false,
+                        notes:               document.getElementById('postop_nv_notes')?.value || null,
+                    },
+
+                    // VTE prophylaxis — AAOS/ACCP extended prophylaxis
+                    ...(typeof CapriniVTE !== 'undefined' ? CapriniVTE.getData() : {})
                 };
 
                 const { error } = await supabase
@@ -799,5 +909,12 @@
             }, 5000);
         }
     </script>
+    <script src="caprini-vte-component.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            CapriniVTE.render('caprini_ortho_postop_container');
+        });
+    </script>
+    <script src="/ai-client.js"></script>
 </body>
 </html>

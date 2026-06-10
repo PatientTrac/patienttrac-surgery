@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — PatientTrac Surgery</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: #0f1117; color: #d0d5dd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.7; }
+  header { background: #1a1f2e; border-bottom: 1px solid #2d3347; padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
+  header a { color: #c9a96e; text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+  header span { color: #4a5568; }
+  main { max-width: 780px; margin: 48px auto; padding: 0 24px 80px; }
+  h1 { color: #c9a96e; font-size: 1.8rem; margin-bottom: 6px; }
+  .updated { font-size: 0.82rem; color: #6b7280; margin-bottom: 36px; }
+  h2 { color: #e2e8f0; font-size: 1.1rem; margin-top: 32px; border-bottom: 1px solid #2d3347; padding-bottom: 6px; }
+  p { color: #9ca3af; margin: 8px 0; }
+  .notice { background: rgba(201,169,110,0.08); border: 1px solid rgba(201,169,110,0.25); border-radius: 8px; padding: 16px 20px; margin: 24px 0; font-size: 0.88rem; }
+  .notice strong { color: #c9a96e; }
+</style>
+</head>
+<body>
+<header>
+  <a href="/landing-enhanced.html">PatientTrac Surgery</a>
+  <span>›</span>
+  <span style="color:#9ca3af;">Privacy Policy</span>
+</header>
+<main>
+  <h1>Privacy Policy</h1>
+  <div class="updated">Last updated: June 2026</div>
+
+  <div class="notice">
+    <strong>HIPAA Notice:</strong> PatientTrac Surgery is a covered entity's software platform.
+    All protected health information (PHI) is handled in accordance with HIPAA Privacy Rule (45 CFR Part 164).
+    This policy supplements, and does not replace, your organization's Notice of Privacy Practices.
+  </div>
+
+  <h2>Information We Collect</h2>
+  <p>PatientTrac Surgery collects clinical documentation data entered by authorized healthcare providers, including surgical notes, assessments, medication records, and encounter-level clinical data. Patient identifiers are stored only within your organization's Supabase database instance and are never transmitted to third-party AI services.</p>
+
+  <h2>How We Use Information</h2>
+  <p>Clinical data is used solely to provide surgical documentation, workflow, and clinical decision support services to your organization. AI-assisted features process de-identified, encounter-level data only — patient names, dates of birth, MRNs, and other direct identifiers are stripped before any AI processing occurs.</p>
+
+  <h2>Data Storage and Security</h2>
+  <p>Data is stored in your organization's dedicated Supabase PostgreSQL instance with row-level security enabled. All data in transit is encrypted via TLS 1.2+. Access requires authenticated JWT tokens validated against your organization's identity provider.</p>
+
+  <h2>Third-Party Services</h2>
+  <p>PatientTrac Surgery uses Anthropic's Claude API for clinical decision support. AI calls are processed server-side through Netlify Functions; no PHI is transmitted directly from the browser to Anthropic. A Business Associate Agreement (BAA) with Anthropic is required before AI features may be used in clinical settings.</p>
+
+  <h2>Data Retention</h2>
+  <p>Clinical records are retained in accordance with your organization's retention policies and applicable state law. Typically, surgical records are retained for a minimum of 10 years per state medical board requirements.</p>
+
+  <h2>Your Rights</h2>
+  <p>Patients have rights regarding their protected health information under HIPAA, including rights of access, amendment, and accounting of disclosures. Contact your organization's Privacy Officer to exercise these rights.</p>
+
+  <h2>Contact</h2>
+  <p>For privacy-related inquiries, contact your organization's Privacy Officer or submit a request through your facility's standard HIPAA complaint process.</p>
+</main>
+</body>
+</html>

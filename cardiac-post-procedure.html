@@ -678,6 +678,103 @@
                 <textarea class="field-textarea" id="access_notes" placeholder="Additional findings, interventions, plan…"></textarea>
             </div>
         </div>
+
+        <!-- Procedural Anticoagulation Documentation — ACC/AHA PCI / HRS device guidelines -->
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">💉</span>Procedural Anticoagulation &amp; ACT Record</span></div>
+            <div class="alert info">
+                <span class="alert-icon">ℹ️</span>
+                <span>ACC/AHA: Document ACT values and anticoagulant totals. Safe sheath removal: ACT &lt;150–170 s (manual) or &lt;250 s (closure device).</span>
+            </div>
+            <div class="field-grid cols-3">
+                <div class="field">
+                    <label class="field-label">Anticoagulant Used</label>
+                    <select class="field-select" id="pp_anticoag_agent">
+                        <option value="">— Select —</option>
+                        <option value="heparin_ufh">UFH (Heparin)</option>
+                        <option value="bivalirudin">Bivalirudin (Angiomax)</option>
+                        <option value="enoxaparin">Enoxaparin</option>
+                        <option value="fondaparinux">Fondaparinux</option>
+                        <option value="none">None</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="field-label">Total Dose Administered</label>
+                    <input type="text" class="field-input" id="pp_anticoag_total_dose" placeholder="e.g. 8,500 units UFH total">
+                </div>
+                <div class="field">
+                    <label class="field-label">Last Dose Time</label>
+                    <input type="datetime-local" class="field-input" id="pp_anticoag_last_dose_time">
+                </div>
+                <div class="field">
+                    <label class="field-label">Procedural ACT (highest, seconds)</label>
+                    <input type="number" class="field-input" id="pp_act_procedural" placeholder="seconds">
+                </div>
+                <div class="field">
+                    <label class="field-label">Pre-Sheath Removal ACT (seconds)</label>
+                    <input type="number" class="field-input" id="pp_act_pre_sheath" placeholder="seconds" oninput="checkPostProcACT()">
+                    <div id="pp_act_sheath_flag" style="display:none;margin-top:5px;font-size:0.78rem;color:#f59e0b;"></div>
+                </div>
+                <div class="field">
+                    <label class="field-label">Protamine Reversal</label>
+                    <select class="field-select" id="pp_protamine">
+                        <option value="no">No reversal</option>
+                        <option value="yes_full">Yes — full reversal</option>
+                        <option value="yes_partial">Yes — partial reversal</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <label class="field-label">Anticoagulation Notes</label>
+                <input type="text" class="field-input" id="pp_anticoag_notes" placeholder="GPI used, bleeding events, reversal rationale, bridging plan...">
+            </div>
+        </div>
+
+        <!-- Radiation Dose Documentation — ICRP 85 / Joint Commission -->
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">☢️</span>Radiation Dose Record</span></div>
+            <div class="alert info">
+                <span class="alert-icon">ℹ️</span>
+                <span>ICRP 85 / Joint Commission: Radiation dose must be documented. Threshold events: DAP &gt;5 Gy·cm² or Air Kerma &gt;5 Gy — patient notification and skin follow-up required.</span>
+            </div>
+            <div class="field-grid cols-2">
+                <div class="field">
+                    <label class="field-label">DAP — Dose Area Product (Gy·cm²)</label>
+                    <input type="number" class="field-input" id="pp_dap_gy_cm2" step="0.1" placeholder="Gy·cm²" oninput="checkPostProcRadDose()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Peak Skin Air Kerma (Gy)</label>
+                    <input type="number" class="field-input" id="pp_air_kerma_gy" step="0.01" placeholder="Gy" oninput="checkPostProcRadDose()">
+                </div>
+                <div class="field">
+                    <label class="field-label">Total Fluoroscopy Time (min)</label>
+                    <input type="number" class="field-input" id="pp_fluoro_time_min" step="0.1" placeholder="minutes">
+                </div>
+                <div class="field">
+                    <label class="field-label">Cine Acquisitions (runs)</label>
+                    <input type="number" class="field-input" id="pp_cine_runs" placeholder="count">
+                </div>
+            </div>
+            <div id="pp_rad_dose_alert" style="display:none;background:rgba(239,68,68,0.1);border:1px solid #ef4444;border-radius:8px;padding:12px;margin-top:10px;">
+                <div style="font-size:0.9rem;font-weight:700;color:#ef4444;">⚠️ HIGH DOSE EVENT — Patient Notification Required</div>
+                <div style="font-size:0.83rem;margin-top:6px;line-height:1.5;opacity:0.85;">
+                    Dose exceeds ICRP 85 threshold for potential radiation skin injury.
+                    Document patient counseling about skin injury risk. Schedule skin assessment at 2–3 weeks post-procedure.
+                    Report per Joint Commission Sentinel Event policy if applicable.
+                </div>
+                <div class="field" style="margin-top:10px;">
+                    <label class="field-label">Patient Notified of High-Dose Event?</label>
+                    <select class="field-select" id="pp_rad_patient_notified">
+                        <option value="">—</option>
+                        <option value="yes_verbal">Yes — verbally informed</option>
+                        <option value="yes_written">Yes — written notification</option>
+                        <option value="not_yet">Not yet — pending review</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
     </section>
 
     <!-- ============================================================ -->
@@ -835,6 +932,20 @@
                     <span class="metric-label">CI-AKI Status</span>
                     <span class="metric-value" id="aki_status">—</span>
                 </div>
+            </div>
+            <div style="margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
+                    <input type="checkbox" id="pre_hydration_given">
+                    <span>Pre-procedure IV hydration given</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
+                    <input type="checkbox" id="post_hydration_given">
+                    <span>Post-procedure IV hydration given</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
+                    <input type="checkbox" id="acetylcysteine_given">
+                    <span>N-Acetylcysteine (Mucomyst) given</span>
+                </label>
             </div>
             <div class="field" style="margin-top: 14px;">
                 <label class="field-label">Other Labs / Notes</label>
@@ -1182,6 +1293,26 @@
         <div class="panel">
             <div class="panel-title"><span><span class="icon">✍️</span>Provider Sign-Off</span></div>
             <div class="field-grid cols-2">
+                <!-- Consent verification — CMS CoP 42 CFR 482.51(b)(2) / JC RC.02.01.01 -->
+                <div class="field span-full">
+                    <label class="field-label">Consent Verification</label>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+                        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;">
+                            <input type="checkbox" id="consent_obtained" style="accent-color:#f59e0b;">
+                            <span>Patient informed consent was obtained prior to the procedure</span>
+                        </label>
+                        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+                            <label class="field-label" style="margin:0;white-space:nowrap;">Consent type:</label>
+                            <select id="consent_type" class="field-input" style="width:auto;min-width:160px;">
+                                <option value="">— select —</option>
+                                <option value="written">Written</option>
+                                <option value="verbal">Verbal</option>
+                                <option value="implied_emergency">Implied (emergency)</option>
+                            </select>
+                            <input type="text" class="field-input" id="consent_witness" placeholder="Witnessed by (name / title)" style="flex:1;min-width:180px;">
+                        </div>
+                    </div>
+                </div>
                 <div class="field">
                     <label class="field-label">Attending Physician <span class="req">*</span></label>
                     <input type="text" class="field-input" id="attending_name" placeholder="Provider name">
@@ -1237,6 +1368,29 @@
         if (v === null || v === undefined || v === '') return null;
         const n = parseInt(v, 10);
         return isNaN(n) ? null : n;
+    }
+
+    function checkPostProcACT() {
+        const actEl = document.getElementById('pp_act_pre_sheath');
+        const flagEl = document.getElementById('pp_act_sheath_flag');
+        if (!actEl || !flagEl) return;
+        const act = parseInt(actEl.value);
+        if (isNaN(act)) { flagEl.style.display = 'none'; return; }
+        const method = document.querySelector('input[name="hemostasis_method"]:checked')?.value;
+        const limit = (method && method.includes('closure') || method === 'angio_seal' || method === 'perclose' || method === 'starclose' || method === 'mynx') ? 250 : 170;
+        if (act > limit) {
+            flagEl.style.display = 'block';
+            flagEl.textContent = `ACT ${act}s — exceeds safe limit for sheath removal (${limit}s for selected method). Consider waiting or protamine reversal.`;
+        } else {
+            flagEl.style.display = 'none';
+        }
+    }
+
+    function checkPostProcRadDose() {
+        const dap = parseFloat(document.getElementById('pp_dap_gy_cm2')?.value) || 0;
+        const kerma = parseFloat(document.getElementById('pp_air_kerma_gy')?.value) || 0;
+        const alertEl = document.getElementById('pp_rad_dose_alert');
+        if (alertEl) alertEl.style.display = (dap > 5 || kerma > 5) ? 'block' : 'none';
     }
 
     // ===== TOKEN / URL PARAMS =====
@@ -1551,6 +1705,28 @@
                 access_notes:       document.getElementById('access_notes').value || null
             },
 
+            // Procedural anticoagulation — ACC/AHA PCI / HRS device guidelines
+            anticoagulation: {
+                agent:              document.getElementById('pp_anticoag_agent')?.value || null,
+                total_dose:         document.getElementById('pp_anticoag_total_dose')?.value || null,
+                last_dose_time:     document.getElementById('pp_anticoag_last_dose_time')?.value || null,
+                act_procedural:     parseInt(document.getElementById('pp_act_procedural')?.value) || null,
+                act_pre_sheath:     parseInt(document.getElementById('pp_act_pre_sheath')?.value) || null,
+                protamine:          document.getElementById('pp_protamine')?.value || null,
+                notes:              document.getElementById('pp_anticoag_notes')?.value || null,
+            },
+
+            // Radiation dose record — ICRP 85 / Joint Commission
+            radiation_dose: {
+                dap_gy_cm2:         parseFloat(document.getElementById('pp_dap_gy_cm2')?.value) || null,
+                air_kerma_gy:       parseFloat(document.getElementById('pp_air_kerma_gy')?.value) || null,
+                fluoro_time_min:    parseFloat(document.getElementById('pp_fluoro_time_min')?.value) || null,
+                cine_runs:          parseInt(document.getElementById('pp_cine_runs')?.value) || null,
+                high_dose_event:    (parseFloat(document.getElementById('pp_dap_gy_cm2')?.value) > 5 ||
+                                     parseFloat(document.getElementById('pp_air_kerma_gy')?.value) > 5),
+                patient_notified:   document.getElementById('pp_rad_patient_notified')?.value || null,
+            },
+
             vitals: {
                 trend: vitalRows,
                 hypotension:        document.getElementById('hypotension').value,
@@ -1622,7 +1798,10 @@
             signoff: {
                 attending_name:    document.getElementById('attending_name').value || null,
                 note_datetime:     document.getElementById('note_datetime').value || null,
-                discharge_summary: document.getElementById('discharge_summary').value || null
+                discharge_summary: document.getElementById('discharge_summary').value || null,
+                consent_obtained:  document.getElementById('consent_obtained').checked,
+                consent_type:      document.getElementById('consent_type').value || null,
+                consent_witness:   document.getElementById('consent_witness').value || null
             }
         };
 
@@ -1643,9 +1822,9 @@
             aspirin_dose:                        aspirinMg,
             p2y12_inhibitor:                     document.getElementById('p2y12').value || null,
             dual_antiplatelet_duration_months:   toIntOrNull(document.getElementById('dapt_duration').value),
-            pre_hydration_given:                 false, // not captured — reserved for future
-            post_hydration_given:                false,
-            acetylcysteine_given:                false,
+            pre_hydration_given:                 document.getElementById('pre_hydration_given')?.checked ?? null,
+            post_hydration_given:                document.getElementById('post_hydration_given')?.checked ?? null,
+            acetylcysteine_given:                document.getElementById('acetylcysteine_given')?.checked ?? null,
             discharged_home:                     dischargedHome,
             admitted:                            admitted,
             admission_reason:                    admissionReason,
@@ -1696,6 +1875,7 @@
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     document.getElementById('note_datetime').value = now.toISOString().slice(0, 16);
 </script>
+<script src="/ai-client.js"></script>
 
 </body>
 </html>

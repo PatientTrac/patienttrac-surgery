@@ -446,7 +446,8 @@
         <button class="tab-btn active" onclick="switchTab(0)">History & Assessment</button>
         <button class="tab-btn" onclick="switchTab(1)">Procedure Planning</button>
         <button class="tab-btn" onclick="switchTab(2)">Clearances & Labs</button>
-        <button class="tab-btn" onclick="switchTab(3)">Pre-Op Instructions</button>
+        <button class="tab-btn" onclick="switchTab(3)" style="color:#ef4444;">Allergies &amp; Meds</button>
+        <button class="tab-btn" onclick="switchTab(4)">Pre-Op Instructions</button>
     </nav>
 
     <!-- Main Content -->
@@ -564,7 +565,7 @@
                 <h3>Interval Changes</h3>
                 <div class="form-group">
                     <label>New medications, conditions, or changes since last visit</label>
-                    <textarea id="intervalChanges" placeholder="Document any changes in patient status..."></textarea>
+                    <textarea id="intervalChanges" data-dictation="true" data-context="Pre-op interval changes" placeholder="Document any changes in patient status..."></textarea>
                 </div>
             </div>
         </div>
@@ -768,8 +769,75 @@
             </div>
         </div>
 
-        <!-- Tab 4: Pre-Op Instructions -->
+        <!-- Tab 4: VTE Risk (Caprini) + Allergies & Medications -->
         <div class="tab-content">
+            <div class="section-card" style="margin-bottom:20px;">
+                <h3>VTE Risk Assessment (Caprini Score)</h3>
+                <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                    ASMBS/MBSAQIP / ACCP — Bariatric patients are high VTE risk. Document prophylaxis plan before surgery.
+                </p>
+                <div id="caprini_surgeon_container"></div>
+            </div>
+            <div class="section-card">
+                <h3>Allergies &amp; Medication Reconciliation</h3>
+                <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                    JCAHO NPSG.03.06.01 — Document all drug allergies with reaction type and perioperative medication hold plan.
+                </p>
+                <div id="amc_surgeon_container"></div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Pre-Op Instructions -->
+        <div class="tab-content">
+            <!-- Surgical Informed Consent — CMS CoP 42 CFR 482.51(b)(2) -->
+            <div class="section-card" style="border-left:4px solid #ef4444;margin-bottom:20px;">
+                <h3>Surgical Informed Consent</h3>
+                <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                    CMS CoP 42 CFR 482.51(b)(2) / JC RC.02.01.01 — Informed consent must be obtained and documented before surgery.
+                </p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Procedure discussed with patient</label>
+                        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="sx_consent_procedure_explained"> Procedure name, steps, and intent explained
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="sx_consent_risks"> Risks &amp; complications discussed (bleeding, infection, conversion, death)
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="sx_consent_alternatives"> Alternatives discussed (non-surgical, different approach)
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="sx_consent_no_consent_risks"> Risks of NOT having surgery explained
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="sx_consent_questions"> Patient questions answered; patient verbalized understanding
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="sx_consent_signed"> Written consent obtained and placed in chart
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Consent Witnessed By</label>
+                        <input type="text" id="sx_consent_witness" placeholder="Witness name / RN">
+                    </div>
+                    <div class="form-group">
+                        <label>Consent Date &amp; Time</label>
+                        <input type="datetime-local" id="sx_consent_datetime">
+                    </div>
+                    <div class="form-group">
+                        <label>Decision Maker (if not patient)</label>
+                        <input type="text" id="sx_consent_decision_maker" placeholder="Relationship and name if surrogate decision maker">
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label>Consent Notes</label>
+                        <textarea id="sx_consent_notes" rows="2" placeholder="Any additional consent-related notes, patient concerns addressed, or special circumstances..."></textarea>
+                    </div>
+                </div>
+            </div>
+
             <div class="section-card">
                 <h3>Pre-Operative Instructions Given</h3>
                 <div class="checkbox-grid">
@@ -837,9 +905,42 @@
                 <h3>Provider Notes</h3>
                 <div class="form-group">
                     <label>Additional notes, concerns, or special instructions</label>
-                    <textarea id="providerNotes" placeholder="Document any additional relevant information..." rows="6"></textarea>
+                    <textarea id="providerNotes" data-dictation="true" data-context="Provider notes for surgical pre-op evaluation" placeholder="Document any additional relevant information..." rows="6"></textarea>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- AI Panel (slide-up overlay) -->
+    <div id="ai-panel-sx" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:linear-gradient(180deg,#0a1628 0%,#060e1c 100%);border-top:2px solid rgba(201,169,110,0.4);max-height:65vh;overflow-y:auto;box-shadow:0 -8px 32px rgba(0,0,0,0.6);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="showSxAITab('drugs')" id="sxai-tab-drugs" class="ai-tab-btn ai-tab-active">Drug Interactions</button>
+                <button onclick="showSxAITab('codes')" id="sxai-tab-codes" class="ai-tab-btn">Suggest Codes</button>
+                <button onclick="showSxAITab('risk')" id="sxai-tab-risk" class="ai-tab-btn">Risk Assessment</button>
+            </div>
+            <button onclick="document.getElementById('ai-panel-sx').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1.2rem;padding:4px 8px;">✕</button>
+        </div>
+
+        <!-- Drug interactions tab -->
+        <div id="sxai-content-drugs" style="padding:20px 24px;">
+            <p style="font-size:0.8rem;opacity:0.55;margin-bottom:12px;">Checks all medications from the reconciliation list for perioperative interactions.</p>
+            <button id="sxbtn-drugs" onclick="runSxDrugCheck(this)" style="background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(239,68,68,0.1));border:1px solid rgba(239,68,68,0.4);color:#f87171;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Check Drug Interactions</button>
+            <div id="sxai-result-drugs" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+
+        <!-- Codes tab -->
+        <div id="sxai-content-codes" style="display:none;padding:20px 24px;">
+            <p style="font-size:0.8rem;opacity:0.55;margin-bottom:12px;">Suggests ICD-10 diagnoses and CPT codes based on procedure selection and clinical findings.</p>
+            <button id="sxbtn-codes" onclick="runSxCodeSuggest(this)" style="background:linear-gradient(135deg,rgba(201,169,110,0.2),rgba(201,169,110,0.1));border:1px solid rgba(201,169,110,0.4);color:#c9a96e;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Suggest ICD-10 &amp; CPT Codes</button>
+            <div id="sxai-result-codes" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+
+        <!-- Risk assessment tab -->
+        <div id="sxai-content-risk" style="display:none;padding:20px 24px;">
+            <p style="font-size:0.8rem;opacity:0.55;margin-bottom:12px;">Enhanced perioperative risk analysis that considers risk factor interactions beyond standard calculators.</p>
+            <button id="sxbtn-risk" onclick="runSxRiskScore(this)" style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(168,85,247,0.1));border:1px solid rgba(168,85,247,0.4);color:#a855f7;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Analyze Perioperative Risk</button>
+            <div id="sxai-result-risk" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
         </div>
     </div>
 
@@ -847,10 +948,17 @@
     <div class="action-bar">
         <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
         <div style="display: flex; gap: 1rem; align-items: center;">
+            <button onclick="document.getElementById('ai-panel-sx').style.display='block'" style="background:linear-gradient(135deg,rgba(201,169,110,0.25),rgba(201,169,110,0.12));border:1px solid rgba(201,169,110,0.5);color:#c9a96e;padding:0.55rem 1.3rem;border-radius:6px;cursor:pointer;font-size:0.9rem;font-weight:600;">✨ AI Assist</button>
             <span class="status-badge incomplete">Incomplete</span>
             <button onclick="savePreOpEval()" class="btn btn-primary">Save Pre-Op Evaluation</button>
         </div>
     </div>
+
+    <style>
+        .ai-tab-btn { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all 0.15s; }
+        .ai-tab-btn:hover { background:rgba(255,255,255,0.1); }
+        .ai-tab-active { background:rgba(201,169,110,0.2)!important;border-color:rgba(201,169,110,0.5)!important;color:#c9a96e!important; }
+    </style>
 
     <script>
         // Initialize Supabase
@@ -863,6 +971,10 @@
         const encounterId = urlParams.get('encounter_id');
         const patientId = urlParams.get('patient_id');
         const token = urlParams.get('token');
+
+        // Authenticated provider identity — set from encounter on load
+        let currentProviderId = null;
+        let currentProviderName = null;
 
         // Load patient data on page load
         window.addEventListener('DOMContentLoaded', async () => {
@@ -894,6 +1006,11 @@
                 alert('Unable to load patient data.');
                 return;
             }
+
+            // Capture authenticated provider identity from encounter
+            currentProviderId = patient.provider_id || null;
+            currentProviderName = patient.provider_name || null;
+            window._ptProviderId = currentProviderId;
 
             // Populate patient banner
             document.getElementById('patientName').textContent = `${patient.first_name} ${patient.last_name}`;
@@ -959,7 +1076,7 @@
             const saveData = {
                 org_id: '00000000-0000-0000-0000-000000000001', // Will be replaced with actual org_id
                 patient_id: parseInt(patientId),
-                provider_id: 1, // Will be replaced with actual provider_id
+                provider_id: currentProviderId || 1,
                 visit_date: new Date().toISOString(),
                 visit_number: 1,
                 interval_changes: document.getElementById('intervalChanges').value,
@@ -989,7 +1106,25 @@
                 surgery_cost_confirmed: document.getElementById('costConfirmed').checked,
                 payment_arranged: document.getElementById('paymentArranged').checked,
                 payment_method: document.getElementById('paymentMethod').value,
-                provider_notes: document.getElementById('providerNotes').value
+                provider_notes: document.getElementById('providerNotes').value,
+
+                // Surgical Informed Consent — CMS CoP 482.51(b)(2)
+                consent_procedure_explained:  document.getElementById('sx_consent_procedure_explained')?.checked || false,
+                consent_risks_discussed:      document.getElementById('sx_consent_risks')?.checked || false,
+                consent_alternatives_discussed: document.getElementById('sx_consent_alternatives')?.checked || false,
+                consent_no_consent_risks:     document.getElementById('sx_consent_no_consent_risks')?.checked || false,
+                consent_questions_answered:   document.getElementById('sx_consent_questions')?.checked || false,
+                consent_signed:               document.getElementById('sx_consent_signed')?.checked || false,
+                consent_witness:              document.getElementById('sx_consent_witness')?.value || null,
+                consent_datetime:             document.getElementById('sx_consent_datetime')?.value || null,
+                consent_decision_maker:       document.getElementById('sx_consent_decision_maker')?.value || null,
+                consent_notes:                document.getElementById('sx_consent_notes')?.value || null,
+
+                // VTE risk — ASMBS/ACCP
+                ...(typeof CapriniVTE !== 'undefined' ? CapriniVTE.getData() : {}),
+
+                // Allergy/medication reconciliation — JCAHO NPSG.03.06.01
+                ...(typeof AllergyMedComponent !== 'undefined' ? AllergyMedComponent.getData() : {})
             };
 
             const { data, error } = await supabase
@@ -1003,6 +1138,124 @@
                 alert('✅ Pre-op evaluation saved successfully!');
                 window.location.href = '/dashboard.html?encounter_id=' + encounterId + '&patient_id=' + patientId + '&token=' + token;
             }
+        }
+    </script>
+    <script src="allergy-medication-component.js"></script>
+    <script src="caprini-vte-component.js"></script>
+    <script src="/ai-client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AllergyMedComponent.render('amc_surgeon_container');
+            CapriniVTE.render('caprini_surgeon_container');
+        });
+
+        function showSxAITab(tab) {
+            ['drugs','codes','risk'].forEach(t => {
+                document.getElementById('sxai-content-' + t).style.display = t === tab ? 'block' : 'none';
+                const btn = document.getElementById('sxai-tab-' + t);
+                if (btn) btn.classList.toggle('ai-tab-active', t === tab);
+            });
+        }
+
+        function getSxClinicalData() {
+            const getV = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const getC = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+            const amc = (typeof AllergyMedComponent !== 'undefined') ? AllergyMedComponent.getData() : {};
+            const caprini = (typeof CapriniVTE !== 'undefined') ? CapriniVTE.getData() : {};
+            return {
+                procedure: getV('selectedProcedure'),
+                cpt_code: getV('selectedCPT'),
+                surgical_approach: getV('surgicalApproach'),
+                interval_changes: getV('intervalChanges'),
+                provider_notes: getV('providerNotes'),
+                medications: amc.medications || [],
+                allergies: amc.allergies || [],
+                diabetes: getC('diabetes'),
+                hypertension: getC('hypertension'),
+                caprini_score: caprini.caprini_score || null,
+                vte_risk: caprini.vte_risk_category || null
+            };
+        }
+
+        async function runSxDrugCheck(btn) {
+            AIClient.showSpinner(btn, 'Checking…');
+            const resultEl = document.getElementById('sxai-result-drugs');
+            resultEl.style.display = 'none';
+            try {
+                const data = getSxClinicalData();
+                const medNames = Array.isArray(data.medications)
+                    ? data.medications.map(m => typeof m === 'string' ? m : (m.medication_name || m.name || JSON.stringify(m)))
+                    : [];
+                const allergyNames = Array.isArray(data.allergies)
+                    ? data.allergies.map(a => typeof a === 'string' ? a : (a.allergen || a.name || JSON.stringify(a)))
+                    : [];
+                const result = await AIClient.checkDrugInteractions(medNames, allergyNames, 'Pre-operative surgical evaluation — ' + (data.procedure || 'bariatric/general surgery'), token);
+                resultEl.style.display = 'block';
+                const html = AIClient.renderDrugPanel(result);
+                const hasAlerts = result.interactions?.length || result.periop_holds?.length;
+                AIClient.showResult('sxai-result-drugs', html, hasAlerts ? 'warning' : 'success');
+            } catch (err) {
+                resultEl.style.display = 'block';
+                AIClient.showResult('sxai-result-drugs', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error');
+            }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runSxCodeSuggest(btn) {
+            AIClient.showSpinner(btn, 'Querying…');
+            const resultEl = document.getElementById('sxai-result-codes');
+            resultEl.style.display = 'none';
+            try {
+                const data = getSxClinicalData();
+                const description = [data.procedure, data.interval_changes, data.provider_notes].filter(Boolean).join('. ');
+                const result = await AIClient.suggestCodes(description || 'pre-operative evaluation', 'surgery', { approach: data.surgical_approach, diabetes: data.diabetes, hypertension: data.hypertension }, data.cpt_code, token);
+                resultEl.style.display = 'block';
+                AIClient.showResult('sxai-result-codes', AIClient.renderCodesPanel(result), 'info');
+            } catch (err) {
+                resultEl.style.display = 'block';
+                AIClient.showResult('sxai-result-codes', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error');
+            }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runSxRiskScore(btn) {
+            AIClient.showSpinner(btn, 'Analyzing…');
+            const resultEl = document.getElementById('sxai-result-risk');
+            resultEl.style.display = 'none';
+            try {
+                const data = getSxClinicalData();
+                const clinicalParams = {
+                    diabetes: data.diabetes, hypertension: data.hypertension,
+                    surgical_approach: data.surgical_approach,
+                    medications_count: (data.medications || []).length,
+                    allergies_count: (data.allergies || []).length
+                };
+                const calculatedScores = { caprini_score: data.caprini_score, vte_risk: data.vte_risk };
+                const result = await AIClient.scoreRisk(clinicalParams, calculatedScores, 'surgery', data.procedure || 'surgical procedure', token);
+                resultEl.style.display = 'block';
+                const riskColor = { low: '#4ade80', moderate: '#f0c040', high: '#f97316', very_high: '#f87171' }[result.enhanced_risk_level] || '#60a5fa';
+                let html = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <span style="font-size:1.5rem;font-weight:700;color:${riskColor};">${(result.enhanced_risk_level || '—').toUpperCase().replace('_',' ')}</span>
+                    <span style="font-size:0.8rem;opacity:0.6;">Confidence: ${Math.round((result.risk_confidence || 0) * 100)}%</span>
+                </div>
+                <div style="font-size:0.85rem;opacity:0.8;margin-bottom:12px;">${result.summary || ''}</div>`;
+                if (result.red_flags?.length) {
+                    html += '<div style="margin-bottom:10px;"><strong style="font-size:0.78rem;color:#f87171;">RED FLAGS:</strong>';
+                    result.red_flags.forEach(f => { html += `<div style="font-size:0.82rem;color:#f87171;padding:2px 0;">⚠ ${f}</div>`; });
+                    html += '</div>';
+                }
+                if (result.preop_optimization?.length) {
+                    html += '<div><strong style="font-size:0.78rem;color:#f0c040;">PRE-OP OPTIMIZATION:</strong>';
+                    result.preop_optimization.forEach(r => { html += `<div style="font-size:0.81rem;padding:3px 0;opacity:0.85;">• <strong>${r.recommendation}</strong> <span style="opacity:0.6;font-size:0.77rem;">(${r.urgency?.replace('_',' ')})</span></div>`; });
+                    html += '</div>';
+                }
+                const rtype = result.enhanced_risk_level === 'low' ? 'success' : result.enhanced_risk_level === 'moderate' ? 'warning' : 'error';
+                AIClient.showResult('sxai-result-risk', html, rtype);
+            } catch (err) {
+                resultEl.style.display = 'block';
+                AIClient.showResult('sxai-result-risk', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error');
+            }
+            AIClient.hideSpinner(btn);
         }
     </script>
 </body>

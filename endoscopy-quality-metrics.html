@@ -460,8 +460,8 @@
     // ===== FETCH ENDOSCOPY DATA =====
     async function fetchReports() {
         if (!supabase) {
-            console.warn('Supabase not initialized — using mock data');
-            return generateMockData();
+            console.warn('Supabase not initialized — cannot display quality metrics');
+            return [];
         }
         const from = document.getElementById('filter_from').value;
         const to = document.getElementById('filter_to').value;
@@ -513,34 +513,6 @@
         }
     }
 
-    // ===== MOCK DATA (when Supabase isn't connected) =====
-    function generateMockData() {
-        const procs = ['colonoscopy', 'screening_colonoscopy', 'EGD', 'surveillance_colonoscopy'];
-        const providers = [101, 102, 103, 104];
-        const data = [];
-        for (let i = 0; i < 47; i++) {
-            const date = new Date();
-            date.setDate(date.getDate() - Math.floor(Math.random() * 90));
-            const isColon = Math.random() > 0.3;
-            data.push({
-                report_id: i + 1,
-                patient_id: 1000 + i,
-                provider_id: providers[Math.floor(Math.random() * providers.length)],
-                procedure_date: date.toISOString(),
-                procedure_type: isColon ? procs[Math.floor(Math.random() * 3)] : 'EGD',
-                cecum_reached: isColon ? (Math.random() > 0.04) : null,
-                terminal_ileum_intubated: isColon ? (Math.random() > 0.3) : null,
-                boston_score_total: isColon ? Math.floor(4 + Math.random() * 5) : null,
-                bowel_prep_quality: ['adequate', 'good', 'excellent', 'fair'][Math.floor(Math.random() * 4)],
-                withdrawal_time_minutes: isColon ? Math.floor(5 + Math.random() * 10) : null,
-                findings_normal: Math.random() > 0.45,
-                complications_occurred: Math.random() > 0.97,
-                photos_captured: Math.floor(Math.random() * 12)
-            });
-        }
-        return data;
-    }
-
     // ===== METRIC CALCULATIONS =====
     function computeMetrics(reports, adenomaMap) {
         const total = reports.length;
@@ -551,14 +523,14 @@
         const screening = reports.filter(r =>
             r.procedure_type === 'screening_colonoscopy' || r.procedure_type === 'colonoscopy');
         const withAdenoma = screening.filter(r => {
-            // Use pathology link if available
+            // Pathology-confirmed adenoma from endoscopy_findings table (authoritative)
             if (adenomaMap[r.report_id]) return true;
-            // Fall back to findings_summary text
-            if (r.findings_summary && /adenoma|polyp/i.test(r.findings_summary)) return true;
-            // Mock data path
-            if (!r.findings_normal && Math.random() > 0.6) return true;
+            // findings_summary text — restrict to adenoma-specific terms only (not generic "polyp")
+            if (r.findings_summary && /adenoma|tubular|villous|sessile.serrated/i.test(r.findings_summary)) return true;
             return false;
         });
+        // adrDataAvailable: true only when at least one screening case has pathology or adenoma-specific summary text
+        const adrDataAvailable = withAdenoma.length > 0 || Object.keys(adenomaMap).length > 0;
         const adr = screening.length ? (withAdenoma.length / screening.length) * 100 : 0;
 
         // Cecal intubation
@@ -635,22 +607,32 @@
             if (r.procedure_type === 'screening_colonoscopy' || r.procedure_type === 'colonoscopy') {
                 p.screening++;
                 if (adenomaMap[r.report_id] ||
-                    (r.findings_summary && /adenoma|polyp/i.test(r.findings_summary)) ||
-                    (!r.findings_normal && Math.random() > 0.6)) p.adenoma++;
+                    (r.findings_summary && /adenoma|tubular|villous|sessile.serrated/i.test(r.findings_summary))) p.adenoma++;
             }
             if (r.findings_normal && r.withdrawal_time_minutes != null) {
                 p.wt_total += r.withdrawal_time_minutes; p.wt_count++;
             }
         });
 
-        return { total, adr, cecalRate, tiRate, avgWithdrawal, avgBoston, prepRate, compRate, mix, byMonth, byProvider, reports };
+        return { total, adr, adrDataAvailable, cecalRate, tiRate, avgWithdrawal, avgBoston, prepRate, compRate, mix, byMonth, byProvider, reports };
     }
 
     // ===== RENDER KPIs =====
     function renderKpis(m) {
         document.getElementById('kpi_total_value').textContent = m.total.toLocaleString();
 
-        setKpi('adr', m.adr, 25, '%');
+        // ADR requires pathology-confirmed data — display "Insufficient data" if none available
+        if (m.adrDataAvailable) {
+            setKpi('adr', m.adr, 25, '%');
+        } else {
+            const valEl = document.getElementById('kpi_adr_value');
+            const card = document.getElementById('kpi_adr');
+            valEl.innerHTML = '<span style="font-size:0.9rem;opacity:0.6">Insufficient<br>pathology data</span>';
+            card.classList.remove('success', 'warning', 'danger');
+            card.classList.add('warning');
+            const statusEl = document.getElementById('kpi_adr_status');
+            if (statusEl) statusEl.textContent = '— requires histology';
+        }
         setKpi('cecal', m.cecalRate, 95, '%');
         setKpiBoston('withdrawal', m.avgWithdrawal, 6, 'min');
         setKpiBoston('boston', m.avgBoston, 6, '/ 9');
@@ -850,7 +832,11 @@
             const boston = p.boston_count ? p.boston_total / p.boston_count : 0;
             const compRate = p.cases ? (p.complications / p.cases) * 100 : 0;
 
-            const adrPill = adr >= 25 ? 'green' : adr >= 20 ? 'amber' : 'red';
+            // Only show ADR when pathology-confirmed adenoma data is present for this provider
+            const providerHasAdenomaData = p.adenoma > 0;
+            const adrDisplay = providerHasAdenomaData
+                ? `<span class="pill ${adr >= 25 ? 'green' : adr >= 20 ? 'amber' : 'red'}">${adr.toFixed(1)}%</span>`
+                : `<span style="opacity:0.45;font-size:0.85em">— no histology</span>`;
             const cecalPill = cecal >= 95 ? 'green' : cecal >= 90 ? 'amber' : 'red';
             const wtPill = wt >= 6 ? 'green' : wt >= 5 ? 'amber' : 'red';
             const bostonPill = boston >= 6 ? 'green' : boston >= 5 ? 'amber' : 'red';
@@ -860,7 +846,7 @@
             tr.innerHTML = `
                 <td><span class="provider-name">Provider #${p.provider_id}</span></td>
                 <td class="num">${p.cases}</td>
-                <td class="num"><span class="pill ${adrPill}">${adr.toFixed(1)}%</span></td>
+                <td class="num">${adrDisplay}</td>
                 <td class="num"><span class="pill ${cecalPill}">${cecal.toFixed(1)}%</span></td>
                 <td class="num"><span class="pill ${wtPill}">${wt.toFixed(1)} min</span></td>
                 <td class="num"><span class="pill ${bostonPill}">${boston.toFixed(1)}</span></td>

@@ -6,14 +6,62 @@
   command = "bash inject-env.sh"
   publish = "."
 
-# If you ever add /api or serverless functions, configure them here.
-# [functions]
-#   directory = "functions/"
+[functions]
+  directory = "netlify/functions"
+  timeout = 30
 
-# Headers — set Content Security Policy or HSTS later if needed.
-# [[headers]]
-#   for = "/*"
-#   [headers.values]
-#     X-Frame-Options = "DENY"
+# ── HTTP Security Headers ──────────────────────────────────────────────────
+# Applied to all responses. Meets HIPAA technical safeguard requirements for
+# access control and transmission security (§164.312(a)(1), §164.312(e)(1)).
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent clickjacking — HIPAA §164.312(a)(1) access controls
+    X-Frame-Options = "DENY"
+
+    # Block MIME-type sniffing
+    X-Content-Type-Options = "nosniff"
+
+    # Force HTTPS for 1 year (HIPA §164.312(e)(1) transmission security)
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+    # Disable Referer for cross-origin navigation (PHI leakage prevention)
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Restrict browser feature access — no camera/mic/geolocation from this app
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+
+    # Content Security Policy
+    # - default-src 'self': block all unlisted origins
+    # - script-src: allow self + CDN-hosted Supabase and Chart.js (SHA pinning optional for future)
+    # - connect-src: allow Supabase API + Netlify Functions
+    # - style-src 'unsafe-inline': required for inline styles used throughout the forms
+    # - img-src: allow self + data URIs (patient photos via Supabase storage)
+    # - frame-ancestors 'none': belt-and-suspenders clickjacking protection
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+      connect-src 'self' https://*.supabase.co;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: blob: https://*.supabase.co;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+    """
+
+# Netlify Functions — relax CSP for API responses (functions set their own headers)
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+# ── Edge Functions ────────────────────────────────────────────────────────────
+# Edge Functions run on Deno; support true SSE streaming (unlike buffered Functions).
+[[edge_functions]]
+  path = "/api/ai-draft-note-stream"
+  function = "ai-draft-note-stream"
 
 # Redirects — none currently needed; static HTML files self-route.

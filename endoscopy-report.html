@@ -621,6 +621,68 @@
                 </div>
             </div>
         </div>
+
+        <!-- Cecal Intubation Documentation — ASGE Quality Indicator -->
+        <div class="section" style="border:1px solid rgba(201,169,110,0.2);">
+            <h3 class="section-header">Cecal Intubation & Photo Documentation</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:14px;">ASGE Quality Indicator: Cecal intubation rate target ≥95% for screening colonoscopy. Photographic documentation (ileocecal valve + appendix orifice) required per ACG/ASGE guidelines to confirm complete examination.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:12px;">
+                <div class="form-field">
+                    <label>Cecum Reached</label>
+                    <select id="cecum_reached" onchange="checkCecalDoc()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="yes">Yes — cecum reached</option>
+                        <option value="no">No — incomplete exam</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Ileocecal Valve Identified</label>
+                    <select id="icv_identified" onchange="checkCecalDoc()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Appendix Orifice Identified</label>
+                    <select id="appendix_identified" onchange="checkCecalDoc()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Cecal Photo Taken</label>
+                    <select id="cecal_photo" onchange="checkCecalDoc()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="yes_icv_app">Yes — ICV + appendix orifice both captured</option>
+                        <option value="yes_icv_only">Yes — ICV only</option>
+                        <option value="yes_app_only">Yes — appendix orifice only</option>
+                        <option value="no">No photo taken</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Terminal Ileum Intubated</label>
+                    <select id="ti_intubated" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="no">No</option>
+                        <option value="yes">Yes — photo taken</option>
+                        <option value="attempted">Attempted — unsuccessful</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Reason if Incomplete</label>
+                    <select id="incomplete_reason" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="na">N/A — complete exam</option>
+                        <option value="poor_prep">Poor bowel preparation</option>
+                        <option value="patient_intolerance">Patient intolerance / pain</option>
+                        <option value="obstructing_lesion">Obstructing lesion</option>
+                        <option value="stricture">Stricture / angulation</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div id="cecal_doc_alert" style="display:none;padding:8px 12px;border-radius:6px;font-size:0.83rem;margin-top:4px;"></div>
+        </div>
     </div>
 
     <div id="findingsTab" class="tab-content">
@@ -632,12 +694,187 @@
             <button class="btn btn-add" onclick="addPolyp()">+ Add Polyp</button>
         </div>
 
+        <!-- EGD Upper-GI Module — shown only when procedureType = egd -->
+        <div id="egd_module" class="section" style="display:none;border:1px solid rgba(201,169,110,0.2);">
+            <h3 class="section-header">Upper-GI EGD Findings</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:14px;">EGD-specific structured reporting (ACG/BSG guidelines). Module activates when Procedure Type = EGD.</p>
+
+            <!-- Esophagus -->
+            <div style="margin-bottom:18px;">
+                <div style="font-size:0.8rem;font-weight:700;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Esophagus</div>
+
+                <!-- Barrett's Prague C&M Criteria -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:600;margin-bottom:8px;">Barrett's Esophagus — Prague C&amp;M Criteria (Sharma 2006)</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                        <div class="form-field">
+                            <label>Barrett's Present</label>
+                            <select id="barretts_present" onchange="toggleBarretts()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                <option value="no">No</option>
+                                <option value="suspected">Suspected — biopsy pending</option>
+                                <option value="confirmed">Confirmed (prior biopsy)</option>
+                                <option value="new">New finding — biopsies taken</option>
+                            </select>
+                        </div>
+                        <div id="barretts_fields" style="display:none;grid-column:1/-1;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+                                <div class="form-field">
+                                    <label>C extent (cm) — circumferential</label>
+                                    <input type="number" id="barretts_c" step="0.5" min="0" max="30" placeholder="cm" oninput="updateBarrettsSummary()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                </div>
+                                <div class="form-field">
+                                    <label>M extent (cm) — maximum</label>
+                                    <input type="number" id="barretts_m" step="0.5" min="0" max="30" placeholder="cm" oninput="updateBarrettsSummary()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                </div>
+                                <div class="form-field">
+                                    <label>GEJ Location from incisors (cm)</label>
+                                    <input type="number" id="gej_cm" step="0.5" min="30" max="60" placeholder="cm from incisors" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                </div>
+                                <div class="form-field">
+                                    <label>Dysplasia (if biopsied)</label>
+                                    <select id="barretts_dysplasia" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                        <option value="pending">Pending pathology</option>
+                                        <option value="none">No dysplasia (NDBE)</option>
+                                        <option value="lgd">Low-grade dysplasia (LGD)</option>
+                                        <option value="hgd">High-grade dysplasia (HGD)</option>
+                                        <option value="intramucosal_ca">Intramucosal carcinoma</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="barretts_summary" style="display:none;margin-top:8px;padding:6px 10px;background:rgba(201,169,110,0.1);border-radius:4px;font-size:0.83rem;color:#c9a96e;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LA Esophagitis Grade -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:600;margin-bottom:8px;">LA Classification — Esophagitis (Lundell 1999)</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+                        <div class="form-field">
+                            <label>LA Grade</label>
+                            <select id="la_grade" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                <option value="none">None / Normal esophagus</option>
+                                <option value="A">Grade A — ≥1 mucosal break &lt;5mm not extending between folds</option>
+                                <option value="B">Grade B — ≥1 mucosal break &gt;5mm not extending between folds</option>
+                                <option value="C">Grade C — Mucosal break extending between ≥2 folds, &lt;75% circumference</option>
+                                <option value="D">Grade D — Mucosal break &gt;75% of circumference</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Hiatal Hernia</label>
+                            <select id="hiatal_hernia" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                <option value="none">None</option>
+                                <option value="small">Small (&lt;3 cm)</option>
+                                <option value="moderate">Moderate (3–5 cm)</option>
+                                <option value="large">Large (&gt;5 cm)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stomach / Duodenum — Forrest + H. pylori -->
+            <div>
+                <div style="font-size:0.8rem;font-weight:700;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Stomach & Duodenum</div>
+
+                <!-- Forrest Classification for ulcers -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;margin-bottom:12px;">
+                    <div style="font-size:0.82rem;font-weight:600;margin-bottom:8px;">Forrest Classification — Peptic Ulcer Bleeding Risk</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+                        <div class="form-field">
+                            <label>Ulcer Present</label>
+                            <select id="ulcer_present" onchange="toggleForrest()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                <option value="no">No ulcer</option>
+                                <option value="gastric">Gastric ulcer</option>
+                                <option value="duodenal">Duodenal ulcer (D1)</option>
+                                <option value="prepyloric">Prepyloric ulcer</option>
+                                <option value="anastomotic">Anastomotic ulcer</option>
+                            </select>
+                        </div>
+                        <div id="forrest_fields" style="display:none;">
+                            <div class="form-field">
+                                <label>Forrest Class</label>
+                                <select id="forrest_class" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                    <optgroup label="Active Bleeding (Forrest I)">
+                                        <option value="Ia">Ia — Spurting arterial hemorrhage (re-bleed 55%) ⚠ Immediate Rx</option>
+                                        <option value="Ib">Ib — Oozing hemorrhage (re-bleed 55%)</option>
+                                    </optgroup>
+                                    <optgroup label="Signs of Recent Bleeding (Forrest II)">
+                                        <option value="IIa">IIa — Non-bleeding visible vessel (re-bleed 43%) — treat</option>
+                                        <option value="IIb">IIb — Adherent clot (re-bleed 22%) — irrigate and treat</option>
+                                        <option value="IIc">IIc — Hematin-covered (re-bleed 10%)</option>
+                                    </optgroup>
+                                    <optgroup label="No Signs of Bleeding (Forrest III)">
+                                        <option value="III">III — Clean base ulcer (re-bleed &lt;5%) — medical management</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label>Ulcer Size (mm)</label>
+                            <input type="number" id="ulcer_size_mm" step="1" min="0" max="200" placeholder="mm" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                        </div>
+                        <div class="form-field">
+                            <label>Hemostasis Performed</label>
+                            <select id="hemostasis_method" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                <option value="none">None</option>
+                                <option value="injection_epi">Epinephrine injection</option>
+                                <option value="thermal">Thermal coagulation</option>
+                                <option value="clips">Hemostatic clips</option>
+                                <option value="combination">Combination therapy</option>
+                                <option value="hemospray">Hemospray (TC-325)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- H. pylori Testing -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;">
+                    <div style="font-size:0.82rem;font-weight:600;margin-bottom:8px;">H. pylori Testing (ACG Guideline — Test &amp; Treat)</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                        <div class="form-field">
+                            <label>CLO Test / RUT Performed</label>
+                            <select id="hpylori_rut" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                <option value="not_done">Not performed</option>
+                                <option value="positive">Positive — treatment indicated</option>
+                                <option value="negative">Negative</option>
+                                <option value="pending">Pending result</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Gastric Biopsy for H. pylori</label>
+                            <select id="hpylori_biopsy" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                <option value="not_done">Not taken</option>
+                                <option value="antrum">Antrum only</option>
+                                <option value="antrum_body">Antrum + body (Sydney protocol)</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label>Sydney Biopsy Jar Numbers</label>
+                            <input type="text" id="hpylori_jar" placeholder="e.g. Jar 3 (antrum), Jar 4 (body)" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                        </div>
+                        <div class="form-field">
+                            <label>Gastric Mucosa</label>
+                            <select id="gastric_mucosa" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                                <option value="normal">Normal</option>
+                                <option value="gastritis_antrum">Antral gastritis</option>
+                                <option value="gastritis_diffuse">Diffuse gastritis</option>
+                                <option value="atrophy">Atrophic gastritis</option>
+                                <option value="intestinal_metaplasia">Intestinal metaplasia</option>
+                                <option value="polyps">Gastric polyps</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="section">
             <h3 class="section-header">Other Findings</h3>
             <div class="form-grid">
                 <div class="form-field full-width">
                     <label>Additional Findings</label>
-                    <textarea id="otherFindings" placeholder="Diverticulosis, hemorrhoids, inflammation, masses, normal..."></textarea>
+                    <textarea id="otherFindings" data-dictation="true" data-context="Endoscopy other findings" placeholder="Diverticulosis, hemorrhoids, inflammation, masses, normal..."></textarea>
                 </div>
             </div>
         </div>
@@ -712,11 +949,11 @@
             <div class="form-grid">
                 <div class="form-field full-width">
                     <label>Discharge Instructions</label>
-                    <textarea id="dischargeInstructions" placeholder="Diet advancement, activity restrictions, return precautions..."></textarea>
+                    <textarea id="dischargeInstructions" data-dictation="true" data-context="Endoscopy discharge instructions" placeholder="Diet advancement, activity restrictions, return precautions..."></textarea>
                 </div>
                 <div class="form-field full-width">
                     <label>Follow-up Plan</label>
-                    <textarea id="followupPlan" placeholder="Return for pathology results, surveillance colonoscopy timing..."></textarea>
+                    <textarea id="followupPlan" data-dictation="true" data-context="Endoscopy follow-up plan" placeholder="Return for pathology results, surveillance colonoscopy timing..."></textarea>
                 </div>
             </div>
         </div>
@@ -727,12 +964,47 @@
             <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
                 ⬅️ Back to Dashboard
             </button>
+            <button onclick="document.getElementById('ai-panel-endo').style.display='block'" style="background:linear-gradient(135deg,rgba(201,169,110,0.25),rgba(201,169,110,0.12));border:1px solid rgba(201,169,110,0.5);color:#c9a96e;padding:0.55rem 1.3rem;border-radius:6px;cursor:pointer;font-size:0.9rem;font-weight:600;">✨ AI Assist</button>
             <button class="btn btn-primary" onclick="saveProcedure()">
                 <span class="spinner" id="saveSpinner" style="display: none;"></span>
                 💾 Save Report
             </button>
         </div>
     </div>
+
+    <!-- AI Panel -->
+    <div id="ai-panel-endo" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:linear-gradient(180deg,#0a1628 0%,#060e1c 100%);border-top:2px solid rgba(249,115,22,0.4);max-height:65vh;overflow-y:auto;box-shadow:0 -8px 32px rgba(0,0,0,0.6);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="showEndoAITab('review')" id="endoai-tab-review" class="ai-tab-btn ai-tab-active">Review Report</button>
+                <button onclick="showEndoAITab('codes')" id="endoai-tab-codes" class="ai-tab-btn">Suggest Codes</button>
+                <button onclick="showEndoAITab('registry')" id="endoai-tab-registry" class="ai-tab-btn">Registry Extract</button>
+            </div>
+            <button onclick="document.getElementById('ai-panel-endo').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1.2rem;padding:4px 8px;">✕</button>
+        </div>
+        <div id="endoai-content-review" style="padding:20px 24px;">
+            <button id="endobtn-review" onclick="runEndoReview(this)" style="background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.35);color:#f97316;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Analyze Report Quality</button>
+            <div id="endoai-result-review" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+        <div id="endoai-content-codes" style="display:none;padding:20px 24px;">
+            <button id="endobtn-codes" onclick="runEndoCodes(this)" style="background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.35);color:#c9a96e;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Suggest ICD-10 &amp; CPT Codes</button>
+            <div id="endoai-result-codes" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+        <div id="endoai-content-registry" style="display:none;padding:20px 24px;">
+            <p style="font-size:0.8rem;opacity:0.55;margin-bottom:12px;">Extract ACS NSQIP or NCDR fields from this completed report.</p>
+            <select id="endo-registry-select" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px 12px;color:#fff;width:100%;max-width:280px;margin-bottom:12px;">
+                <option value="acs_nsqip">ACS NSQIP</option>
+                <option value="ncdr_cathpci">NCDR CathPCI</option>
+            </select>
+            <button id="endobtn-registry" onclick="runEndoRegistry(this)" style="background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.35);color:#a855f7;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;display:block;">Extract Registry Fields</button>
+            <div id="endoai-result-registry" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+    </div>
+    <style>
+        .ai-tab-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all .15s}
+        .ai-tab-btn:hover{background:rgba(255,255,255,0.1)}
+        .ai-tab-active{background:rgba(201,169,110,0.2)!important;border-color:rgba(201,169,110,0.5)!important;color:#c9a96e!important}
+    </style>
 
     <script>
         const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
@@ -896,6 +1168,70 @@
             document.getElementById('startWithdrawalBtn').onclick = startWithdrawalTimer;
         }
 
+        // ── EGD Module helpers ────────────────────────────────────────────────
+        function toggleEGDModule() {
+            const proc = document.getElementById('procedureType').value;
+            const mod  = document.getElementById('egd_module');
+            if (mod) mod.style.display = proc === 'egd' ? '' : 'none';
+        }
+
+        function toggleBarretts() {
+            const val = document.getElementById('barretts_present').value;
+            const fields = document.getElementById('barretts_fields');
+            if (fields) fields.style.display = val !== 'no' ? 'contents' : 'none';
+        }
+
+        function updateBarrettsSummary() {
+            const c = parseFloat(document.getElementById('barretts_c').value);
+            const m = parseFloat(document.getElementById('barretts_m').value);
+            const div = document.getElementById('barretts_summary');
+            if (!div) return;
+            if (!isNaN(c) && !isNaN(m) && m >= c) {
+                div.style.display = '';
+                let length_class = m < 3 ? 'Short-segment SSBE (<3cm)' : 'Long-segment LSBE (≥3cm)';
+                div.textContent = `Prague C${c}M${m} — ${length_class}. Surveillance interval per ACG 2022 guideline.`;
+            } else {
+                div.style.display = 'none';
+            }
+        }
+
+        function toggleForrest() {
+            const val = document.getElementById('ulcer_present').value;
+            const fields = document.getElementById('forrest_fields');
+            if (fields) fields.style.display = val !== 'no' ? '' : 'none';
+        }
+
+        // Wire procedure type change to show/hide EGD module
+        document.addEventListener('DOMContentLoaded', () => {
+            const procSelect = document.getElementById('procedureType');
+            if (procSelect) procSelect.addEventListener('change', toggleEGDModule);
+        });
+        // ── End EGD helpers ───────────────────────────────────────────────────
+
+        function checkCecalDoc() {
+            const reached  = document.getElementById('cecum_reached').value;
+            const photo    = document.getElementById('cecal_photo').value;
+            const alertDiv = document.getElementById('cecal_doc_alert');
+            if (!reached) { alertDiv.style.display = 'none'; return; }
+            alertDiv.style.display = '';
+            if (reached === 'no') {
+                alertDiv.style.background = 'rgba(239,68,68,0.12)';
+                alertDiv.style.border = '1px solid rgba(239,68,68,0.4)';
+                alertDiv.style.color = '#f87171';
+                alertDiv.innerHTML = '🔴 <strong>Incomplete colonoscopy.</strong> Document reason. Repeat exam or CT colonography required within 1 year per ACG guidelines.';
+            } else if (photo === 'no' || !photo) {
+                alertDiv.style.background = 'rgba(239,180,60,0.12)';
+                alertDiv.style.border = '1px solid rgba(239,180,60,0.4)';
+                alertDiv.style.color = '#f0c040';
+                alertDiv.innerHTML = '🟡 <strong>Cecum reached but no photo documented.</strong> ASGE recommends photographic proof of cecal intubation (ICV + appendix orifice) for quality assurance.';
+            } else {
+                alertDiv.style.background = 'rgba(34,197,94,0.1)';
+                alertDiv.style.border = '1px solid rgba(34,197,94,0.3)';
+                alertDiv.style.color = '#4ade80';
+                alertDiv.innerHTML = '✅ Cecal intubation documented with photographic confirmation.';
+            }
+        }
+
         function addPolyp() {
             polypCounter++;
             const polypId = `polyp_${polypCounter}`;
@@ -930,13 +1266,54 @@
                         <input type="number" data-polyp="${polypId}" data-field="size" placeholder="mm">
                     </div>
                     <div class="form-field">
-                        <label>Morphology (Paris Classification)</label>
-                        <select data-polyp="${polypId}" data-field="morphology">
-                            <option value="">Select morphology...</option>
-                            <option value="pedunculated">Ip - Pedunculated</option>
-                            <option value="sessile">Is - Sessile</option>
-                            <option value="flat_elevated">IIa - Flat Elevated</option>
-                            <option value="flat_depressed">IIc - Flat Depressed</option>
+                        <label>Paris Morphology</label>
+                        <select data-polyp="${polypId}" data-field="paris">
+                            <option value="">— Select —</option>
+                            <optgroup label="Polypoid">
+                                <option value="Ip">Ip — Pedunculated</option>
+                                <option value="Isp">Isp — Subpedunculated</option>
+                                <option value="Is">Is — Sessile</option>
+                            </optgroup>
+                            <optgroup label="Non-polypoid / Flat">
+                                <option value="IIa">IIa — Flat elevated (&lt;2.5 mm above mucosa)</option>
+                                <option value="IIb">IIb — Completely flat</option>
+                                <option value="IIc">IIc — Flat depressed</option>
+                                <option value="IIa+IIc">IIa+IIc — Mixed elevated+depressed</option>
+                            </optgroup>
+                            <optgroup label="Excavated">
+                                <option value="III">III — Excavated / ulcerated</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>NICE Classification (NBI optical Dx)</label>
+                        <select data-polyp="${polypId}" data-field="nice">
+                            <option value="">— Select (NBI required) —</option>
+                            <option value="1">Type 1 — Hyperplastic (pale/no vessels) — no resection</option>
+                            <option value="2">Type 2 — Adenoma (brown vessels, tubular pits) — resect</option>
+                            <option value="3">Type 3 — Deep submucosal cancer (disrupted/absent vessels) — surgery</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Kudo Pit Pattern (chromoendoscopy)</label>
+                        <select data-polyp="${polypId}" data-field="kudo">
+                            <option value="">— Select —</option>
+                            <option value="I">Type I — Round regular pits (normal mucosa)</option>
+                            <option value="II">Type II — Stellate / papillary pits (hyperplastic)</option>
+                            <option value="IIIs">Type IIIs — Small round pits (adenoma / early cancer)</option>
+                            <option value="IIIl">Type IIIl — Tubular / branched pits (adenoma)</option>
+                            <option value="IV">Type IV — Sulcus / gyrus / branch (villous adenoma)</option>
+                            <option value="VI">Type VI — Irregular (high-grade / T1 cancer)</option>
+                            <option value="VN">Type VN — Non-structural (T1 deep / T2 cancer)</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Optical Diagnosis Confidence</label>
+                        <select data-polyp="${polypId}" data-field="optical_dx_conf">
+                            <option value="">—</option>
+                            <option value="high">High confidence (DISCARD policy eligible if Type 1, ≤5mm)</option>
+                            <option value="low">Low confidence — send to pathology</option>
+                            <option value="na">N/A — no NBI/chromoendoscopy</option>
                         </select>
                     </div>
                     <div class="form-field">
@@ -945,9 +1322,12 @@
                             <option value="">Select method...</option>
                             <option value="cold_forceps">Cold Forceps</option>
                             <option value="hot_forceps">Hot Forceps</option>
-                            <option value="cold_snare">Cold Snare</option>
-                            <option value="hot_snare">Hot Snare (Polypectomy)</option>
+                            <option value="cold_snare">Cold Snare Polypectomy</option>
+                            <option value="hot_snare">Hot Snare Polypectomy</option>
                             <option value="emr">EMR (Endoscopic Mucosal Resection)</option>
+                            <option value="esd">ESD (Endoscopic Submucosal Dissection)</option>
+                            <option value="not_removed">Not removed — biopsy only</option>
+                            <option value="tattoo_only">Tattooed — referred surgery</option>
                         </select>
                     </div>
                     <div class="form-field">
@@ -1067,10 +1447,45 @@
                     procedure_type: document.getElementById('procedureType').value,
                     extent_of_exam: document.getElementById('extentOfExam').value,
                     withdrawal_time_mins: Math.floor(withdrawalSeconds / 60),
+
+                    // Cecal intubation — ASGE Quality Indicator
+                    cecal_intubation: {
+                        cecum_reached:       document.getElementById('cecum_reached').value || null,
+                        icv_identified:      document.getElementById('icv_identified').value || null,
+                        appendix_identified: document.getElementById('appendix_identified').value || null,
+                        cecal_photo:         document.getElementById('cecal_photo').value || null,
+                        ti_intubated:        document.getElementById('ti_intubated').value,
+                        incomplete_reason:   document.getElementById('incomplete_reason').value
+                    },
                     
                     // Findings
                     polyps_found: polypData,
                     other_findings: document.getElementById('otherFindings').value,
+
+                    // EGD upper-GI module
+                    egd_findings: document.getElementById('procedureType').value === 'egd' ? {
+                        barretts: {
+                            present:    document.getElementById('barretts_present').value,
+                            c_cm:       parseFloat(document.getElementById('barretts_c').value) || null,
+                            m_cm:       parseFloat(document.getElementById('barretts_m').value) || null,
+                            gej_cm:     parseFloat(document.getElementById('gej_cm').value) || null,
+                            dysplasia:  document.getElementById('barretts_dysplasia').value
+                        },
+                        la_esophagitis:  document.getElementById('la_grade').value,
+                        hiatal_hernia:   document.getElementById('hiatal_hernia').value,
+                        ulcer: {
+                            present:     document.getElementById('ulcer_present').value,
+                            forrest:     document.getElementById('forrest_class')?.value || null,
+                            size_mm:     parseInt(document.getElementById('ulcer_size_mm').value) || null,
+                            hemostasis:  document.getElementById('hemostasis_method').value
+                        },
+                        hpylori: {
+                            rut:         document.getElementById('hpylori_rut').value,
+                            biopsy:      document.getElementById('hpylori_biopsy').value,
+                            jar_numbers: document.getElementById('hpylori_jar').value || null,
+                            gastric_mucosa: document.getElementById('gastric_mucosa').value
+                        }
+                    } : null,
                     
                     // Pathology
                     biopsies_taken_count: parseInt(document.getElementById('biopsiesCount').value) || 0,
@@ -1115,6 +1530,78 @@
             setTimeout(() => {
                 alertDiv.innerHTML = '';
             }, 5000);
+        }
+    </script>
+    <script src="/ai-client.js"></script>
+    <script>
+        const urlParams_ai = new URLSearchParams(window.location.search);
+        const _endo_token = urlParams_ai.get('token');
+        const _endo_encId = urlParams_ai.get('encounter_id');
+
+        function showEndoAITab(tab) {
+            ['review','codes','registry'].forEach(t => {
+                document.getElementById('endoai-content-' + t).style.display = t === tab ? 'block' : 'none';
+                const btn = document.getElementById('endoai-tab-' + t);
+                if (btn) btn.classList.toggle('ai-tab-active', t === tab);
+            });
+        }
+
+        function getEndoFormData() {
+            const getV = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const getC = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+            return {
+                procedure_type: getV('procedureType'),
+                indication: getV('indication'),
+                cecum_reached: getC('cecumReached'),
+                bowel_prep: getV('prepQuality'),
+                boston_total: getV('bostonTotal'),
+                withdrawal_time: getV('withdrawalTime'),
+                other_findings: getV('otherFindings'),
+                discharge_instructions: getV('dischargeInstructions'),
+                followup_plan: getV('followupPlan'),
+                polyp_count: document.querySelectorAll('.polyp-item').length
+            };
+        }
+
+        async function runEndoReview(btn) {
+            AIClient.showSpinner(btn, 'Analyzing…');
+            const r = document.getElementById('endoai-result-review');
+            r.style.display = 'none';
+            try {
+                const result = await AIClient.reviewNote('gastroenterology', getEndoFormData(), _endo_token);
+                r.style.display = 'block';
+                AIClient.showResult('endoai-result-review', AIClient.renderReviewPanel(result), ['A','B'].includes(result.quality_grade) ? 'success' : result.quality_grade === 'C' ? 'warning' : 'error');
+            } catch (err) { r.style.display = 'block'; AIClient.showResult('endoai-result-review', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error'); }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runEndoCodes(btn) {
+            AIClient.showSpinner(btn, 'Querying…');
+            const r = document.getElementById('endoai-result-codes');
+            r.style.display = 'none';
+            try {
+                const data = getEndoFormData();
+                const description = [data.indication, data.procedure_type, data.other_findings].filter(Boolean).join('. ');
+                const result = await AIClient.suggestCodes(description, 'gastroenterology', data, data.procedure_type, _endo_token);
+                r.style.display = 'block';
+                AIClient.showResult('endoai-result-codes', AIClient.renderCodesPanel(result), 'info');
+            } catch (err) { r.style.display = 'block'; AIClient.showResult('endoai-result-codes', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error'); }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runEndoRegistry(btn) {
+            AIClient.showSpinner(btn, 'Extracting…');
+            const r = document.getElementById('endoai-result-registry');
+            r.style.display = 'none';
+            const registry = document.getElementById('endo-registry-select').value;
+            try {
+                const result = await AIClient.extractRegistry(getEndoFormData(), registry, _endo_encId, _endo_token);
+                r.style.display = 'block';
+                let html = `<div style="display:flex;gap:16px;margin-bottom:12px;"><span style="font-size:1.4rem;font-weight:700;color:#a855f7;">${result.completeness_pct ?? '—'}%</span><span style="opacity:0.7;font-size:0.85rem;align-self:center;">${result.submission_ready ? '<span style="color:#4ade80">Submission Ready</span>' : '<span style="color:#f0c040">Not Ready</span>'}</span></div>`;
+                if (result.missing_required_fields?.length) html += '<div style="margin-bottom:8px;font-size:0.81rem;"><strong style="color:#f0c040;">MISSING: </strong>' + result.missing_required_fields.join(', ') + '</div>';
+                AIClient.showResult('endoai-result-registry', html, result.submission_ready ? 'success' : 'warning');
+            } catch (err) { r.style.display = 'block'; AIClient.showResult('endoai-result-registry', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error'); }
+            AIClient.hideSpinner(btn);
         }
     </script>
 </body>
