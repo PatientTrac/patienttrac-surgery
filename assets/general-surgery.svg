@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 480" width="360" height="480">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#03122a"/>
+      <stop offset="100%" stop-color="#010811"/>
+    </radialGradient>
+    <radialGradient id="glow-c" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#28dfff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#28dfff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-p" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow-f" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-s" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="card-clip">
+      <rect x="0" y="0" width="360" height="480" rx="16"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="360" height="480" rx="16" fill="url(#bg)"/>
+
+  <!-- Ambient glow pools -->
+  <ellipse cx="180" cy="240" rx="200" ry="200" fill="url(#glow-c)"/>
+  <ellipse cx="260" cy="320" rx="160" ry="160" fill="url(#glow-p)"/>
+
+  <!-- HUD border -->
+  <rect x="1" y="1" width="358" height="478" rx="15" fill="none" stroke="#28dfff" stroke-width="0.8" stroke-opacity="0.35"/>
+
+  <!-- Corner accents — top left -->
+  <path d="M1,40 L1,16 Q1,1 16,1 L40,1" fill="none" stroke="#28dfff" stroke-width="2" stroke-opacity="0.9"/>
+  <!-- Corner accents — top right -->
+  <path d="M319,1 L344,1 Q359,1 359,16 L359,40" fill="none" stroke="#28dfff" stroke-width="2" stroke-opacity="0.9"/>
+  <!-- Corner accents — bottom left -->
+  <path d="M1,440 L1,464 Q1,479 16,479 L40,479" fill="none" stroke="#28dfff" stroke-width="2" stroke-opacity="0.6"/>
+  <!-- Corner accents — bottom right -->
+  <path d="M319,479 L344,479 Q359,479 359,464 L359,440" fill="none" stroke="#28dfff" stroke-width="2" stroke-opacity="0.6"/>
+
+  <!-- Scanning ring (outer) -->
+  <circle cx="180" cy="260" r="145" fill="none" stroke="#28dfff" stroke-width="0.6" stroke-opacity="0.18" stroke-dasharray="4 6"/>
+  <!-- Scanning ring (inner orbit) -->
+  <circle cx="180" cy="260" r="108" fill="none" stroke="#28dfff" stroke-width="0.5" stroke-opacity="0.22"/>
+  <!-- Orbit dot -->
+  <circle cx="288" cy="260" r="3.5" fill="#28dfff" opacity="0.9" filter="url(#glow-f)"/>
+  <circle cx="72" cy="260" r="2.5" fill="#7c3aed" opacity="0.8" filter="url(#glow-f)"/>
+
+  <!-- Hex icon badge -->
+  <polygon points="24,14 34,8 44,14 44,26 34,32 24,26" fill="none" stroke="#28dfff" stroke-width="1.4" stroke-opacity="0.85"/>
+  <polygon points="28,16 34,12 40,16 40,24 34,28 28,24" fill="#28dfff" fill-opacity="0.12"/>
+  <!-- Scalpel icon in hex -->
+  <line x1="29" y1="26" x2="39" y2="14" stroke="#28dfff" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.95"/>
+  <path d="M37,12 L41,13 L39,15 Z" fill="#28dfff" fill-opacity="0.9"/>
+
+  <!-- Label text -->
+  <text x="52" y="24" font-family="'Orbitron', 'Rajdhani', monospace" font-size="13" font-weight="700" fill="#ffffff" letter-spacing="0.04em">General Surgery</text>
+
+  <!-- ── Abdominal anatomy (glowing holographic) ─────────────────── -->
+
+  <!-- Torso outline -->
+  <g filter="url(#glow-f)">
+    <!-- Torso silhouette -->
+    <path d="M110,100 C96,108 80,125 75,150 C70,175 72,200 74,220 C78,250 82,270 86,295 C90,320 92,345 93,370 L267,370 C268,345 270,320 274,295 C278,270 282,250 286,220 C288,200 290,175 285,150 C280,125 264,108 250,100 Z"
+          fill="#28dfff" fill-opacity="0.04" stroke="#28dfff" stroke-width="1.2" stroke-opacity="0.5"/>
+
+    <!-- Ribcage / costal margins -->
+    <path d="M110,100 C105,130 100,155 100,175 Q120,155 140,148 Q160,142 180,141 Q200,142 220,148 Q240,155 260,175 C260,155 255,130 250,100"
+          fill="none" stroke="#28dfff" stroke-width="0.9" stroke-opacity="0.55"/>
+    <!-- Lower ribs -->
+    <path d="M88,190 Q120,175 148,171" fill="none" stroke="#28dfff" stroke-width="0.7" stroke-opacity="0.4"/>
+    <path d="M88,205 Q118,192 144,189" fill="none" stroke="#28dfff" stroke-width="0.7" stroke-opacity="0.35"/>
+    <path d="M272,190 Q240,175 212,171" fill="none" stroke="#28dfff" stroke-width="0.7" stroke-opacity="0.4"/>
+    <path d="M272,205 Q242,192 216,189" fill="none" stroke="#28dfff" stroke-width="0.7" stroke-opacity="0.35"/>
+
+    <!-- Sternum -->
+    <line x1="180" y1="100" x2="180" y2="165" stroke="#28dfff" stroke-width="0.8" stroke-opacity="0.5"/>
+
+    <!-- Liver (right upper quadrant — large triangular mass) -->
+    <path d="M112,168 C118,162 138,158 162,160 C180,162 188,168 190,178 C188,196 178,205 160,210 C140,212 120,208 112,198 C106,190 107,176 112,168 Z"
+          fill="#28dfff" fill-opacity="0.09" stroke="#28dfff" stroke-width="1.1" stroke-opacity="0.75"/>
+    <!-- Liver highlight -->
+    <path d="M118,170 C128,164 148,162 165,165" fill="none" stroke="#28dfff" stroke-width="0.7" stroke-opacity="0.4" stroke-dasharray="3,3"/>
+
+    <!-- Gallbladder -->
+    <ellipse cx="167" cy="216" rx="10" ry="7" fill="#28dfff" fill-opacity="0.12" stroke="#28dfff" stroke-width="1" stroke-opacity="0.85" filter="url(#glow-f)"/>
+
+    <!-- Stomach (left upper quadrant) -->
+    <path d="M192,168 C208,162 228,164 238,174 C246,183 244,200 236,210 C226,220 208,222 197,216 C188,210 186,196 190,184 Z"
+          fill="#7c3aed" fill-opacity="0.08" stroke="#a855f7" stroke-width="1.1" stroke-opacity="0.7"/>
+
+    <!-- Spleen -->
+    <ellipse cx="248" cy="198" rx="14" ry="11" fill="#7c3aed" fill-opacity="0.08" stroke="#a855f7" stroke-width="0.9" stroke-opacity="0.6"/>
+
+    <!-- Transverse colon -->
+    <path d="M105,235 Q140,225 180,226 Q220,225 255,235" fill="none" stroke="#28dfff" stroke-width="1.3" stroke-opacity="0.65"/>
+
+    <!-- Ascending colon -->
+    <path d="M105,235 C100,260 98,290 102,320 C106,340 112,355 116,365" fill="none" stroke="#28dfff" stroke-width="1.2" stroke-opacity="0.55"/>
+
+    <!-- Descending colon -->
+    <path d="M255,235 C260,260 262,290 258,320 C254,340 248,355 244,365" fill="none" stroke="#28dfff" stroke-width="1.2" stroke-opacity="0.55"/>
+
+    <!-- Small bowel loops -->
+    <path d="M140,240 Q160,250 180,246 Q200,242 215,252 Q220,265 205,272 Q185,278 165,274 Q148,268 142,256 Q138,248 142,242" fill="none" stroke="#28dfff" stroke-width="0.9" stroke-opacity="0.5"/>
+    <path d="M148,275 Q168,285 188,281 Q208,277 218,290 Q216,303 200,308 Q180,312 162,308 Q146,302 144,288 Q142,279 148,275" fill="none" stroke="#28dfff" stroke-width="0.9" stroke-opacity="0.4"/>
+    <path d="M152,310 Q172,322 192,318 Q210,314 218,326 Q215,338 200,342 Q182,346 164,342 Q150,336 148,323" fill="none" stroke="#28dfff" stroke-width="0.9" stroke-opacity="0.35"/>
+
+    <!-- Sigmoid & rectum -->
+    <path d="M244,365 Q220,358 200,362 Q180,366 165,365 Q145,362 132,358 L116,365" fill="none" stroke="#28dfff" stroke-width="1" stroke-opacity="0.45"/>
+
+    <!-- Umbilicus -->
+    <circle cx="180" cy="253" r="4.5" fill="none" stroke="#28dfff" stroke-width="1.2" stroke-opacity="0.8"/>
+    <circle cx="180" cy="253" r="2" fill="#28dfff" fill-opacity="0.4" filter="url(#glow-f)"/>
+
+    <!-- Midline reference -->
+    <line x1="180" y1="100" x2="180" y2="370" stroke="#28dfff" stroke-width="0.5" stroke-opacity="0.2" stroke-dasharray="5,5"/>
+
+    <!-- ASIS landmarks -->
+    <circle cx="96" cy="338" r="3.5" fill="#28dfff" fill-opacity="0.6" filter="url(#glow-f)"/>
+    <circle cx="264" cy="338" r="3.5" fill="#28dfff" fill-opacity="0.6" filter="url(#glow-f)"/>
+
+    <!-- Inguinal ligaments -->
+    <line x1="96" y1="338" x2="156" y2="368" stroke="#28dfff" stroke-width="0.8" stroke-opacity="0.45"/>
+    <line x1="264" y1="338" x2="204" y2="368" stroke="#28dfff" stroke-width="0.8" stroke-opacity="0.45"/>
+  </g>
+
+  <!-- ── Right side data panel ─────────────────────────────── -->
+  <rect x="290" y="110" width="58" height="22" rx="4" fill="#28dfff" fill-opacity="0.05" stroke="#28dfff" stroke-width="0.5" stroke-opacity="0.3"/>
+  <text x="296" y="122" font-family="monospace" font-size="7" fill="#28dfff" fill-opacity="0.6" letter-spacing="0.05em">PROCEDURE</text>
+  <text x="296" y="134" font-family="monospace" font-size="7" fill="#28dfff" fill-opacity="0.4" letter-spacing="0.05em">STATUS</text>
+
+  <rect x="290" y="140" width="58" height="42" rx="4" fill="#28dfff" fill-opacity="0.04" stroke="#28dfff" stroke-width="0.5" stroke-opacity="0.25"/>
+  <text x="296" y="152" font-family="'Orbitron', monospace" font-size="6.5" fill="#28dfff" fill-opacity="0.55" letter-spacing="0.08em">EBL</text>
+  <text x="296" y="166" font-family="'Orbitron', monospace" font-size="15" font-weight="700" fill="#28dfff" fill-opacity="0.85">—</text>
+  <text x="296" y="178" font-family="monospace" font-size="6.5" fill="#28dfff" fill-opacity="0.4">mL</text>
+
+  <rect x="290" y="192" width="58" height="40" rx="4" fill="#7c3aed" fill-opacity="0.05" stroke="#a855f7" stroke-width="0.5" stroke-opacity="0.3"/>
+  <text x="296" y="203" font-family="monospace" font-size="6.5" fill="#a855f7" fill-opacity="0.6" letter-spacing="0.06em">BIOMECHANICS</text>
+  <!-- Mini bar chart -->
+  <rect x="296" y="218" width="6" height="8" rx="1" fill="#a855f7" fill-opacity="0.5"/>
+  <rect x="305" y="213" width="6" height="13" rx="1" fill="#a855f7" fill-opacity="0.65"/>
+  <rect x="314" y="210" width="6" height="16" rx="1" fill="#a855f7" fill-opacity="0.8"/>
+  <rect x="323" y="214" width="6" height="12" rx="1" fill="#a855f7" fill-opacity="0.6"/>
+  <rect x="332" y="216" width="6" height="10" rx="1" fill="#a855f7" fill-opacity="0.5"/>
+
+  <rect x="290" y="242" width="58" height="38" rx="4" fill="#28dfff" fill-opacity="0.04" stroke="#28dfff" stroke-width="0.5" stroke-opacity="0.2"/>
+  <text x="296" y="253" font-family="monospace" font-size="6.5" fill="#28dfff" fill-opacity="0.55" letter-spacing="0.05em">PATIENT OUTCOME</text>
+  <text x="296" y="265" font-family="'Orbitron', monospace" font-size="13" font-weight="700" fill="#28dfff" fill-opacity="0.8">98%</text>
+  <text x="296" y="276" font-family="monospace" font-size="6" fill="#28dfff" fill-opacity="0.4">SATISFACTION</text>
+
+  <!-- ── ECG waveform at bottom ───────────────────────────── -->
+  <g opacity="0.55">
+    <polyline points="12,455 30,455 38,455 42,430 46,475 50,435 54,455 75,455 83,455 87,430 91,475 95,435 99,455 120,455 128,455 132,430 136,475 140,435 144,455 165,455 173,455 177,430 181,475 185,435 189,455 210,455 218,455 222,430 226,475 230,435 234,455 255,455 263,455 267,430 271,475 275,435 279,455 300,455 308,455 312,430 316,475 320,435 324,455 348,455"
+      fill="none" stroke="#28dfff" stroke-width="1" stroke-opacity="0.7"/>
+  </g>
+
+  <!-- Bottom label -->
+  <text x="180" y="472" text-anchor="middle" font-family="monospace" font-size="7.5" fill="#28dfff" fill-opacity="0.4" letter-spacing="0.12em">PATIENTTRAC SURGICAL INTELLIGENCE</text>
+</svg>
