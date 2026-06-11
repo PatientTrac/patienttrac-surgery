@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
@@ -20,6 +20,13 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sessionToken, setSessionToken] = useState('')
+  const challengeInputRef = useRef<HTMLInputElement>(null)
+  const setupInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (step === 'mfa_challenge') setTimeout(() => challengeInputRef.current?.focus(), 100)
+    if (step === 'mfa_setup') setTimeout(() => setupInputRef.current?.focus(), 100)
+  }, [step])
 
   const handleCredentials = async () => {
     setError('')
@@ -31,9 +38,9 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
       const token = authData.session?.access_token
       if (!token) throw new Error('No session token')
       setSessionToken(token)
-      const { data: member, error: memberErr } = await (supabase as any)
-        .schema('saas').from('org_members').select('role, mfa_enabled, mfa_secret, mfa_verified_at, is_active, org_id')
-        .eq('user_id', authData.user.id).single()
+      const { data: memberRows, error: memberErr } = await supabase
+        .rpc('get_my_org_member')
+      const member = memberRows?.[0]
       if (memberErr || !member) throw new Error('Account not found. Contact your administrator.')
       if (!member.is_active) throw new Error('Account not yet active. Check your email for an invitation.')
       if (!['provider', 'admin', 'super_admin'].includes(member.role)) throw new Error('Provider account required to access PatientTrac Surgery.')
@@ -45,6 +52,7 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
           setStep('mfa_setup')
         }
       } else {
+        sessionStorage.setItem('pts_mfa_verified', '1')
         onAuthenticated(authData.user.id, member.org_id, member.role)
       }
     } catch (e: any) { setError(e.message); await supabase.auth.signOut() }
@@ -69,8 +77,10 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
           body: JSON.stringify({ action: 'challenge', token: totpCode, app_source: 'surgery' }) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Invalid code')
+      sessionStorage.setItem('pts_mfa_verified', '1')
       const { data: { user } } = await supabase.auth.getUser()
-      const { data: member } = await (supabase as any).schema('saas').from('org_members').select('org_id, role').eq('user_id', user!.id).single()
+      const { data: memberRows } = await supabase.rpc('get_my_org_member')
+      const member = memberRows?.[0]
       onAuthenticated(user!.id, member!.org_id, member!.role)
     } catch (e: any) { setError(e.message); setTotpCode('') }
     finally { setLoading(false) }
@@ -86,8 +96,10 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
           body: JSON.stringify({ action: 'verify', token: setupCode, app_source: 'surgery' }) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Invalid code')
+      sessionStorage.setItem('pts_mfa_verified', '1')
       const { data: { user } } = await supabase.auth.getUser()
-      const { data: member } = await (supabase as any).schema('saas').from('org_members').select('org_id, role').eq('user_id', user!.id).single()
+      const { data: memberRows } = await supabase.rpc('get_my_org_member')
+      const member = memberRows?.[0]
       onAuthenticated(user!.id, member!.org_id, member!.role)
     } catch (e: any) { setError(e.message); setSetupCode('') }
     finally { setLoading(false) }
@@ -154,10 +166,10 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>Open Google Authenticator and enter the code for PatientTrac Surgery.</div>
             </div>
             <label style={S.lbl}>Authenticator Code</label>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }} onClick={() => challengeInputRef.current?.focus()}>
               {Array.from({ length: 6 }).map((_, i) => <div key={i} style={S.digit(!!totpCode[i])}>{totpCode[i] ?? ''}</div>)}
             </div>
-            <input autoFocus value={totpCode} onChange={e => handleTotpInput(e.target.value, setTotpCode)} onKeyDown={e => e.key === 'Enter' && totpCode.length === 6 && handleMfaChallenge()} style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}/>
+            <input ref={challengeInputRef} autoFocus value={totpCode} onChange={e => handleTotpInput(e.target.value, setTotpCode)} onKeyDown={e => e.key === 'Enter' && totpCode.length === 6 && handleMfaChallenge()} style={{ position: 'fixed', opacity: 0, width: 1, height: 1, top: 0, left: 0 }}/>
             {error && <div style={S.err}>{error}</div>}
             <button onClick={handleMfaChallenge} disabled={loading || totpCode.length !== 6} style={S.btn(totpCode.length === 6)}>{loading ? 'Verifying…' : 'Verify & Sign In →'}</button>
             <button onClick={() => { setStep('credentials'); setTotpCode(''); setError(''); supabase.auth.signOut() }} style={S.back}>← Back</button>
@@ -176,10 +188,10 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
               <code style={{ fontSize: 13, color: A, letterSpacing: '2px' }}>{mfaSecret}</code>
             </div>}
             <label style={S.lbl}>3. Enter the 6-digit code to confirm</label>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }} onClick={() => setupInputRef.current?.focus()}>
               {Array.from({ length: 6 }).map((_, i) => <div key={i} style={S.digit(!!setupCode[i])}>{setupCode[i] ?? ''}</div>)}
             </div>
-            <input autoFocus value={setupCode} onChange={e => handleTotpInput(e.target.value, setSetupCode)} onKeyDown={e => e.key === 'Enter' && setupCode.length === 6 && handleMfaVerify()} style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}/>
+            <input ref={setupInputRef} autoFocus value={setupCode} onChange={e => handleTotpInput(e.target.value, setSetupCode)} onKeyDown={e => e.key === 'Enter' && setupCode.length === 6 && handleMfaVerify()} style={{ position: 'fixed', opacity: 0, width: 1, height: 1, top: 0, left: 0 }}/>
             {error && <div style={S.err}>{error}</div>}
             <button onClick={handleMfaVerify} disabled={loading || setupCode.length !== 6} style={S.btn(setupCode.length === 6)}>{loading ? 'Activating…' : 'Activate MFA & Sign In →'}</button>
             <button onClick={() => { setStep('credentials'); setSetupCode(''); setError(''); supabase.auth.signOut() }} style={S.back}>← Back</button>

@@ -517,6 +517,8 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
 
   if (loading) return <Spinner />
 
+  const safeStats: QuickStats = stats ?? { totalCasesToday: 0, inOrNow: 0, pacuOccupancy: 0, pacuCapacity: 8, avgOrTime: 0 }
+
   return (
     <div style={{ minHeight:'100vh', background:C.bg, color:C.text, fontFamily:"'DM Sans',sans-serif" }}>
       <style>{`
@@ -597,10 +599,10 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
         borderBottom:`1px solid ${C.goldBorder}`,
       }}>
         {[
-          { label:'Cases Today',    value: stats!.totalCasesToday, unit:'',        color:C.gold    },
-          { label:'In OR Now',      value: stats!.inOrNow,         unit:'active',  color:C.inor    },
-          { label:'PACU Occupancy', value:`${stats!.pacuOccupancy}/${stats!.pacuCapacity}`, unit:'beds', color:C.pacu },
-          { label:'Avg OR Time',    value: fmtDuration(stats!.avgOrTime), unit:'per case', color:C.ward },
+          { label:'Cases Today',    value: safeStats.totalCasesToday, unit:'',        color:C.gold    },
+          { label:'In OR Now',      value: safeStats.inOrNow,         unit:'active',  color:C.inor    },
+          { label:'PACU Occupancy', value:`${safeStats.pacuOccupancy}/${safeStats.pacuCapacity}`, unit:'beds', color:C.pacu },
+          { label:'Avg OR Time',    value: fmtDuration(safeStats.avgOrTime), unit:'per case', color:C.ward },
         ].map(({ label, value, unit, color }) => (
           <div key={label} style={{ background:C.bg, padding:'16px 20px', display:'flex', flexDirection:'column', gap:4 }}>
             <div style={{ fontSize:10, fontFamily:'DM Mono,monospace', color:C.dim, letterSpacing:'0.1em', textTransform:'uppercase' }}>
@@ -658,14 +660,37 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
             {/* Patient Flow Board */}
             <SectionLabel>Patient Flow — {patients.length} Patients Active</SectionLabel>
 
+            {patients.length === 0 && !loading && (
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                padding: '60px 24px', gap: 16,
+                border: `1px dashed rgba(201,169,110,0.15)`, borderRadius: 8, marginBottom: 24,
+              }}>
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <rect x="4" y="8" width="40" height="32" rx="4" stroke="rgba(201,169,110,0.3)" strokeWidth="1.5"/>
+                  <line x1="4" y1="16" x2="44" y2="16" stroke="rgba(201,169,110,0.2)" strokeWidth="1"/>
+                  <rect x="10" y="22" width="12" height="3" rx="1" fill="rgba(201,169,110,0.25)"/>
+                  <rect x="10" y="29" width="20" height="2" rx="1" fill="rgba(201,169,110,0.15)"/>
+                  <rect x="10" y="33" width="14" height="2" rx="1" fill="rgba(201,169,110,0.15)"/>
+                  <circle cx="38" cy="32" r="8" fill="#060e1c" stroke="rgba(201,169,110,0.4)" strokeWidth="1.5"/>
+                  <line x1="38" y1="28" x2="38" y2="36" stroke="rgba(201,169,110,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="34" y1="32" x2="42" y2="32" stroke="rgba(201,169,110,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <div style={{ fontSize: 14, color: C.muted, fontFamily: 'DM Mono,monospace', textAlign: 'center', lineHeight: 1.8 }}>
+                  No cases scheduled for today.<br/>
+                  <span style={{ fontSize: 11, color: C.dim }}>Run supabase-cases-migration.sql to seed demo data, or add cases directly.</span>
+                </div>
+              </div>
+            )}
+
             <div style={{
               display:'flex',
               gap:12,
               overflowX:'auto',
               paddingBottom:8,
-              minHeight:320,
+              minHeight: patients.length > 0 ? 320 : 0,
             }}>
-              {stageOrder.map(stage => (
+              {patients.length > 0 && stageOrder.map(stage => (
                 <FlowLane
                   key={stage}
                   stage={stage}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
+import { useAppStore } from './lib/store'
 import SurgeryLogin from './pages/SurgeryLogin'
 import SurgeryDashboard from './pages/SurgeryDashboard'
 import AdminPanel from './pages/AdminPanel'
@@ -13,13 +14,32 @@ interface ProtectedRouteProps {
 
 function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate()
+  const setSession = useAppStore(s => s.setSession)
+  const clearSession = useAppStore(s => s.clearSession)
   const [checking, setChecking] = useState(true)
   const [authed, setAuthed] = useState(false)
+
+  const restoreSession = async (userId: string) => {
+    const { data: rows } = await supabase.rpc('get_my_org_member')
+    const member = rows?.[0]
+    if (member?.org_id) {
+      setSession({ org_id: member.org_id, provider_id: userId, access_token: undefined })
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        // MFA must have been verified in this browser tab (sessionStorage cleared on hard refresh)
+        const mfaOk = sessionStorage.getItem('pts_mfa_verified') === '1'
+        if (!mfaOk) {
+          supabase.auth.signOut()
+          navigate('/login', { replace: true })
+          setChecking(false)
+          return
+        }
         setAuthed(true)
+        restoreSession(session.user.id)
       } else {
         navigate('/login', { replace: true })
       }
@@ -28,7 +48,9 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
+        sessionStorage.removeItem('pts_mfa_verified')
         setAuthed(false)
+        clearSession()
         navigate('/login', { replace: true })
       } else {
         setAuthed(true)
@@ -62,6 +84,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 // ── Login wrapper — redirects to /dashboard after auth ───────
 function LoginRoute() {
   const navigate = useNavigate()
+  const setSession = useAppStore(s => s.setSession)
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
@@ -89,7 +112,8 @@ function LoginRoute() {
     )
   }
 
-  const handleAuthenticated = (_userId: string, _orgId: string, _role: string) => {
+  const handleAuthenticated = (userId: string, orgId: string, _role: string) => {
+    setSession({ org_id: orgId, provider_id: userId })
     navigate('/dashboard', { replace: true })
   }
 
