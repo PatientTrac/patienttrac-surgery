@@ -30,14 +30,6 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // MFA must have been verified in this browser tab (sessionStorage cleared on hard refresh)
-        const mfaOk = sessionStorage.getItem('pts_mfa_verified') === '1'
-        if (!mfaOk) {
-          supabase.auth.signOut()
-          navigate('/login', { replace: true })
-          setChecking(false)
-          return
-        }
         setAuthed(true)
         restoreSession(session.user.id)
       } else {
@@ -48,7 +40,6 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
-        sessionStorage.removeItem('pts_mfa_verified')
         setAuthed(false)
         clearSession()
         navigate('/login', { replace: true })

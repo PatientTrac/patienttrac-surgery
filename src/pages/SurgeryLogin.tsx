@@ -52,7 +52,6 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
           setStep('mfa_setup')
         }
       } else {
-        sessionStorage.setItem('pts_mfa_verified', '1')
         onAuthenticated(authData.user.id, member.org_id, member.role)
       }
     } catch (e: any) { setError(e.message); await supabase.auth.signOut() }
@@ -77,7 +76,6 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
           body: JSON.stringify({ action: 'challenge', token: totpCode, app_source: 'surgery' }) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Invalid code')
-      sessionStorage.setItem('pts_mfa_verified', '1')
       const { data: { user } } = await supabase.auth.getUser()
       const { data: memberRows } = await supabase.rpc('get_my_org_member')
       const member = memberRows?.[0]
@@ -96,7 +94,6 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
           body: JSON.stringify({ action: 'verify', token: setupCode, app_source: 'surgery' }) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Invalid code')
-      sessionStorage.setItem('pts_mfa_verified', '1')
       const { data: { user } } = await supabase.auth.getUser()
       const { data: memberRows } = await supabase.rpc('get_my_org_member')
       const member = memberRows?.[0]
