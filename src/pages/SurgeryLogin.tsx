@@ -31,8 +31,8 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
       const token = authData.session?.access_token
       if (!token) throw new Error('No session token')
       setSessionToken(token)
-      const { data: member, error: memberErr } = await supabase
-        .from('org_members').select('role, mfa_enabled, mfa_secret, mfa_verified_at, is_active, org_id')
+      const { data: member, error: memberErr } = await (supabase as any)
+        .schema('saas').from('org_members').select('role, mfa_enabled, mfa_secret, mfa_verified_at, is_active, org_id')
         .eq('user_id', authData.user.id).single()
       if (memberErr || !member) throw new Error('Account not found. Contact your administrator.')
       if (!member.is_active) throw new Error('Account not yet active. Check your email for an invitation.')
@@ -70,7 +70,7 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Invalid code')
       const { data: { user } } = await supabase.auth.getUser()
-      const { data: member } = await supabase.from('org_members').select('org_id, role').eq('user_id', user!.id).single()
+      const { data: member } = await (supabase as any).schema('saas').from('org_members').select('org_id, role').eq('user_id', user!.id).single()
       onAuthenticated(user!.id, member!.org_id, member!.role)
     } catch (e: any) { setError(e.message); setTotpCode('') }
     finally { setLoading(false) }
@@ -87,7 +87,7 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Invalid code')
       const { data: { user } } = await supabase.auth.getUser()
-      const { data: member } = await supabase.from('org_members').select('org_id, role').eq('user_id', user!.id).single()
+      const { data: member } = await (supabase as any).schema('saas').from('org_members').select('org_id, role').eq('user_id', user!.id).single()
       onAuthenticated(user!.id, member!.org_id, member!.role)
     } catch (e: any) { setError(e.message); setSetupCode('') }
     finally { setLoading(false) }

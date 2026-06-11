@@ -12,11 +12,34 @@
 [functions."*"]
   timeout = 30
 
+# Landing page
 [[redirects]]
   from = "/"
   to = "/index.html"
   status = 200
 
+# React app routes — all served from /app.html
+[[redirects]]
+  from = "/login"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/app.html"
+  status = 200
+
+[[redirects]]
+  from = "/consent/*"
+  to = "/app.html"
+  status = 200
+
+# Fallback — unknown paths to landing
 [[redirects]]
   from = "/*"
   to = "/index.html"

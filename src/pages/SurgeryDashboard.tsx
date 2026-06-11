@@ -1,4 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
+import { useAppStore } from '../lib/store'
+import { supabase } from '../lib/supabase'
+
+const PreOpModule    = lazy(() => import('../components/surgery/PreOpModule'))
+const OperativeModule = lazy(() => import('../components/surgery/OperativeModule'))
+const PostOpModule   = lazy(() => import('../components/surgery/PostOpModule'))
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type FlowStage = 'preop' | 'inor' | 'pacu' | 'ward' | 'discharge'
@@ -45,44 +51,75 @@ interface QuickStats {
   avgOrTime: number
 }
 
-// ── Mock data ──────────────────────────────────────────────────────────────
-const MOCK_PATIENTS: PatientCard[] = [
-  { id:'pt-001', name:'Harrington, Dale',  procedure:'Laparoscopic Cholecystectomy', surgeon:'Dr. Okafor',  stage:'preop',    timeInStage:22,  urgency:'routine', age:58 },
-  { id:'pt-002', name:'Vance, Simone',     procedure:'Appendectomy',                surgeon:'Dr. Reyes',   stage:'preop',    timeInStage:8,   urgency:'urgent',  age:34 },
-  { id:'pt-003', name:'Fontaine, Marcus',  procedure:'Inguinal Hernia Repair',      surgeon:'Dr. Okafor',  stage:'inor',     timeInStage:67,  urgency:'routine', room:'OR-1', age:47 },
-  { id:'pt-004', name:'Deschamps, Lydia',  procedure:'Sigmoid Colectomy',           surgeon:'Dr. Patel',   stage:'inor',     timeInStage:142, urgency:'routine', room:'OR-2', age:64 },
-  { id:'pt-005', name:'Tran, Benjamin',    procedure:'Exploratory Laparotomy',      surgeon:'Dr. Reyes',   stage:'inor',     timeInStage:38,  urgency:'stat',    room:'OR-3', age:29 },
-  { id:'pt-006', name:'Osei, Catherine',   procedure:'Lap Cholecystectomy',         surgeon:'Dr. Patel',   stage:'pacu',     timeInStage:55,  urgency:'routine', age:51 },
-  { id:'pt-007', name:'Kowalski, Leon',    procedure:'Right Hemicolectomy',         surgeon:'Dr. Okafor',  stage:'pacu',     timeInStage:28,  urgency:'routine', age:72 },
-  { id:'pt-008', name:'Abreu, Marisol',    procedure:'Gastric Bypass',              surgeon:'Dr. Patel',   stage:'ward',     timeInStage:310, urgency:'routine', age:44 },
-  { id:'pt-009', name:'Donnelly, Patrick', procedure:'Small Bowel Resection',       surgeon:'Dr. Reyes',   stage:'ward',     timeInStage:820, urgency:'routine', age:66 },
-  { id:'pt-010', name:'Stern, Rachel',     procedure:'Inguinal Hernia Repair',      surgeon:'Dr. Okafor',  stage:'discharge',timeInStage:95,  urgency:'routine', age:39 },
-]
+// ── DB row shape ────────────────────────────────────────────────────────────
+interface CaseRow {
+  case_id: string
+  procedure: string
+  surgeon: string
+  urgency: string
+  stage: string
+  stage_entered_at: string
+  scheduled_time: string | null
+  room: string | null
+  duration_min: number
+  status: string
+  completed_at: string | null
+  total_time_min: number | null
+  outcome: string | null
+  patients: { first_name: string; last_name: string; dob: string | null }
+}
 
-const MOCK_SCHEDULE: ScheduledCase[] = [
-  { id:'case-01', time:'07:30', room:'OR-1', procedure:'Inguinal Hernia Repair',      patient:'Fontaine, Marcus',  surgeon:'Dr. Okafor', duration:90,  status:'in_progress' },
-  { id:'case-02', time:'08:00', room:'OR-2', procedure:'Sigmoid Colectomy',           patient:'Deschamps, Lydia',  surgeon:'Dr. Patel',  duration:180, status:'in_progress' },
-  { id:'case-03', time:'08:30', room:'OR-3', procedure:'Exploratory Laparotomy',      patient:'Tran, Benjamin',    surgeon:'Dr. Reyes',  duration:120, status:'in_progress' },
-  { id:'case-04', time:'11:30', room:'OR-1', procedure:'Laparoscopic Cholecystectomy',patient:'Harrington, Dale',  surgeon:'Dr. Okafor', duration:75,  status:'scheduled'   },
-  { id:'case-05', time:'13:00', room:'OR-2', procedure:'Appendectomy',                patient:'Vance, Simone',     surgeon:'Dr. Reyes',  duration:60,  status:'delayed'     },
-  { id:'case-06', time:'14:30', room:'OR-3', procedure:'Thyroidectomy',               patient:'Nguyen, Patricia',  surgeon:'Dr. Patel',  duration:120, status:'scheduled'   },
-  { id:'case-07', time:'15:00', room:'OR-1', procedure:'Ventral Hernia Repair',       patient:'Gomez, Eduardo',    surgeon:'Dr. Okafor', duration:90,  status:'scheduled'   },
-]
+function minsInStage(enteredAt: string): number {
+  return Math.floor((Date.now() - new Date(enteredAt).getTime()) / 60000)
+}
 
-const MOCK_COMPLETED: CompletedCase[] = [
-  { id:'done-01', patient:'Stern, Rachel',     procedure:'Inguinal Hernia Repair',    surgeon:'Dr. Okafor', completedAt:'06:15', totalTime:88,  outcome:'routine'             },
-  { id:'done-02', patient:'Osei, Catherine',   procedure:'Lap Cholecystectomy',       surgeon:'Dr. Patel',  completedAt:'06:45', totalTime:72,  outcome:'routine'             },
-  { id:'done-03', patient:'Yamamoto, Kenji',   procedure:'Appendectomy',              surgeon:'Dr. Reyes',  completedAt:'05:30', totalTime:58,  outcome:'complication_noted'  },
-  { id:'done-04', patient:'Abreu, Marisol',    procedure:'Gastric Bypass',            surgeon:'Dr. Patel',  completedAt:'04:00', totalTime:214, outcome:'extended'            },
-  { id:'done-05', patient:'Donnelly, Patrick', procedure:'Small Bowel Resection',     surgeon:'Dr. Reyes',  completedAt:'03:20', totalTime:168, outcome:'routine'             },
-]
+function ageFromDob(dob: string | null): number {
+  if (!dob) return 0
+  return Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 3600 * 1000))
+}
 
-const MOCK_STATS: QuickStats = {
-  totalCasesToday: 12,
-  inOrNow: 3,
-  pacuOccupancy: 2,
-  pacuCapacity: 8,
-  avgOrTime: 104,
+function rowToPatientCard(r: CaseRow): PatientCard {
+  const name = `${r.patients.last_name}, ${r.patients.first_name}`
+  return {
+    id:           r.case_id,
+    name,
+    procedure:    r.procedure,
+    surgeon:      r.surgeon,
+    stage:        r.stage as FlowStage,
+    timeInStage:  minsInStage(r.stage_entered_at),
+    urgency:      r.urgency as Urgency,
+    room:         r.room ?? undefined,
+    age:          ageFromDob(r.patients.dob),
+  }
+}
+
+function rowToScheduled(r: CaseRow): ScheduledCase {
+  const name = `${r.patients.last_name}, ${r.patients.first_name}`
+  return {
+    id:        r.case_id,
+    time:      r.scheduled_time?.slice(0, 5) ?? '—',
+    room:      r.room ?? '—',
+    procedure: r.procedure,
+    patient:   name,
+    surgeon:   r.surgeon,
+    duration:  r.duration_min,
+    status:    r.status as ScheduledCase['status'],
+  }
+}
+
+function rowToCompleted(r: CaseRow): CompletedCase {
+  const name = `${r.patients.last_name}, ${r.patients.first_name}`
+  return {
+    id:          r.case_id,
+    patient:     name,
+    procedure:   r.procedure,
+    surgeon:     r.surgeon,
+    completedAt: r.completed_at
+      ? new Date(r.completed_at).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:false })
+      : '—',
+    totalTime:   r.total_time_min ?? 0,
+    outcome:     (r.outcome ?? 'routine') as CompletedCase['outcome'],
+  }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -165,6 +202,83 @@ function stageAccent(s: FlowStage): { color: string; bg: string } {
     discharge:{ color: C.discharge,bg: C.dischargeBg},
   }
   return map[s]
+}
+
+// ── Drawer ─────────────────────────────────────────────────────────────────
+function PatientDrawer({ patient, orgId, onClose }: {
+  patient: PatientCard | null
+  orgId: string
+  onClose: () => void
+}) {
+  if (!patient) return null
+
+  const moduleForStage = (stage: FlowStage) => {
+    if (stage === 'preop')    return <PreOpModule    patientId={patient.id} encounterId={patient.id} orgId={orgId} />
+    if (stage === 'inor')     return <OperativeModule patientId={patient.id} encounterId={patient.id} orgId={orgId} />
+    if (stage === 'pacu' || stage === 'ward' || stage === 'discharge')
+                              return <PostOpModule   patientId={patient.id} encounterId={patient.id} orgId={orgId} procedure={patient.procedure} />
+    return null
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
+          zIndex: 200, backdropFilter: 'blur(2px)',
+        }}
+      />
+      {/* Drawer */}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 201,
+        width: 'min(860px, 92vw)',
+        background: '#060e1c',
+        borderLeft: `1px solid rgba(201,169,110,0.2)`,
+        boxShadow: '-24px 0 80px rgba(0,0,0,0.6)',
+        display: 'flex', flexDirection: 'column',
+        overflowY: 'auto',
+      }}>
+        {/* Drawer header */}
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 10,
+          background: '#060e1c', borderBottom: `1px solid rgba(201,169,110,0.15)`,
+          padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.text, fontFamily: 'Rajdhani,sans-serif' }}>
+              {patient.name}
+            </div>
+            <div style={{ fontSize: 11, color: C.muted, fontFamily: 'DM Mono,monospace', marginTop: 2 }}>
+              {patient.procedure} · {patient.surgeon} · {stageLabel(patient.stage).toUpperCase()}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'rgba(201,169,110,0.08)', border: `1px solid rgba(201,169,110,0.2)`,
+              color: C.muted, fontSize: 18, lineHeight: 1, padding: '6px 12px',
+              cursor: 'pointer', fontFamily: 'monospace',
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Module content */}
+        <div style={{ flex: 1, padding: 24 }}>
+          <Suspense fallback={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+              <div style={{ width: 32, height: 32, border: `3px solid ${C.dim}`, borderTopColor: C.gold, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            </div>
+          }>
+            {moduleForStage(patient.stage)}
+          </Suspense>
+        </div>
+      </div>
+    </>
+  )
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -308,7 +422,10 @@ interface Props {
   onNavigateSettings?: () => void
 }
 
-export default function SurgeryDashboard({ orgId = '', providerName = 'Dr. Okafor', onNavigateAdmin, onNavigateSettings }: Props) {
+export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName = 'Dr. Okafor', onNavigateAdmin, onNavigateSettings }: Props) {
+  const sessionOrgId = useAppStore(s => s.session?.org_id)
+  const orgId = sessionOrgId || orgIdProp
+
   const [loading,    setLoading]    = useState(true)
   const [patients,   setPatients]   = useState<PatientCard[]>([])
   const [schedule,   setSchedule]   = useState<ScheduledCase[]>([])
@@ -316,27 +433,83 @@ export default function SurgeryDashboard({ orgId = '', providerName = 'Dr. Okafo
   const [stats,      setStats]      = useState<QuickStats | null>(null)
   const [toast,      setToast]      = useState<string | null>(null)
   const [activeView, setActiveView] = useState<'board' | 'schedule'>('board')
+  const [drawerPatient, setDrawerPatient] = useState<PatientCard | null>(null)
 
   const today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
 
-  // Simulate data fetch
-  const loadData = useCallback(async (_orgId: string) => {
+  const loadData = useCallback(async (currentOrgId: string) => {
     setLoading(true)
-    // In a real sprint this calls Supabase — for now mock delay
-    await new Promise(r => setTimeout(r, 600))
-    setPatients(MOCK_PATIENTS)
-    setSchedule(MOCK_SCHEDULE)
-    setCompleted(MOCK_COMPLETED)
-    setStats(MOCK_STATS)
+    try {
+      const todayStr = new Date().toISOString().slice(0, 10)
+
+      const { data, error } = await (supabase as any)
+        .schema('cr')
+        .from('surgical_cases')
+        .select(`
+          case_id, procedure, surgeon, urgency, stage, stage_entered_at,
+          scheduled_time, room, duration_min, status,
+          completed_at, total_time_min, outcome,
+          patients ( first_name, last_name, dob )
+        `)
+        .eq('org_id', currentOrgId)
+        .eq('case_date', todayStr)
+        .neq('stage', 'cancelled')
+        .order('scheduled_time', { ascending: true })
+
+      if (error) throw error
+
+      const rows: CaseRow[] = data ?? []
+      const active   = rows.filter(r => r.stage !== 'discharge' && r.status !== 'completed')
+      const board    = rows.filter(r => !['cancelled'].includes(r.stage))
+      const done     = rows.filter(r => r.status === 'completed').slice(-5).reverse()
+      const sched    = rows.filter(r => !['cancelled'].includes(r.status))
+
+      setPatients(board.map(rowToPatientCard))
+      setSchedule(sched.map(rowToScheduled))
+      setCompleted(done.map(rowToCompleted))
+
+      const inOr   = rows.filter(r => r.stage === 'inor').length
+      const inPacu = rows.filter(r => r.stage === 'pacu').length
+      const completedRows = rows.filter(r => r.total_time_min)
+      const avgOr  = completedRows.length
+        ? Math.round(completedRows.reduce((s, r) => s + (r.total_time_min ?? 0), 0) / completedRows.length)
+        : 0
+
+      setStats({
+        totalCasesToday: rows.length,
+        inOrNow:         inOr,
+        pacuOccupancy:   inPacu,
+        pacuCapacity:    8,
+        avgOrTime:       avgOr,
+      })
+    } catch (err) {
+      console.error('loadData error:', err)
+      setToast('Failed to load cases — check connection')
+    }
     setLoading(false)
   }, [])
 
+  // Initial load
   useEffect(() => {
-    if (orgId) loadData(orgId)
+    loadData(orgId)
+  }, [orgId, loadData])
+
+  // Realtime: re-fetch whenever any surgical_case changes for this org
+  useEffect(() => {
+    if (!orgId) return
+    const channel = supabase
+      .channel(`surgical_cases:${orgId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'cr', table: 'surgical_cases' },
+        () => { loadData(orgId) }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
   }, [orgId, loadData])
 
   const handlePatientClick = (p: PatientCard) => {
-    setToast(`Patient chart for ${p.name} — coming soon`)
+    setDrawerPatient(p)
   }
 
   const stageOrder: FlowStage[] = ['preop', 'inor', 'pacu', 'ward', 'discharge']
@@ -684,6 +857,13 @@ export default function SurgeryDashboard({ orgId = '', providerName = 'Dr. Okafo
 
       {/* ── Toast ────────────────────────────────────────────────────────── */}
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+
+      {/* ── Patient Drawer ───────────────────────────────────────────────── */}
+      <PatientDrawer
+        patient={drawerPatient}
+        orgId={orgId}
+        onClose={() => setDrawerPatient(null)}
+      />
     </div>
   )
 }
