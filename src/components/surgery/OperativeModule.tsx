@@ -15,6 +15,7 @@ import TimeOutChecklist from './TimeOutChecklist';
 import MARPanel from './MARPanel';
 import ImplantPanel from './ImplantPanel';
 import AnesthesiaRecord from './AnesthesiaRecord';
+import AIDocTools from './AIDocTools';
 
 // ── Props ────────────────────────────────────────────────────────
 interface Props {
@@ -1322,6 +1323,18 @@ const OperativeModule: React.FC<Props> = ({ patientId, encounterId, orgId, onSav
 
         </div>
       </div>
+
+      {/* AI documentation tools over the structured note */}
+      <AIDocTools
+        findings={note.intraOpFindings}
+        description={note.description}
+        onFindingsCleaned={t => set('intraOpFindings', t)}
+        onDescriptionCleaned={t => set('description', t)}
+        specialty="general_surgery"
+        procedureType={selectedProc?.label}
+        formData={note as unknown as Record<string, unknown>}
+        encounterId={String(encounterId)}
+      />
 
       {/* Intra-op clinical records on the shared case spine */}
       <AnesthesiaRecord caseId={Number(patientId) || null} patientId={patientId} encounterId={encounterId} orgId={orgId} />
