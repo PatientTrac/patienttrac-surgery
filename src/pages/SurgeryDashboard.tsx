@@ -52,72 +52,68 @@ interface QuickStats {
   avgOrTime: number
 }
 
-// ── DB row shape ────────────────────────────────────────────────────────────
+// ── DB row shape — unified case spine (cr.or_cases, shared with the OR app) ─
 interface CaseRow {
-  case_id: string
-  procedure: string
-  surgeon: string
+  case_id: number
+  procedure_name: string
+  surgeon_name: string
   urgency: string
   stage: string
   stage_entered_at: string
-  scheduled_time: string | null
-  room: string | null
-  duration_min: number
-  status: string
+  scheduled_start: string | null
+  or_room: string | null
+  estimated_duration_minutes: number
+  schedule_status: string
   completed_at: string | null
   total_time_min: number | null
   outcome: string | null
-  patients: { first_name: string; last_name: string; dob: string | null }
+  patient_name: string
+  patient_age: number | null
 }
 
 function minsInStage(enteredAt: string): number {
   return Math.floor((Date.now() - new Date(enteredAt).getTime()) / 60000)
 }
 
-function ageFromDob(dob: string | null): number {
-  if (!dob) return 0
-  return Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 3600 * 1000))
+function fmtClock(ts: string | null): string {
+  if (!ts) return '—'
+  return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 function rowToPatientCard(r: CaseRow): PatientCard {
-  const name = `${r.patients.last_name}, ${r.patients.first_name}`
   return {
-    id:           r.case_id,
-    name,
-    procedure:    r.procedure,
-    surgeon:      r.surgeon,
+    id:           String(r.case_id),
+    name:         r.patient_name,
+    procedure:    r.procedure_name,
+    surgeon:      r.surgeon_name,
     stage:        r.stage as FlowStage,
     timeInStage:  minsInStage(r.stage_entered_at),
     urgency:      r.urgency as Urgency,
-    room:         r.room ?? undefined,
-    age:          ageFromDob(r.patients.dob),
+    room:         r.or_room ?? undefined,
+    age:          r.patient_age ?? 0,
   }
 }
 
 function rowToScheduled(r: CaseRow): ScheduledCase {
-  const name = `${r.patients.last_name}, ${r.patients.first_name}`
   return {
-    id:        r.case_id,
-    time:      r.scheduled_time?.slice(0, 5) ?? '—',
-    room:      r.room ?? '—',
-    procedure: r.procedure,
-    patient:   name,
-    surgeon:   r.surgeon,
-    duration:  r.duration_min,
-    status:    r.status as ScheduledCase['status'],
+    id:        String(r.case_id),
+    time:      fmtClock(r.scheduled_start),
+    room:      r.or_room ?? '—',
+    procedure: r.procedure_name,
+    patient:   r.patient_name,
+    surgeon:   r.surgeon_name,
+    duration:  r.estimated_duration_minutes,
+    status:    r.schedule_status as ScheduledCase['status'],
   }
 }
 
 function rowToCompleted(r: CaseRow): CompletedCase {
-  const name = `${r.patients.last_name}, ${r.patients.first_name}`
   return {
-    id:          r.case_id,
-    patient:     name,
-    procedure:   r.procedure,
-    surgeon:     r.surgeon,
-    completedAt: r.completed_at
-      ? new Date(r.completed_at).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:false })
-      : '—',
+    id:          String(r.case_id),
+    patient:     r.patient_name,
+    procedure:   r.procedure_name,
+    surgeon:     r.surgeon_name,
+    completedAt: fmtClock(r.completed_at),
     totalTime:   r.total_time_min ?? 0,
     outcome:     (r.outcome ?? 'routine') as CompletedCase['outcome'],
   }
@@ -455,27 +451,26 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
     try {
       const todayStr = new Date().toISOString().slice(0, 10)
 
-      const { data, error } = await (supabase as any)
-        .schema('cr')
-        .from('surgical_cases')
+      // Unified case spine — same cr.or_cases rows the OR app's live console uses
+      const { data, error } = await supabase
+        .from('or_cases')
         .select(`
-          case_id, procedure, surgeon, urgency, stage, stage_entered_at,
-          scheduled_time, room, duration_min, status,
-          completed_at, total_time_min, outcome,
-          patients ( first_name, last_name, dob )
+          case_id, procedure_name, surgeon_name, urgency, stage, stage_entered_at,
+          scheduled_start, or_room, estimated_duration_minutes, schedule_status,
+          completed_at, total_time_min, outcome, patient_name, patient_age
         `)
         .eq('org_id', currentOrgId)
         .eq('case_date', todayStr)
         .neq('stage', 'cancelled')
-        .order('scheduled_time', { ascending: true })
+        .is('deleted_at', null)
+        .order('scheduled_start', { ascending: true })
 
       if (error) throw error
 
       const rows: CaseRow[] = data ?? []
-      const active   = rows.filter(r => r.stage !== 'discharge' && r.status !== 'completed')
       const board    = rows.filter(r => !['cancelled'].includes(r.stage))
-      const done     = rows.filter(r => r.status === 'completed').slice(-5).reverse()
-      const sched    = rows.filter(r => !['cancelled'].includes(r.status))
+      const done     = rows.filter(r => r.schedule_status === 'completed').slice(-5).reverse()
+      const sched    = rows.filter(r => !['cancelled'].includes(r.schedule_status))
 
       setPatients(board.map(rowToPatientCard))
       setSchedule(sched.map(rowToScheduled))
@@ -507,14 +502,16 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
     loadData(orgId)
   }, [orgId, loadData])
 
-  // Realtime: re-fetch whenever any surgical_case changes for this org
+  // Realtime: re-fetch whenever any case on the shared spine changes.
+  // Same publication the OR app's live console subscribes to — a status
+  // change on the OR board appears here within ~a second, and vice versa.
   useEffect(() => {
     if (!orgId) return
     const channel = supabase
-      .channel(`surgical_cases:${orgId}`)
+      .channel(`or_cases:${orgId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'cr', table: 'surgical_cases' },
+        { event: '*', schema: 'cr', table: 'or_cases' },
         () => { loadData(orgId) }
       )
       .subscribe()
@@ -691,7 +688,7 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
                 </svg>
                 <div style={{ fontSize: 14, color: C.muted, fontFamily: 'DM Mono,monospace', textAlign: 'center', lineHeight: 1.8 }}>
                   No cases scheduled for today.<br/>
-                  <span style={{ fontSize: 11, color: C.dim }}>Run supabase-cases-migration.sql to seed demo data, or add cases directly.</span>
+                  <span style={{ fontSize: 11, color: C.dim }}>Cases booked here or on the OR board will appear in real time.</span>
                 </div>
               </div>
             )}
