@@ -441,7 +441,23 @@
                 </div>
                 <div class="field">
                     <label class="field-label">IOP <span class="hint">mmHg</span></label>
-                    <input type="number" class="field-input" id="iop" min="0" max="80" placeholder="e.g. 14">
+                    <input type="number" class="field-input" id="iop" min="0" max="80" placeholder="e.g. 14" oninput="checkIOP()">
+                    <!-- IOP critical value alert: >30 (hypertensive crisis) or <6 (hypotony) -->
+                    <div id="iop_high_alert" style="display:none;margin-top:8px;background:rgba(239,68,68,0.12);border:1px solid #ef4444;border-radius:6px;padding:10px 12px;">
+                        <div style="font-size:0.88rem;font-weight:700;color:#ef4444;">⚠️ IOP CRITICAL HIGH (&gt;30 mmHg)</div>
+                        <div style="font-size:0.82rem;color:rgba(255,255,255,0.8);margin-top:4px;">
+                            Acute intraocular hypertension. Initiate IOP-lowering therapy (topical beta-blocker, carbonic anhydrase inhibitor,
+                            or acetazolamide PO/IV). Re-check IOP in 1 hour. Consider malignant glaucoma, aqueous misdirection, or steroid response.
+                            Surgeon notification required.
+                        </div>
+                    </div>
+                    <div id="iop_low_alert" style="display:none;margin-top:8px;background:rgba(245,158,11,0.12);border:1px solid #f59e0b;border-radius:6px;padding:10px 12px;">
+                        <div style="font-size:0.88rem;font-weight:700;color:#f59e0b;">⚠️ IOP CRITICAL LOW (&lt;6 mmHg — Hypotony)</div>
+                        <div style="font-size:0.82rem;color:rgba(255,255,255,0.8);margin-top:4px;">
+                            Hypotony may indicate wound leak, cyclodialysis cleft, or choroidal effusion. Perform Seidel test.
+                            Check wound integrity. Urgent surgeon notification required.
+                        </div>
+                    </div>
                 </div>
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px;">
@@ -785,6 +801,115 @@
 
     <!-- ===== TAB 4: COMPLICATIONS ===== -->
     <section class="tab-panel" id="tab-complications" role="tabpanel">
+
+        <!-- Patient-Reported Symptoms — AAO Post-Op Visit Standards / ESCRS endophthalmitis guidelines -->
+        <div class="panel">
+            <div class="panel-title"><span><span class="icon">🗣️</span>Patient-Reported Symptoms</span></div>
+
+            <!-- Endophthalmitis escalation alert — auto-shown when warning signs present -->
+            <div id="endophthalmitis_alert" style="display:none;background:rgba(239,68,68,0.12);border:2px solid #ef4444;border-radius:8px;padding:14px 16px;margin-bottom:16px;">
+                <div style="font-size:0.95rem;font-weight:700;color:#ef4444;margin-bottom:6px;">⚠️ ENDOPHTHALMITIS RISK — ESCALATE NOW</div>
+                <div style="font-size:0.88rem;line-height:1.6;color:rgba(255,255,255,0.85);">
+                    Combination of pain + vision loss ± hypopyon is a <strong>surgical emergency</strong> requiring same-day vitreous tap &amp; intravitreal antibiotic injection.
+                    Contact vitreoretinal surgery immediately. Do NOT delay for outpatient workup.
+                </div>
+            </div>
+
+            <div class="field-grid cols-2">
+                <!-- Pain -->
+                <div class="field">
+                    <label class="field-label">Ocular Pain / Discomfort</label>
+                    <select class="field-select" id="sx_pain" onchange="checkEndophthalmitisRisk()">
+                        <option value="">— Select —</option>
+                        <option value="none">None</option>
+                        <option value="mild_foreign_body">Mild — foreign body sensation</option>
+                        <option value="moderate">Moderate — aching, pressure</option>
+                        <option value="severe">Severe — sharp, throbbing</option>
+                        <option value="excruciating">Excruciating</option>
+                    </select>
+                </div>
+                <!-- Pain NRS score -->
+                <div class="field">
+                    <label class="field-label">Pain Score (NRS 0–10)</label>
+                    <input class="field-input" type="number" id="sx_pain_nrs" min="0" max="10" placeholder="0–10" onchange="checkEndophthalmitisRisk()">
+                </div>
+                <!-- Vision change -->
+                <div class="field">
+                    <label class="field-label">Vision Change Since Last Visit</label>
+                    <select class="field-select" id="sx_vision_change" onchange="checkEndophthalmitisRisk()">
+                        <option value="">— Select —</option>
+                        <option value="improved">Improved</option>
+                        <option value="unchanged">Unchanged</option>
+                        <option value="slightly_worse">Slightly worse — blur</option>
+                        <option value="significantly_worse">Significantly worse — counting fingers or less</option>
+                        <option value="sudden_loss">Sudden vision loss</option>
+                    </select>
+                </div>
+                <!-- Photophobia -->
+                <div class="field">
+                    <label class="field-label">Photophobia</label>
+                    <select class="field-select" id="sx_photophobia" onchange="checkEndophthalmitisRisk()">
+                        <option value="">— Select —</option>
+                        <option value="none">None</option>
+                        <option value="mild">Mild</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="severe">Severe — cannot open eye in light</option>
+                    </select>
+                </div>
+                <!-- Floaters/flashes -->
+                <div class="field">
+                    <label class="field-label">Floaters / Flashes</label>
+                    <select class="field-select" id="sx_floaters_flashes" onchange="checkEndophthalmitisRisk()">
+                        <option value="">— Select —</option>
+                        <option value="none">None</option>
+                        <option value="occasional_floaters">Occasional floaters — stable</option>
+                        <option value="new_floaters">New / increased floaters</option>
+                        <option value="flashes">Photopsias / light flashes</option>
+                        <option value="curtain_veil">Curtain or veil in vision</option>
+                        <option value="shower_floaters">Shower of new floaters</option>
+                    </select>
+                </div>
+                <!-- Redness -->
+                <div class="field">
+                    <label class="field-label">Redness / Injection</label>
+                    <select class="field-select" id="sx_redness" onchange="checkEndophthalmitisRisk()">
+                        <option value="">— Select —</option>
+                        <option value="none">None</option>
+                        <option value="mild_conjunctival">Mild conjunctival injection</option>
+                        <option value="moderate">Moderate — noticeable</option>
+                        <option value="severe_diffuse">Severe — diffuse, painful</option>
+                    </select>
+                </div>
+                <!-- Discharge -->
+                <div class="field">
+                    <label class="field-label">Discharge / Tearing</label>
+                    <select class="field-select" id="sx_discharge">
+                        <option value="">— Select —</option>
+                        <option value="none">None</option>
+                        <option value="watery">Watery / tearing</option>
+                        <option value="mucoid">Mucoid</option>
+                        <option value="mucopurulent">Mucopurulent</option>
+                        <option value="purulent">Purulent / yellow-green</option>
+                    </select>
+                </div>
+                <!-- Halos / glare -->
+                <div class="field">
+                    <label class="field-label">Halos / Glare / Starbursts</label>
+                    <select class="field-select" id="sx_halos">
+                        <option value="">— Select —</option>
+                        <option value="none">None</option>
+                        <option value="mild_expected">Mild — expected post-op</option>
+                        <option value="moderate_bothersome">Moderate — bothersome</option>
+                        <option value="severe_disabling">Severe — visually disabling</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field" style="margin-top:12px;">
+                <label class="field-label">Symptom Notes</label>
+                <textarea class="field-textarea" id="sx_notes" rows="2" placeholder="Duration, onset, laterality, associated symptoms, patient-reported functional impact…"></textarea>
+            </div>
+        </div>
+
         <div class="panel">
             <div class="panel-title"><span><span class="icon">⚠️</span>Active Complications</span></div>
             <div class="alert info">
@@ -1031,6 +1156,26 @@
                 <div class="field span-full">
                     <label class="field-label">Plan</label>
                     <textarea class="field-textarea" id="plan" rows="3" placeholder="Treatment / next steps…"></textarea>
+                </div>
+                <!-- Consent verification — CMS CoP 42 CFR 482.51(b)(2) / JC RC.02.01.01 -->
+                <div class="field span-full">
+                    <label class="field-label">Consent Verification</label>
+                    <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+                        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.88rem;">
+                            <input type="checkbox" id="consent_obtained" style="accent-color:#60a5fa;">
+                            <span>Patient informed consent was obtained prior to the procedure</span>
+                        </label>
+                        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+                            <label class="field-label" style="margin:0;white-space:nowrap;">Consent type:</label>
+                            <select id="consent_type" class="field-input" style="width:auto;min-width:160px;">
+                                <option value="">— select —</option>
+                                <option value="written">Written</option>
+                                <option value="verbal">Verbal</option>
+                                <option value="implied_emergency">Implied (emergency)</option>
+                            </select>
+                            <input type="text" class="field-input" id="consent_witness" placeholder="Witnessed by (name / title)" style="flex:1;min-width:180px;">
+                        </div>
+                    </div>
                 </div>
                 <div class="field">
                     <label class="field-label">Provider Name</label>
@@ -1299,6 +1444,31 @@
         document.getElementById('iop_panel').style.display = e.target.checked ? 'block' : 'none';
     });
 
+    // IOP critical-value alerts — AAO preferred practice pattern
+    function checkIOP() {
+        const iop = parseInt(document.getElementById('iop')?.value);
+        const highEl = document.getElementById('iop_high_alert');
+        const lowEl = document.getElementById('iop_low_alert');
+        if (!highEl || !lowEl || isNaN(iop)) return;
+        highEl.style.display = iop > 30 ? 'block' : 'none';
+        lowEl.style.display  = (iop > 0 && iop < 6) ? 'block' : 'none';
+        // Also auto-check elevated_iop complication checkbox
+        const iopComp = document.getElementById('comp_elevated_iop');
+        if (iopComp && iop > 21) iopComp.checked = true;
+    }
+
+    // Endophthalmitis escalation alert — triggered by pain + vision loss
+    function checkEndophthalmitisRisk() {
+        const pain = document.getElementById('sx_pain')?.value;
+        const vision = document.getElementById('sx_vision_change')?.value;
+        const painNrs = parseInt(document.getElementById('sx_pain_nrs')?.value) || 0;
+        const alertEl = document.getElementById('endophthalmitis_alert');
+        if (!alertEl) return;
+        const highPain = pain === 'severe' || pain === 'excruciating' || painNrs >= 7;
+        const visionLoss = vision === 'significantly_worse' || vision === 'sudden_loss';
+        alertEl.style.display = (highPain && visionLoss) ? 'block' : 'none';
+    }
+
     // ===== SAVE =====
     async function saveRecord() {
         const btn = document.getElementById('save-btn');
@@ -1405,9 +1575,25 @@
                 notes:          document.getElementById('satisfaction_notes').value || null
             },
 
-            assessment: document.getElementById('assessment').value || null,
-            plan:       document.getElementById('plan').value || null,
-            provider:   document.getElementById('provider_name').value || null
+            // Patient-reported symptoms — AAO post-op visit / ESCRS endophthalmitis guidelines
+            symptoms: {
+                pain:             document.getElementById('sx_pain')?.value || null,
+                pain_nrs:         parseInt(document.getElementById('sx_pain_nrs')?.value) || null,
+                vision_change:    document.getElementById('sx_vision_change')?.value || null,
+                photophobia:      document.getElementById('sx_photophobia')?.value || null,
+                floaters_flashes: document.getElementById('sx_floaters_flashes')?.value || null,
+                redness:          document.getElementById('sx_redness')?.value || null,
+                discharge:        document.getElementById('sx_discharge')?.value || null,
+                halos:            document.getElementById('sx_halos')?.value || null,
+                notes:            document.getElementById('sx_notes')?.value || null,
+            },
+
+            assessment:       document.getElementById('assessment').value || null,
+            plan:             document.getElementById('plan').value || null,
+            provider:         document.getElementById('provider_name').value || null,
+            consent_obtained: document.getElementById('consent_obtained').checked,
+            consent_type:     document.getElementById('consent_type').value || null,
+            consent_witness:  document.getElementById('consent_witness').value || null
         };
 
         // ---- Discrete columns matching real schema ----
@@ -1482,6 +1668,7 @@
     document.getElementById('visit_date').value = new Date().toISOString().slice(0, 10);
     addTrendRow(); // start with one empty trend row
 </script>
+<script src="/ai-client.js"></script>
 
 </body>
 </html>

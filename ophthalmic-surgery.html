@@ -442,6 +442,7 @@
         <button class="tab-btn" data-tab="vision">👓 Visual Acuity</button>
         <button class="tab-btn" data-tab="biometry">📐 Biometry & IOL</button>
         <button class="tab-btn" data-tab="procedure">🔬 Surgical Procedure</button>
+        <button class="tab-btn" data-tab="consent" style="color:#ef4444;">📝 Consent</button>
         <button class="tab-btn" data-tab="postop">📊 Post-Operative</button>
     </div>
 
@@ -451,7 +452,7 @@
             <div class="form-grid">
                 <div class="form-field full-width">
                     <label>Chief Complaint</label>
-                    <textarea id="chiefComplaint" placeholder="Blurred vision, cataracts, floaters, eye pain..."></textarea>
+                    <textarea id="chiefComplaint" data-dictation="true" data-context="Ophthalmic chief complaint" placeholder="Blurred vision, cataracts, floaters, eye pain..."></textarea>
                 </div>
             </div>
         </div>
@@ -551,42 +552,297 @@
                 </div>
             </div>
         </div>
+
+        <!-- Slit-Lamp Biomicroscopy — AAO Preferred Practice Pattern -->
+        <div class="section">
+            <h3 class="section-header">Slit-Lamp Biomicroscopy</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:12px;">AAO PPP: Document all anterior segment findings. Select eye: <strong id="sl_eye_label">OD</strong> (follows eye selector above).</p>
+
+            <!-- Cornea -->
+            <div style="margin-bottom:14px;">
+                <div style="font-size:0.8rem;font-weight:600;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Cornea</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                    <div class="form-field">
+                        <label>Clarity</label>
+                        <select id="sl_cornea_clarity" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="clear">Clear</option>
+                            <option value="mild_edema">Mild edema</option>
+                            <option value="moderate_edema">Moderate edema</option>
+                            <option value="guttata">Guttata present</option>
+                            <option value="scar">Scar/opacity</option>
+                            <option value="pannus">Pannus</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Epithelium</label>
+                        <select id="sl_epithelium" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="intact">Intact</option>
+                            <option value="punctate_spe">Punctate SPE</option>
+                            <option value="abrasion">Abrasion</option>
+                            <option value="erosion">Recurrent erosion</option>
+                            <option value="bullae">Bullae</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Endothelium</label>
+                        <select id="sl_endothelium" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="normal">Normal</option>
+                            <option value="guttata_mild">Guttata — mild</option>
+                            <option value="guttata_moderate">Guttata — moderate</option>
+                            <option value="guttata_severe">Guttata — severe (Fuchs)</option>
+                            <option value="kp">KPs present</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>CCT (µm)</label>
+                        <input type="number" id="sl_cct_um" placeholder="Normal 510-570" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anterior Chamber -->
+            <div style="margin-bottom:14px;">
+                <div style="font-size:0.8rem;font-weight:600;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Anterior Chamber</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                    <div class="form-field">
+                        <label>van Herick Depth Grade</label>
+                        <select id="sl_van_herick" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="">—</option>
+                            <option value="4">Grade 4 — Wide (ACD &gt;1/2 CT)</option>
+                            <option value="3">Grade 3 — Moderate (1/4–1/2 CT)</option>
+                            <option value="2">Grade 2 — Narrow (= 1/4 CT) ⚠</option>
+                            <option value="1">Grade 1 — Very narrow (&lt;1/4 CT) ⚠⚠</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Cells (SUN grading)</label>
+                        <select id="sl_ac_cells" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="0">0 — None</option>
+                            <option value="0.5">0.5+ — 1-5 cells/field</option>
+                            <option value="1">1+ — 6-15 cells/field</option>
+                            <option value="2">2+ — 16-25 cells/field</option>
+                            <option value="3">3+ — 26-50 cells/field</option>
+                            <option value="4">4+ — &gt;50 cells/field</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Flare (SUN grading)</label>
+                        <select id="sl_ac_flare" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="0">0 — None</option>
+                            <option value="1">1+ — Faint</option>
+                            <option value="2">2+ — Moderate</option>
+                            <option value="3">3+ — Marked</option>
+                            <option value="4">4+ — Intense / fibrin</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Hyphaema / Hypopyon</label>
+                        <select id="sl_ac_hyphaema" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="none">None</option>
+                            <option value="microhyphaema">Microhyphaema</option>
+                            <option value="hyphaema">Hyphaema</option>
+                            <option value="hypopyon">Hypopyon</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Iris & Pupil -->
+            <div style="margin-bottom:14px;">
+                <div style="font-size:0.8rem;font-weight:600;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Iris & Pupil</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                    <div class="form-field">
+                        <label>Iris</label>
+                        <select id="sl_iris" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="normal">Normal</option>
+                            <option value="nvi">NVI (neovascularization)</option>
+                            <option value="atrophy">Atrophy</option>
+                            <option value="pxf">PXF material</option>
+                            <option value="posterior_synechiae">Posterior synechiae</option>
+                            <option value="peripheral_synechiae">Peripheral anterior synechiae</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Pupil Reactivity</label>
+                        <select id="sl_pupil" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                            <option value="brisk">Brisk and equal</option>
+                            <option value="sluggish">Sluggish</option>
+                            <option value="rapd">RAPD present</option>
+                            <option value="fixed">Fixed / non-reactive</option>
+                            <option value="irregular">Irregular</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Pupil Diameter (mm)</label>
+                        <input type="number" id="sl_pupil_mm" step="0.5" placeholder="3–5 normal" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOCS III Lens Grading (Chylack 1993) -->
+            <div style="margin-bottom:14px;padding:14px;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.25);border-radius:8px;">
+                <div style="font-size:0.8rem;font-weight:600;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">LOCS III — Lens Opacities Classification System (Chylack 1993)</div>
+                <p style="font-size:0.78rem;opacity:0.6;margin-bottom:12px;">Standard classification for cataract severity. Required for surgical indication documentation and outcomes research (ASCRS / AAO).</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+                    <div class="form-field">
+                        <label>NO — Nuclear Opalescence (0.1–6.9)</label>
+                        <input type="range" id="locs_no" min="0" max="69" step="1" value="0" oninput="updateLOCS('no')" style="width:100%;accent-color:#c9a96e;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.75rem;"><span style="opacity:0.5;">Clear</span><span id="locs_no_val" style="color:#c9a96e;font-weight:700;">0.0</span><span style="opacity:0.5;">Dense</span></div>
+                    </div>
+                    <div class="form-field">
+                        <label>NC — Nuclear Color (0.1–6.9)</label>
+                        <input type="range" id="locs_nc" min="0" max="69" step="1" value="0" oninput="updateLOCS('nc')" style="width:100%;accent-color:#c9a96e;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.75rem;"><span style="opacity:0.5;">Clear</span><span id="locs_nc_val" style="color:#c9a96e;font-weight:700;">0.0</span><span style="opacity:0.5;">Brunescent</span></div>
+                    </div>
+                    <div class="form-field">
+                        <label>C — Cortical (0.1–5.9)</label>
+                        <input type="range" id="locs_c" min="0" max="59" step="1" value="0" oninput="updateLOCS('c')" style="width:100%;accent-color:#c9a96e;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.75rem;"><span style="opacity:0.5;">None</span><span id="locs_c_val" style="color:#c9a96e;font-weight:700;">0.0</span><span style="opacity:0.5;">Dense</span></div>
+                    </div>
+                    <div class="form-field">
+                        <label>P — Posterior Subcapsular (0.1–5.9)</label>
+                        <input type="range" id="locs_p" min="0" max="59" step="1" value="0" oninput="updateLOCS('p')" style="width:100%;accent-color:#c9a96e;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.75rem;"><span style="opacity:0.5;">None</span><span id="locs_p_val" style="color:#c9a96e;font-weight:700;">0.0</span><span style="opacity:0.5;">Dense</span></div>
+                    </div>
+                </div>
+                <!-- Surgical indication summary -->
+                <div id="locs_summary" style="margin-top:10px;padding:8px 12px;border-radius:6px;background:rgba(255,255,255,0.04);font-size:0.83rem;display:none;"></div>
+            </div>
+
+            <!-- Vitreous (anterior) & Notes -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+                <div class="form-field">
+                    <label>Anterior Vitreous</label>
+                    <select id="sl_vitreous" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                        <option value="clear">Clear</option>
+                        <option value="cells">Cells present</option>
+                        <option value="haze">Haze</option>
+                        <option value="vit_face">Vitreous face — anterior chamber</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Slit-Lamp Notes</label>
+                    <input type="text" id="sl_notes" placeholder="Additional findings..." style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Endothelial Cell Count (ECC) — AAO / EBAA standard -->
+        <div class="section">
+            <h3 class="section-header">Endothelial Cell Count (ECC)</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:12px;">Specular / confocal microscopy. Pre-op ECC required when Fuchs guttata, prior DSAEK/DMEK, or significant corneal disease is present. Normal &gt;2000 cells/mm².</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:10px;">
+                <div class="form-field">
+                    <label>Cell Density (cells/mm²)</label>
+                    <input type="number" id="ecc_density" placeholder="Normal ≥2000" oninput="checkECC()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+                <div class="form-field">
+                    <label>CV% (cell size variation)</label>
+                    <input type="number" id="ecc_cv" placeholder="Normal &lt;30%" step="0.1" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+                <div class="form-field">
+                    <label>Hex% (hexagonality)</label>
+                    <input type="number" id="ecc_hex" placeholder="Normal ≥50%" step="0.1" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+                <div class="form-field">
+                    <label>Method</label>
+                    <select id="ecc_method" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                        <option value="">— not performed —</option>
+                        <option value="specular">Specular microscopy</option>
+                        <option value="confocal">Confocal microscopy</option>
+                    </select>
+                </div>
+            </div>
+            <div id="ecc_alert" style="display:none;padding:10px 14px;border-radius:6px;font-size:0.85rem;margin-top:4px;"></div>
+        </div>
     </div>
 
     <div id="biometryTab" class="tab-content">
         <div class="section">
             <h3 class="section-header">Biometry Measurements</h3>
+            <div id="bio_al_alert" style="display:none;margin-bottom:10px;padding:8px 12px;border-radius:6px;font-size:0.84rem;"></div>
             <div class="biometry-grid">
                 <div class="biometry-card">
                     <div class="biometry-label">Axial Length (AL)</div>
-                    <div class="biometry-unit">Normal: 22-25 mm</div>
-                    <input type="number" id="axial_length" step="0.01" placeholder="mm" style="width: 100%; margin-top: 0.5rem;">
+                    <div class="biometry-unit">Normal: 22–25 mm</div>
+                    <input type="number" id="axial_length" step="0.01" placeholder="mm" style="width:100%;margin-top:0.5rem;" oninput="checkAxialLength()">
                 </div>
                 <div class="biometry-card">
-                    <div class="biometry-label">Keratometry K1</div>
+                    <div class="biometry-label">Keratometry K1 (flat)</div>
                     <div class="biometry-unit">Diopters (D)</div>
-                    <input type="number" id="k1" step="0.25" placeholder="D" style="width: 100%; margin-top: 0.5rem;">
+                    <input type="number" id="k1" step="0.01" placeholder="D" style="width:100%;margin-top:0.5rem;">
                 </div>
                 <div class="biometry-card">
-                    <div class="biometry-label">Keratometry K2</div>
+                    <div class="biometry-label">Keratometry K2 (steep)</div>
                     <div class="biometry-unit">Diopters (D)</div>
-                    <input type="number" id="k2" step="0.25" placeholder="D" style="width: 100%; margin-top: 0.5rem;">
+                    <input type="number" id="k2" step="0.01" placeholder="D" style="width:100%;margin-top:0.5rem;">
                 </div>
                 <div class="biometry-card">
-                    <div class="biometry-label">ACD (Anterior Chamber)</div>
+                    <div class="biometry-label">K Axis (°)</div>
+                    <div class="biometry-unit">Axis of K2 (steep meridian)</div>
+                    <input type="number" id="k_axis" step="1" min="1" max="180" placeholder="° (1-180)" style="width:100%;margin-top:0.5rem;">
+                </div>
+                <div class="biometry-card">
+                    <div class="biometry-label">ACD (epithelium → lens)</div>
                     <div class="biometry-unit">Depth in mm</div>
-                    <input type="number" id="acd" step="0.01" placeholder="mm" style="width: 100%; margin-top: 0.5rem;">
+                    <input type="number" id="acd" step="0.01" placeholder="mm" style="width:100%;margin-top:0.5rem;">
                 </div>
                 <div class="biometry-card">
                     <div class="biometry-label">Lens Thickness (LT)</div>
                     <div class="biometry-unit">Millimeters</div>
-                    <input type="number" id="lt" step="0.01" placeholder="mm" style="width: 100%; margin-top: 0.5rem;">
+                    <input type="number" id="lt" step="0.01" placeholder="mm" style="width:100%;margin-top:0.5rem;">
                 </div>
                 <div class="biometry-card">
                     <div class="biometry-label">White-to-White (WTW)</div>
                     <div class="biometry-unit">Diameter in mm</div>
-                    <input type="number" id="wtw" step="0.1" placeholder="mm" style="width: 100%; margin-top: 0.5rem;">
+                    <input type="number" id="wtw" step="0.1" placeholder="mm" style="width:100%;margin-top:0.5rem;">
                 </div>
+                <div class="biometry-card">
+                    <div class="biometry-label">CCT (Central Corneal Thickness)</div>
+                    <div class="biometry-unit">Micrometers (µm)</div>
+                    <input type="number" id="cct_um" step="1" placeholder="510-570 normal" style="width:100%;margin-top:0.5rem;">
+                </div>
+                <div class="biometry-card">
+                    <div class="biometry-label">Posterior K (EKR / TNP)</div>
+                    <div class="biometry-unit">Used for post-LASIK/PRK eyes</div>
+                    <input type="number" id="posterior_k" step="0.01" placeholder="D (optional)" style="width:100%;margin-top:0.5rem;">
+                </div>
+            </div>
+
+            <!-- Manifest Refraction -->
+            <div style="margin-top:14px;">
+                <div style="font-size:0.8rem;font-weight:600;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Manifest Refraction (Current Spectacle Rx)</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
+                    <div class="form-field">
+                        <label>Sphere (D)</label>
+                        <input type="number" id="mr_sphere" step="0.25" placeholder="+/- D" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                    </div>
+                    <div class="form-field">
+                        <label>Cylinder (D)</label>
+                        <input type="number" id="mr_cyl" step="0.25" placeholder="-/+ D" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                    </div>
+                    <div class="form-field">
+                        <label>Axis (°)</label>
+                        <input type="number" id="mr_axis" step="1" min="1" max="180" placeholder="1-180" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                    </div>
+                    <div class="form-field">
+                        <label>Add (near, if presbyopic)</label>
+                        <input type="number" id="mr_add" step="0.25" min="0" max="3.5" placeholder="+0.00 to +3.50" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Special Eye Flags -->
+            <div style="margin-top:14px;">
+                <div style="font-size:0.8rem;font-weight:600;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Special Considerations</div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="flag_post_lasik" onchange="updateFormulaGuidance()"> <span style="font-size:0.85rem;">Post-LASIK/PRK</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="flag_post_rk"> <span style="font-size:0.85rem;">Post-RK</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="flag_silicone_oil"> <span style="font-size:0.85rem;">Silicone oil in eye</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="flag_prior_vitrectomy"> <span style="font-size:0.85rem;">Prior vitrectomy</span></label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="flag_traumatic_cataract"> <span style="font-size:0.85rem;">Traumatic cataract</span></label>
+                </div>
+                <div id="formula_guidance" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(239,180,60,0.12);border:1px solid rgba(239,180,60,0.4);border-radius:6px;font-size:0.83rem;color:#f0c040;"></div>
             </div>
         </div>
 
@@ -605,12 +861,30 @@
                     </div>
                     <div class="form-field">
                         <label>IOL Formula</label>
-                        <select id="iol_formula">
-                            <option value="SRK/T">SRK/T</option>
-                            <option value="Holladay 1">Holladay 1</option>
-                            <option value="Holladay 2">Holladay 2</option>
-                            <option value="Barrett Universal II">Barrett Universal II</option>
-                            <option value="Haigis">Haigis</option>
+                        <select id="iol_formula" onchange="updateFormulaGuidance()">
+                            <optgroup label="3rd Generation">
+                                <option value="SRK/T">SRK/T</option>
+                                <option value="Holladay 1">Holladay 1</option>
+                                <option value="Hoffer Q">Hoffer Q</option>
+                            </optgroup>
+                            <optgroup label="4th Generation / Modern">
+                                <option value="Barrett Universal II" selected>Barrett Universal II (recommended)</option>
+                                <option value="Haigis">Haigis</option>
+                                <option value="Holladay 2">Holladay 2</option>
+                                <option value="Olsen">Olsen</option>
+                            </optgroup>
+                            <optgroup label="AI / Next-Generation">
+                                <option value="Kane">Kane (EVO)</option>
+                                <option value="Hill-RBF">Hill-RBF 3.0</option>
+                                <option value="PEARL-DGS">PEARL-DGS</option>
+                                <option value="Ladas Super">Ladas Super Formula</option>
+                            </optgroup>
+                            <optgroup label="Post-Refractive Surgery">
+                                <option value="Barrett True-K">Barrett True-K (post-LASIK)</option>
+                                <option value="Masket">Masket (post-LASIK/PRK)</option>
+                                <option value="Haigis-L">Haigis-L (post-LASIK)</option>
+                                <option value="Potvin-Hill">Potvin-Hill (post-refractive)</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div class="form-field">
@@ -648,6 +922,51 @@
                 <div class="form-field">
                     <label>Lot Number</label>
                     <input type="text" id="iol_lot" placeholder="Lot #">
+                </div>
+            </div>
+        </div>
+
+        <!-- IOL Lens Constants — ULIB / IOLCon optimized constants -->
+        <div class="section">
+            <h3 class="section-header">Lens Constants (Formula-Specific)</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:12px;">Enter surgeon-optimized or ULIB/IOLCon constants. Using manufacturer defaults increases mean refractive error. Documented constants are required for ASCRS outcomes registry.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;">
+                <div class="form-field">
+                    <label>A-Constant (SRK/T, Barrett)</label>
+                    <input type="number" id="const_a" step="0.01" placeholder="e.g. 119.3" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+                <div class="form-field">
+                    <label>Surgeon Factor (Holladay 1)</label>
+                    <input type="number" id="const_sf" step="0.01" placeholder="e.g. 1.35" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+                <div class="form-field">
+                    <label>pACD (Haigis a0)</label>
+                    <input type="number" id="const_pacd" step="0.01" placeholder="e.g. 5.14" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+                <div class="form-field">
+                    <label>Haigis a1 / a2</label>
+                    <input type="text" id="const_haigis_a12" placeholder="e.g. 0.400 / 0.100" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+                <div class="form-field">
+                    <label>Lens Factor (Hoffer Q)</label>
+                    <input type="number" id="const_lf" step="0.01" placeholder="e.g. 5.48" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                </div>
+                <div class="form-field">
+                    <label>Constant Source</label>
+                    <select id="const_source" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                        <option value="manufacturer">Manufacturer default</option>
+                        <option value="ulib">ULIB (User Group for Laser Interference Biometry)</option>
+                        <option value="iolcon">IOLCon</option>
+                        <option value="surgeon_optimized">Surgeon-optimized</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-field" style="margin-top:10px;">
+                <label>Planned IOL Power (selected) &amp; Predicted Refraction</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:10px;">
+                    <input type="number" id="iol_power_selected" step="0.5" placeholder="D (power chosen)" style="background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                    <input type="number" id="iol_predicted_rx" step="0.01" placeholder="Predicted Rx (D)" style="background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
+                    <input type="text" id="iol_power_notes" placeholder="e.g. +21.5 D predicted -0.15 D; backup +21.0 D" style="background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.85rem;">
                 </div>
             </div>
         </div>
@@ -733,6 +1052,56 @@
         </div>
     </div>
 
+    <div id="consentTab" class="tab-content" style="display:none;">
+        <div class="section">
+            <h3 class="section-header">Ophthalmic Surgical Informed Consent</h3>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                AAO Pre-Operative Assessment Guidelines / CMS CoP 482.51(b)(2) — Consent must be obtained before cataract, refractive, or retinal surgery.
+            </p>
+            <div class="form-grid">
+                <div class="form-field" style="grid-column:1/-1;">
+                    <label>Consent items discussed</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+                        <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                            <input type="checkbox" id="oph_consent_procedure"> Procedure explained (technique, implant type)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                            <input type="checkbox" id="oph_consent_risks"> Risks (PCR, vision loss, infection, refractive surprise, diplopia)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                            <input type="checkbox" id="oph_consent_iol_type"> IOL type discussed (monofocal vs. toric vs. multifocal; premium IOL copay)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                            <input type="checkbox" id="oph_consent_alternatives"> Alternatives discussed (glasses, contact lenses, observation)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                            <input type="checkbox" id="oph_consent_bilateral"> Second-eye surgery timing discussed
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                            <input type="checkbox" id="oph_consent_signed"> Written consent signed and placed in chart
+                        </label>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label>Consent Witnessed By</label>
+                    <input type="text" id="oph_consent_witness" placeholder="Witness name / technician" class="field-input">
+                </div>
+                <div class="form-field">
+                    <label>Consent Date &amp; Time</label>
+                    <input type="datetime-local" id="oph_consent_datetime" class="field-input">
+                </div>
+                <div class="form-field">
+                    <label>Decision Maker (if not patient)</label>
+                    <input type="text" id="oph_consent_decision_maker" placeholder="Relationship and name" class="field-input">
+                </div>
+                <div class="form-field" style="grid-column:1/-1;">
+                    <label>Consent Notes</label>
+                    <textarea id="oph_consent_notes" rows="2" placeholder="Patient concerns, language interpreter used, capacity assessment if applicable..." class="field-input" style="resize:vertical;"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="postopTab" class="tab-content">
         <div class="section">
             <h3 class="section-header">Post-Operative Status</h3>
@@ -757,7 +1126,7 @@
                 </div>
                 <div class="form-field full-width">
                     <label>Post-Operative Medications</label>
-                    <textarea id="postop_medications" placeholder="Antibiotic drops, steroid drops, NSAID drops, dosing schedule..."></textarea>
+                    <textarea id="postop_medications" data-dictation="true" data-context="Ophthalmic post-op medications" placeholder="Antibiotic drops, steroid drops, NSAID drops, dosing schedule..."></textarea>
                 </div>
                 <div class="form-field full-width">
                     <label>Follow-up Schedule</label>
@@ -869,6 +1238,97 @@
             });
         }
 
+        // ── Slit-lamp / LOCS III / ECC helpers ──────────────────────────────
+        function updateLOCS(field) {
+            const raw = parseInt(document.getElementById(`locs_${field}`).value);
+            const val = (raw / 10).toFixed(1);
+            document.getElementById(`locs_${field}_val`).textContent = val;
+            // Show surgical indication summary when any field is non-zero
+            const no = parseInt(document.getElementById('locs_no').value) / 10;
+            const nc = parseInt(document.getElementById('locs_nc').value) / 10;
+            const c  = parseInt(document.getElementById('locs_c').value)  / 10;
+            const p  = parseInt(document.getElementById('locs_p').value)  / 10;
+            const sumDiv = document.getElementById('locs_summary');
+            if (no > 0 || nc > 0 || c > 0 || p > 0) {
+                let sev = '';
+                if (no >= 5 || nc >= 5 || c >= 4 || p >= 3) sev = '🔴 Severe — strong surgical indication';
+                else if (no >= 3 || nc >= 3 || c >= 2 || p >= 2) sev = '🟡 Moderate — surgical threshold typical';
+                else sev = '🟢 Mild — consider conservative management';
+                sumDiv.style.display = '';
+                sumDiv.innerHTML = `<strong>LOCS III Summary:</strong> NO ${no.toFixed(1)} / NC ${nc.toFixed(1)} / C ${c.toFixed(1)} / P ${p.toFixed(1)} &nbsp;—&nbsp; ${sev}`;
+            } else {
+                sumDiv.style.display = 'none';
+            }
+        }
+
+        function checkECC() {
+            const density = parseInt(document.getElementById('ecc_density').value) || 0;
+            const alertDiv = document.getElementById('ecc_alert');
+            if (!density) { alertDiv.style.display = 'none'; return; }
+            alertDiv.style.display = '';
+            if (density < 1000) {
+                alertDiv.style.background = 'rgba(239,68,68,0.15)';
+                alertDiv.style.border = '1px solid rgba(239,68,68,0.5)';
+                alertDiv.style.color = '#f87171';
+                alertDiv.innerHTML = `🔴 <strong>High Risk:</strong> ECC ${density} cells/mm² — severe risk of corneal decompensation with phacoemulsification. Discuss DSAEK/DMEK vs phaco. Consider FLACS to minimize energy.`;
+            } else if (density < 1500) {
+                alertDiv.style.background = 'rgba(239,180,60,0.12)';
+                alertDiv.style.border = '1px solid rgba(239,180,60,0.4)';
+                alertDiv.style.color = '#f0c040';
+                alertDiv.innerHTML = `🟡 <strong>Caution:</strong> ECC ${density} cells/mm² — elevated risk. Minimize phaco energy; OVD protection essential. Document informed consent re: corneal decompensation risk.`;
+            } else {
+                alertDiv.style.background = 'rgba(34,197,94,0.1)';
+                alertDiv.style.border = '1px solid rgba(34,197,94,0.3)';
+                alertDiv.style.color = '#4ade80';
+                alertDiv.innerHTML = `✅ ECC ${density} cells/mm² — within acceptable range for phacoemulsification.`;
+            }
+        }
+
+        // ── Biometry helpers ─────────────────────────────────────────────────
+        function checkAxialLength() {
+            const al = parseFloat(document.getElementById('axial_length').value) || 0;
+            const alertDiv = document.getElementById('bio_al_alert');
+            if (!al) { alertDiv.style.display = 'none'; return; }
+            alertDiv.style.display = '';
+            if (al < 21.0) {
+                alertDiv.style.background = 'rgba(239,180,60,0.12)';
+                alertDiv.style.border = '1px solid rgba(239,180,60,0.4)';
+                alertDiv.style.color = '#f0c040';
+                alertDiv.innerHTML = `⚠️ <strong>Short eye (AL ${al} mm):</strong> Higher hyperopic surprise risk. Use Hoffer Q or Kane formula. Verify with contact A-scan if IOL scan discrepant.`;
+            } else if (al > 26.0) {
+                alertDiv.style.background = 'rgba(239,180,60,0.12)';
+                alertDiv.style.border = '1px solid rgba(239,180,60,0.4)';
+                alertDiv.style.color = '#f0c040';
+                alertDiv.innerHTML = `⚠️ <strong>Long eye (AL ${al} mm):</strong> Higher myopic surprise risk with SRK/T. Prefer Barrett Universal II, Kane, or Hill-RBF. Verify no staph posterior.`;
+            } else {
+                alertDiv.style.display = 'none';
+            }
+            updateFormulaGuidance();
+        }
+
+        function updateFormulaGuidance() {
+            const postLasik = document.getElementById('flag_post_lasik')?.checked;
+            const formula   = document.getElementById('iol_formula')?.value || '';
+            const al        = parseFloat(document.getElementById('axial_length')?.value) || 0;
+            const div = document.getElementById('formula_guidance');
+            const msgs = [];
+            if (postLasik) {
+                msgs.push('Post-LASIK/PRK eye: Standard formulas significantly over-estimate IOL power. Use Barrett True-K, Masket correction, or ASCRS post-refractive calculator. Enter historical pre-LASIK K and amount of correction in notes.');
+                if (!formula.includes('True-K') && !formula.includes('Masket') && !formula.includes('Haigis-L') && !formula.includes('Potvin')) {
+                    msgs.push(`⚠️ Selected formula (${formula}) not optimized for post-refractive corneas.`);
+                }
+            }
+            if (al > 0 && al < 21.0 && formula !== 'Hoffer Q' && formula !== 'Kane' && formula !== 'Barrett Universal II') {
+                msgs.push('Short eye — Hoffer Q, Kane, or Barrett Universal II recommended.');
+            }
+            if (msgs.length) {
+                div.style.display = ''; div.innerHTML = msgs.join('<br>');
+            } else {
+                div.style.display = 'none';
+            }
+        }
+        // ── End slit-lamp / biometry helpers ─────────────────────────────────
+
         function selectEye(eye) {
             currentEye = eye;
             document.getElementById('currentEye').textContent = eye;
@@ -965,38 +1425,102 @@
                     },
                     current_medications: document.getElementById('currentMedications').value,
                     
-                    // Visual acuity
-                    visual_acuity_od: {
-                        ucva: document.getElementById('ucva').value,
-                        bcva: document.getElementById('bcva').value,
-                        snellen: document.getElementById('va_snellen').value,
-                        logmar: parseFloat(document.getElementById('va_logmar').value) || null,
-                        decimal: parseFloat(document.getElementById('va_decimal').value) || null
-                    },
+                    // Visual acuity — saved to the correct laterality field based on operative eye
+                    ...((() => {
+                        const eye = document.getElementById('eye_operated').value;
+                        const vaData = {
+                            ucva: document.getElementById('ucva').value,
+                            bcva: document.getElementById('bcva').value,
+                            snellen: document.getElementById('va_snellen').value,
+                            logmar: parseFloat(document.getElementById('va_logmar').value) || null,
+                            decimal: parseFloat(document.getElementById('va_decimal').value) || null
+                        };
+                        if (eye === 'OS') return { visual_acuity_os: vaData };
+                        if (eye === 'OU') return { visual_acuity_od: vaData, visual_acuity_os: vaData };
+                        return { visual_acuity_od: vaData }; // OD or unspecified defaults to OD
+                    })()),
                     iop_od: parseInt(document.getElementById('iop_od').value) || null,
                     iop_os: parseInt(document.getElementById('iop_os').value) || null,
-                    
+
+                    // Slit-lamp biomicroscopy — AAO PPP
+                    slit_lamp: {
+                        cornea_clarity:    document.getElementById('sl_cornea_clarity').value,
+                        epithelium:        document.getElementById('sl_epithelium').value,
+                        endothelium:       document.getElementById('sl_endothelium').value,
+                        cct_um:            parseInt(document.getElementById('sl_cct_um').value) || null,
+                        van_herick:        document.getElementById('sl_van_herick').value || null,
+                        ac_cells:          document.getElementById('sl_ac_cells').value,
+                        ac_flare:          document.getElementById('sl_ac_flare').value,
+                        ac_hyphaema:       document.getElementById('sl_ac_hyphaema').value,
+                        iris:              document.getElementById('sl_iris').value,
+                        pupil:             document.getElementById('sl_pupil').value,
+                        pupil_mm:          parseFloat(document.getElementById('sl_pupil_mm').value) || null,
+                        vitreous:          document.getElementById('sl_vitreous').value,
+                        notes:             document.getElementById('sl_notes').value || null,
+                        locs3: {
+                            no: parseFloat((parseInt(document.getElementById('locs_no').value)/10).toFixed(1)),
+                            nc: parseFloat((parseInt(document.getElementById('locs_nc').value)/10).toFixed(1)),
+                            c:  parseFloat((parseInt(document.getElementById('locs_c').value)/10).toFixed(1)),
+                            p:  parseFloat((parseInt(document.getElementById('locs_p').value)/10).toFixed(1))
+                        }
+                    },
+
+                    // Endothelial Cell Count — AAO / EBAA
+                    ecc: {
+                        density: parseInt(document.getElementById('ecc_density').value) || null,
+                        cv_pct:  parseFloat(document.getElementById('ecc_cv').value) || null,
+                        hex_pct: parseFloat(document.getElementById('ecc_hex').value) || null,
+                        method:  document.getElementById('ecc_method').value || null
+                    },
+
                     // Biometry
                     biometry: {
-                        axial_length: parseFloat(document.getElementById('axial_length').value) || null,
-                        k1: parseFloat(document.getElementById('k1').value) || null,
-                        k2: parseFloat(document.getElementById('k2').value) || null,
-                        acd: parseFloat(document.getElementById('acd').value) || null,
-                        lt: parseFloat(document.getElementById('lt').value) || null,
-                        wtw: parseFloat(document.getElementById('wtw').value) || null
+                        axial_length:  parseFloat(document.getElementById('axial_length').value) || null,
+                        k1:            parseFloat(document.getElementById('k1').value) || null,
+                        k2:            parseFloat(document.getElementById('k2').value) || null,
+                        k_axis:        parseInt(document.getElementById('k_axis').value) || null,
+                        acd:           parseFloat(document.getElementById('acd').value) || null,
+                        lt:            parseFloat(document.getElementById('lt').value) || null,
+                        wtw:           parseFloat(document.getElementById('wtw').value) || null,
+                        cct_um:        parseInt(document.getElementById('cct_um').value) || null,
+                        posterior_k:   parseFloat(document.getElementById('posterior_k').value) || null,
+                        manifest_refraction: {
+                            sphere: parseFloat(document.getElementById('mr_sphere').value) || null,
+                            cyl:    parseFloat(document.getElementById('mr_cyl').value) || null,
+                            axis:   parseInt(document.getElementById('mr_axis').value) || null,
+                            add:    parseFloat(document.getElementById('mr_add').value) || null
+                        },
+                        flags: {
+                            post_lasik:       document.getElementById('flag_post_lasik').checked,
+                            post_rk:          document.getElementById('flag_post_rk').checked,
+                            silicone_oil:     document.getElementById('flag_silicone_oil').checked,
+                            prior_vitrectomy: document.getElementById('flag_prior_vitrectomy').checked,
+                            traumatic:        document.getElementById('flag_traumatic_cataract').checked
+                        }
                     },
-                    
+
                     // IOL
                     iol_calculation: {
                         target_refraction: document.getElementById('target_refraction').value,
-                        formula: document.getElementById('iol_formula').value,
-                        calculated_power: document.getElementById('iolPower').textContent
+                        formula:           document.getElementById('iol_formula').value,
+                        calculated_power:  document.getElementById('iolPower').textContent,
+                        power_selected:    parseFloat(document.getElementById('iol_power_selected').value) || null,
+                        predicted_rx:      parseFloat(document.getElementById('iol_predicted_rx').value) || null,
+                        notes:             document.getElementById('iol_power_notes').value || null
+                    },
+                    iol_constants: {
+                        a_constant:  parseFloat(document.getElementById('const_a').value) || null,
+                        surgeon_factor: parseFloat(document.getElementById('const_sf').value) || null,
+                        pacd:        parseFloat(document.getElementById('const_pacd').value) || null,
+                        haigis_a12:  document.getElementById('const_haigis_a12').value || null,
+                        lens_factor: parseFloat(document.getElementById('const_lf').value) || null,
+                        source:      document.getElementById('const_source').value
                     },
                     iol_details: {
-                        type: document.getElementById('iol_type').value,
+                        type:         document.getElementById('iol_type').value,
                         manufacturer: document.getElementById('iol_manufacturer').value,
-                        model: document.getElementById('iol_model').value,
-                        lot: document.getElementById('iol_lot').value
+                        model:        document.getElementById('iol_model').value,
+                        lot:          document.getElementById('iol_lot').value
                     },
                     
                     // Procedure
@@ -1021,7 +1545,21 @@
                     iol_position: document.getElementById('iol_position').value,
                     expected_outcome: document.getElementById('expected_outcome').value,
                     postop_medications: document.getElementById('postop_medications').value,
-                    followup_schedule: document.getElementById('followup_schedule').value
+                    followup_schedule: document.getElementById('followup_schedule').value,
+
+                    // Informed consent — AAO / CMS CoP 482.51(b)(2)
+                    consent: {
+                        procedure_explained:  document.getElementById('oph_consent_procedure')?.checked || false,
+                        risks_discussed:      document.getElementById('oph_consent_risks')?.checked || false,
+                        iol_type_discussed:   document.getElementById('oph_consent_iol_type')?.checked || false,
+                        alternatives_discussed: document.getElementById('oph_consent_alternatives')?.checked || false,
+                        bilateral_discussed:  document.getElementById('oph_consent_bilateral')?.checked || false,
+                        signed:               document.getElementById('oph_consent_signed')?.checked || false,
+                        witness:              document.getElementById('oph_consent_witness')?.value || null,
+                        datetime:             document.getElementById('oph_consent_datetime')?.value || null,
+                        decision_maker:       document.getElementById('oph_consent_decision_maker')?.value || null,
+                        notes:                document.getElementById('oph_consent_notes')?.value || null,
+                    }
                 };
 
                 const { error } = await supabase
@@ -1057,5 +1595,6 @@
             }, 5000);
         }
     </script>
+    <script src="/ai-client.js"></script>
 </body>
 </html>

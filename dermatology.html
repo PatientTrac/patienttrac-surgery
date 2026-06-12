@@ -482,6 +482,7 @@
         <button class="tab-btn active" onclick="switchTab('procedure')">Procedure Details</button>
         <button class="tab-btn" onclick="switchTab('lesions')">Lesion Mapping</button>
         <button class="tab-btn" onclick="switchTab('photos')">Photo Documentation</button>
+        <button class="tab-btn" onclick="switchTab('allergies')" style="color:#ef4444;">⚠️ Allergies & Meds</button>
         <button class="tab-btn" onclick="switchTab('pathology')">Pathology</button>
     </div>
 
@@ -592,7 +593,122 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Operative Notes</label>
-                    <textarea class="form-textarea" id="operativeNotes" placeholder="Detailed description of procedure, findings, technique, and any special considerations..."></textarea>
+                    <textarea class="form-textarea" id="operativeNotes" data-dictation="true" data-context="Dermatology operative notes" placeholder="Detailed description of procedure, findings, technique, and any special considerations..."></textarea>
+                </div>
+            </div>
+
+            <!-- Mohs Stage-by-Stage Map — ACMS standard -->
+            <div id="mohs_module" class="form-card" style="display:none;margin-bottom:2rem;border:1px solid rgba(168,85,247,0.25);">
+                <h3 style="color:#a855f7;">Mohs Surgery — Stage-by-Stage Documentation</h3>
+                <p style="opacity:0.65;font-size:0.82rem;margin-bottom:14px;">ACMS standard: Document each Mohs stage separately with map orientation, tumor status, and processing time. Clear margin confirmation required before reconstruction.</p>
+
+                <!-- Tumor info -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Tumor Type</label>
+                        <select class="form-select" id="mohs_tumor_type">
+                            <option value="bcc_nodular">BCC — Nodular</option>
+                            <option value="bcc_superficial">BCC — Superficial</option>
+                            <option value="bcc_infiltrative">BCC — Infiltrative</option>
+                            <option value="bcc_morpheaform">BCC — Morpheaform</option>
+                            <option value="scc">SCC — Squamous cell carcinoma</option>
+                            <option value="scc_insitu">SCC in situ (Bowen's)</option>
+                            <option value="dfsp">DFSP — Dermatofibrosarcoma protuberans</option>
+                            <option value="lentigo_maligna">Lentigo maligna</option>
+                            <option value="afh">AFH / Atypical fibroxanthoma</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pre-op Tumor Diameter (mm)</label>
+                        <input type="number" class="form-input" id="mohs_preop_size" step="0.5" min="0" placeholder="mm">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Anatomic Location</label>
+                        <select class="form-select" id="mohs_location">
+                            <option value="">—</option>
+                            <option value="h_zone">H-zone face (high-risk)</option>
+                            <option value="nose">Nose</option>
+                            <option value="eyelid">Eyelid / periorbital</option>
+                            <option value="ear">Ear / periauricular</option>
+                            <option value="lip">Lip</option>
+                            <option value="scalp">Scalp</option>
+                            <option value="trunk">Trunk</option>
+                            <option value="extremity">Extremity</option>
+                            <option value="genitalia">Genitalia</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Map Orientation Method</label>
+                        <select class="form-select" id="mohs_map_orient">
+                            <option value="clock_12">Clock face — 12 o'clock = superior</option>
+                            <option value="anatomic">Anatomic (S/I/M/L)</option>
+                            <option value="suture">Suture notation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Stage table -->
+                <div id="mohs_stages_list" style="margin-bottom:12px;"></div>
+                <button type="button" onclick="addMohsStage()" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#c084fc;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.88rem;margin-bottom:16px;">+ Add Mohs Stage</button>
+
+                <!-- Defect and Reconstruction -->
+                <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;">
+                    <div style="font-size:0.8rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Final Defect & Reconstruction</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+                        <div class="form-group">
+                            <label class="form-label">Total Stages</label>
+                            <input type="number" class="form-input" id="mohs_total_stages" min="1" placeholder="auto-filled" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Defect Width (mm)</label>
+                            <input type="number" class="form-input" id="mohs_defect_w" step="0.5" min="0" placeholder="mm">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Defect Height (mm)</label>
+                            <input type="number" class="form-input" id="mohs_defect_h" step="0.5" min="0" placeholder="mm">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Defect Depth</label>
+                            <select class="form-select" id="mohs_defect_depth">
+                                <option value="epidermis">Epidermis / papillary dermis</option>
+                                <option value="reticular">Reticular dermis</option>
+                                <option value="subcutis">Subcutaneous fat</option>
+                                <option value="fascia">Fascia</option>
+                                <option value="muscle">Muscle</option>
+                                <option value="bone_cartilage">Bone / cartilage</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Reconstruction Method</label>
+                            <select class="form-select" id="mohs_reconstruction">
+                                <option value="primary">Primary linear closure</option>
+                                <option value="secondary">Secondary intention</option>
+                                <option value="local_flap">Local flap (specify below)</option>
+                                <option value="ftsg">Full-thickness skin graft (FTSG)</option>
+                                <option value="stsg">Split-thickness skin graft (STSG)</option>
+                                <option value="flap_ftsg">Flap + FTSG</option>
+                                <option value="referred_plastics">Referred — plastic surgery</option>
+                                <option value="complex_repair">Complex repair (specify below)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Flap / Graft Type Detail</label>
+                            <input type="text" class="form-input" id="mohs_recon_detail" placeholder="e.g. Bilobe flap, nasolabial, island">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Graft Donor Site</label>
+                            <input type="text" class="form-input" id="mohs_graft_donor" placeholder="e.g. post-auricular, clavicle">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Clear Margin Confirmed</label>
+                            <select class="form-select" id="mohs_clear_margin">
+                                <option value="yes">Yes — all margins clear</option>
+                                <option value="no_referred">No — referred for additional surgery</option>
+                                <option value="pending">Pending final pathology</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -686,6 +802,15 @@
             </div>
         </div>
 
+        <!-- Allergies & Meds Tab -->
+        <div id="allergies-tab" class="tab-content" style="display:none;padding:24px;">
+            <h2 class="section-title">Allergies &amp; Medication Reconciliation</h2>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                JCAHO NPSG.03.06.01 — Document latex allergy, local anesthetic allergy, anticoagulant hold plan.
+            </p>
+            <div id="amc_derm_container"></div>
+        </div>
+
         <!-- Pathology Tab -->
         <div id="pathology-tab" class="tab-content">
             <h2 class="section-title">Pathology & Specimens</h2>
@@ -725,11 +850,148 @@
                 <h3>Clinical Information for Pathologist</h3>
                 <div class="form-group">
                     <label class="form-label">Clinical History</label>
-                    <textarea class="form-textarea" id="clinicalHistory" placeholder="Relevant clinical history, previous biopsies, family history, risk factors..."></textarea>
+                    <textarea class="form-textarea" id="clinicalHistory" data-dictation="true" data-context="Dermatology clinical history" placeholder="Relevant clinical history, previous biopsies, family history, risk factors..."></textarea>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Clinical Differential Diagnosis</label>
                     <textarea class="form-textarea" id="differentialDx" placeholder="Suspected diagnoses to guide pathologist..."></textarea>
+                </div>
+            </div>
+
+            <!-- Melanoma AJCC 8th Edition Staging — ASCO/AAD guideline -->
+            <div class="form-card" style="margin-top:2rem;border:1px solid rgba(168,85,247,0.25);">
+                <h3 style="color:#a855f7;">Melanoma Staging — AJCC 8th Edition (2017)</h3>
+                <p style="opacity:0.65;font-size:0.82rem;margin-bottom:16px;">Complete pathological staging required for all invasive melanomas. Auto-calculates T category from Breslow, ulceration, and mitotic rate. SLNB indication per ASCO 2023 guideline.</p>
+
+                <!-- Pathological T inputs -->
+                <div style="background:rgba(168,85,247,0.06);border-radius:8px;padding:14px;margin-bottom:14px;">
+                    <div style="font-size:0.8rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Primary Tumor Pathological Characteristics</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+                        <div class="form-group">
+                            <label class="form-label">Breslow Thickness (mm)</label>
+                            <input type="number" class="form-input" id="mel_breslow" step="0.01" min="0" max="30" placeholder="e.g. 1.25" oninput="calcMelanomaT()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ulceration</label>
+                            <select class="form-select" id="mel_ulceration" onchange="calcMelanomaT()">
+                                <option value="absent">Absent</option>
+                                <option value="present">Present</option>
+                                <option value="unknown">Cannot assess</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Mitotic Rate (/mm²)</label>
+                            <input type="number" class="form-input" id="mel_mitotic" step="0.5" min="0" placeholder="per mm²" oninput="calcMelanomaT()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Clark Level</label>
+                            <select class="form-select" id="mel_clark">
+                                <option value="">—</option>
+                                <option value="I">I — In situ</option>
+                                <option value="II">II — Into papillary dermis</option>
+                                <option value="III">III — Filling papillary dermis</option>
+                                <option value="IV">IV — Into reticular dermis</option>
+                                <option value="V">V — Into subcutaneous fat</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Microsatellites</label>
+                            <select class="form-select" id="mel_microsatellites" onchange="calcMelanomaT()">
+                                <option value="absent">Absent</option>
+                                <option value="present">Present</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Lymphovascular Invasion</label>
+                            <select class="form-select" id="mel_lvi">
+                                <option value="absent">Absent</option>
+                                <option value="present">Present</option>
+                                <option value="indeterminate">Indeterminate</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Perineural Invasion</label>
+                            <select class="form-select" id="mel_pni">
+                                <option value="absent">Absent</option>
+                                <option value="present">Present</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Regression</label>
+                            <select class="form-select" id="mel_regression">
+                                <option value="absent">Absent</option>
+                                <option value="present_partial">Partial</option>
+                                <option value="present_complete">Complete</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="mel_t_result" style="display:none;margin-top:10px;padding:8px 12px;border-radius:6px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);font-size:0.85rem;color:#c084fc;"></div>
+                </div>
+
+                <!-- N and M staging -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div style="background:rgba(168,85,247,0.06);border-radius:8px;padding:12px;">
+                        <div style="font-size:0.8rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">N — Regional Lymph Nodes</div>
+                        <div class="form-group">
+                            <label class="form-label">pN Category</label>
+                            <select class="form-select" id="mel_n" onchange="calcMelanomaStage()">
+                                <option value="NX">NX — Not assessed / SLNB not done</option>
+                                <option value="N0">N0 — No regional metastasis</option>
+                                <option value="N1a">N1a — 1 occult node (SLNB+)</option>
+                                <option value="N1b">N1b — 1 clinically detected node</option>
+                                <option value="N1c">N1c — Satellite / in-transit, no nodes</option>
+                                <option value="N2a">N2a — 2-3 occult nodes</option>
+                                <option value="N2b">N2b — 2-3 nodes, ≥1 clinical</option>
+                                <option value="N2c">N2c — Satellite/in-transit + 1 node</option>
+                                <option value="N3a">N3a — ≥4 occult nodes / matted</option>
+                                <option value="N3b">N3b — ≥4 nodes, ≥1 clinical</option>
+                                <option value="N3c">N3c — Satellite/in-transit + ≥2 nodes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">SLNB Performed</label>
+                            <select class="form-select" id="mel_slnb">
+                                <option value="not_done">Not performed</option>
+                                <option value="negative">Negative — no metastasis</option>
+                                <option value="positive">Positive — metastasis detected</option>
+                                <option value="deferred">Deferred / patient declined</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="background:rgba(168,85,247,0.06);border-radius:8px;padding:12px;">
+                        <div style="font-size:0.8rem;font-weight:700;color:#a855f7;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">M — Distant Metastasis</div>
+                        <div class="form-group">
+                            <label class="form-label">pM Category</label>
+                            <select class="form-select" id="mel_m" onchange="calcMelanomaStage()">
+                                <option value="M0">M0 — No distant metastasis</option>
+                                <option value="M1a0">M1a(0) — Skin/soft tissue/LN, LDH normal</option>
+                                <option value="M1a1">M1a(1) — Skin/soft tissue/LN, LDH elevated</option>
+                                <option value="M1b0">M1b(0) — Lung, LDH normal</option>
+                                <option value="M1b1">M1b(1) — Lung, LDH elevated</option>
+                                <option value="M1c0">M1c(0) — Visceral (non-CNS), LDH normal</option>
+                                <option value="M1c1">M1c(1) — Visceral (non-CNS), LDH elevated</option>
+                                <option value="M1d0">M1d(0) — CNS, LDH normal</option>
+                                <option value="M1d1">M1d(1) — CNS, LDH elevated</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">LDH</label>
+                            <select class="form-select" id="mel_ldh">
+                                <option value="">— not drawn —</option>
+                                <option value="normal">Normal</option>
+                                <option value="elevated">Elevated</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLNB indication + Stage result -->
+                <div id="mel_slnb_indication" style="display:none;padding:10px 14px;border-radius:6px;margin-bottom:10px;font-size:0.85rem;"></div>
+                <div id="mel_stage_result" style="display:none;padding:14px 18px;border-radius:8px;margin-top:4px;">
+                    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                        <div><div style="font-size:0.72rem;opacity:0.6;text-transform:uppercase;">AJCC Stage</div><div id="mel_stage_val" style="font-size:2.4rem;font-weight:700;color:#a855f7;"></div></div>
+                        <div style="flex:1;"><div id="mel_stage_label" style="font-size:1rem;font-weight:600;color:#c084fc;margin-bottom:4px;"></div><div id="mel_stage_notes" style="font-size:0.83rem;opacity:0.8;"></div></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -783,6 +1045,166 @@
                 notes: 'Deep margin marked with blue ink'
             }
         ];
+
+        // ── Melanoma AJCC 8th staging ─────────────────────────────────────────
+        function calcMelanomaT() {
+            const breslow    = parseFloat(document.getElementById('mel_breslow').value) || 0;
+            const ulc        = document.getElementById('mel_ulceration').value;
+            const mitotic    = parseFloat(document.getElementById('mel_mitotic').value);
+            const satellites = document.getElementById('mel_microsatellites').value;
+            const div = document.getElementById('mel_t_result');
+            if (!breslow) { div.style.display = 'none'; return; }
+
+            const ulcPresent = ulc === 'present';
+            const mitoticHigh = !isNaN(mitotic) && mitotic >= 1;
+
+            let t, tDesc;
+            if (breslow <= 0.8 && !ulcPresent) {
+                t = 'pT1a'; tDesc = '≤0.8 mm, no ulceration, mitotic rate <1/mm²';
+            } else if (breslow <= 1.0) {
+                t = 'pT1b'; tDesc = `≤1.0 mm — ${ulcPresent ? 'with ulceration' : mitoticHigh ? 'mitotic rate ≥1/mm²' : '0.8-1.0 mm'}`;
+            } else if (breslow <= 2.0) {
+                t = ulcPresent ? 'pT2b' : 'pT2a'; tDesc = `>1.0–2.0 mm, ${ulcPresent ? 'with' : 'no'} ulceration`;
+            } else if (breslow <= 4.0) {
+                t = ulcPresent ? 'pT3b' : 'pT3a'; tDesc = `>2.0–4.0 mm, ${ulcPresent ? 'with' : 'no'} ulceration`;
+            } else {
+                t = ulcPresent ? 'pT4b' : 'pT4a'; tDesc = `>4.0 mm, ${ulcPresent ? 'with' : 'no'} ulceration`;
+            }
+            if (satellites === 'present') tDesc += ' + microsatellites';
+
+            div.style.display = '';
+            div.innerHTML = `<strong>${t}</strong> — ${tDesc}`;
+            div.dataset.t = t;
+
+            // SLNB indication
+            const slnbDiv = document.getElementById('mel_slnb_indication');
+            slnbDiv.style.display = '';
+            if (t === 'pTis' || t === 'pT1a') {
+                slnbDiv.style.background = 'rgba(34,197,94,0.1)';
+                slnbDiv.style.border = '1px solid rgba(34,197,94,0.3)';
+                slnbDiv.style.color = '#4ade80';
+                slnbDiv.innerHTML = '✅ SLNB not indicated for pT1a (ASCO 2023) — Breslow ≤0.8 mm, no ulceration.';
+            } else if (t === 'pT1b') {
+                slnbDiv.style.background = 'rgba(239,180,60,0.12)';
+                slnbDiv.style.border = '1px solid rgba(239,180,60,0.4)';
+                slnbDiv.style.color = '#f0c040';
+                slnbDiv.innerHTML = '🟡 SLNB <strong>may be considered</strong> for pT1b. Discuss with patient. Low absolute benefit (~5% positivity rate).';
+            } else {
+                slnbDiv.style.background = 'rgba(168,85,247,0.12)';
+                slnbDiv.style.border = '1px solid rgba(168,85,247,0.4)';
+                slnbDiv.style.color = '#c084fc';
+                slnbDiv.innerHTML = `🔵 SLNB <strong>strongly recommended</strong> for ${t} (Breslow &gt;1 mm or T1b with ulceration). Refer to melanoma surgical oncology.`;
+            }
+            calcMelanomaStage();
+        }
+
+        function calcMelanomaStage() {
+            const tEl = document.getElementById('mel_t_result');
+            const t   = tEl?.dataset?.t || '';
+            const n   = document.getElementById('mel_n')?.value || 'NX';
+            const m   = document.getElementById('mel_m')?.value || 'M0';
+            if (!t) return;
+            const stageDiv = document.getElementById('mel_stage_result');
+            stageDiv.style.display = '';
+
+            let stage = '—';
+            if (m !== 'M0') {
+                stage = m.startsWith('M1d') ? 'IV (M1d)' : 'IV';
+            } else if (n !== 'N0' && n !== 'NX') {
+                if (['N1a','N1b','N1c'].includes(n)) stage = t === 'pT1a' ? 'IIIA' : t === 'pT1b' || t === 'pT2a' ? 'IIIA' : t === 'pT2b' || t === 'pT3a' ? 'IIIB' : 'IIIC';
+                else stage = 'IIIB–IIID (see AJCC 8th table)';
+            } else {
+                const tMap = {'pT1a':'IA','pT1b':'IB','pT2a':'IB','pT2b':'IIA','pT3a':'IIA','pT3b':'IIB','pT4a':'IIB','pT4b':'IIC'};
+                stage = tMap[t] || '—';
+            }
+            document.getElementById('mel_stage_val').textContent = stage;
+            const bg = stage.startsWith('I') ? 'rgba(34,197,94,0.1)' : stage.startsWith('II') ? 'rgba(239,180,60,0.12)' : 'rgba(239,68,68,0.12)';
+            const border = stage.startsWith('I') ? '1px solid rgba(34,197,94,0.3)' : stage.startsWith('II') ? '1px solid rgba(239,180,60,0.4)' : '1px solid rgba(239,68,68,0.4)';
+            stageDiv.style.background = bg; stageDiv.style.border = border;
+
+            const mgmtMap = {
+                'IA':'Wide local excision 1 cm margins. Surveillance per NCCN.',
+                'IB':'WLE 1 cm margins. SLNB per ASCO guideline. Surveillance.',
+                'IIA':'WLE 1–2 cm margins. SLNB strongly recommended.',
+                'IIB':'WLE 2 cm margins. SLNB. Consider adjuvant pembrolizumab (FDA-approved).',
+                'IIC':'WLE 2 cm margins. SLNB. Adjuvant immunotherapy strongly recommended.',
+            };
+            const mgmt = mgmtMap[stage] || 'Multi-disciplinary team evaluation. Systemic therapy and/or radiation per NCCN Stage III/IV pathway.';
+            document.getElementById('mel_stage_label').textContent = `Stage ${stage} — ${t} ${n} ${m}`;
+            document.getElementById('mel_stage_notes').textContent = mgmt;
+        }
+
+        // ── Mohs Stage Map ────────────────────────────────────────────────────
+        let mohsStageCounter = 0;
+
+        function toggleMohsModule() {
+            const val = document.getElementById('procedureType').value;
+            const mod = document.getElementById('mohs_module');
+            if (mod) mod.style.display = (val === 'mohs') ? '' : 'none';
+        }
+
+        function addMohsStage() {
+            mohsStageCounter++;
+            const n = mohsStageCounter;
+            document.getElementById('mohs_total_stages').value = n;
+            const container = document.getElementById('mohs_stages_list');
+            const div = document.createElement('div');
+            div.id = `mohs_stage_${n}`;
+            div.style.cssText = 'background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:12px;margin-bottom:8px;';
+            div.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-weight:700;color:#c084fc;">Stage ${n}</span>
+                    <button type="button" onclick="removeMohsStage(${n})" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:2px 10px;border-radius:4px;cursor:pointer;font-size:0.8rem;">Remove</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+                    <div><label style="font-size:0.78rem;opacity:0.65;display:block;margin-bottom:3px;">Sections Cut</label>
+                        <input type="number" id="mohs_s${n}_cuts" min="1" placeholder="# sections" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:5px;color:#fff;font-size:0.83rem;"></div>
+                    <div><label style="font-size:0.78rem;opacity:0.65;display:block;margin-bottom:3px;">Tumor Status</label>
+                        <select id="mohs_s${n}_status" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:5px;color:#fff;font-size:0.83rem;">
+                            <option value="positive">Positive — tumor present</option>
+                            <option value="negative">Negative — clear margins</option>
+                        </select></div>
+                    <div><label style="font-size:0.78rem;opacity:0.65;display:block;margin-bottom:3px;">Positive Margin Location</label>
+                        <input type="text" id="mohs_s${n}_margin" placeholder="e.g. 3 o'clock / deep" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:5px;color:#fff;font-size:0.83rem;"></div>
+                    <div><label style="font-size:0.78rem;opacity:0.65;display:block;margin-bottom:3px;">Processing Time (min)</label>
+                        <input type="number" id="mohs_s${n}_time" min="1" placeholder="min" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:5px;color:#fff;font-size:0.83rem;"></div>
+                    <div style="grid-column:1/-1;"><label style="font-size:0.78rem;opacity:0.65;display:block;margin-bottom:3px;">Stage Notes</label>
+                        <input type="text" id="mohs_s${n}_notes" placeholder="Extension pattern, perineural, etc." style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:5px;color:#fff;font-size:0.83rem;"></div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeMohsStage(n) {
+            const el = document.getElementById(`mohs_stage_${n}`);
+            if (el) el.remove();
+            mohsStageCounter = Math.max(0, mohsStageCounter - 1);
+            document.getElementById('mohs_total_stages').value = mohsStageCounter || '';
+        }
+
+        function collectMohsStages() {
+            const stages = [];
+            for (let i = 1; i <= mohsStageCounter; i++) {
+                const el = document.getElementById(`mohs_stage_${i}`);
+                if (!el) continue;
+                stages.push({
+                    stage: i,
+                    sections: parseInt(document.getElementById(`mohs_s${i}_cuts`)?.value) || null,
+                    tumor_status: document.getElementById(`mohs_s${i}_status`)?.value,
+                    positive_margin: document.getElementById(`mohs_s${i}_margin`)?.value || null,
+                    processing_min: parseInt(document.getElementById(`mohs_s${i}_time`)?.value) || null,
+                    notes: document.getElementById(`mohs_s${i}_notes`)?.value || null
+                });
+            }
+            return stages;
+        }
+
+        // Wire procedureType change
+        document.addEventListener('DOMContentLoaded', () => {
+            const procSel = document.getElementById('procedureType');
+            if (procSel) procSel.addEventListener('change', toggleMohsModule);
+        });
+        // ── End Melanoma/Mohs ─────────────────────────────────────────────────
 
         // Tab switching
         function switchTab(tabName) {
@@ -878,6 +1300,68 @@
         }
 
         function saveProcedure() {
+            const isMohs = document.getElementById('procedureType').value === 'mohs';
+            const procedureData = {
+                procedure_type:    document.getElementById('procedureType').value,
+                indication:        document.getElementById('indication').value,
+                anesthesia_type:   document.getElementById('anesthesiaType').value,
+                anesthesia_agent:  document.getElementById('anesthesiaAgent').value,
+                anesthesia_vol_ml: parseFloat(document.getElementById('anesthesiaVolume').value) || null,
+                technique:         document.getElementById('technique').value,
+                closure_type:      document.getElementById('closureType').value,
+                complications: {
+                    none:     document.getElementById('compNone').checked,
+                    bleeding: document.getElementById('compBleeding').checked,
+                    nerve:    document.getElementById('compNerve').checked,
+                    vessel:   document.getElementById('compVessel').checked
+                },
+                operative_notes:   document.getElementById('operativeNotes').value,
+                pathology_lab:     document.getElementById('pathologyLab').value,
+                accession_number:  document.getElementById('accessionNumber').value,
+                clinical_history:  document.getElementById('clinicalHistory').value,
+                differential_dx:   document.getElementById('differentialDx').value,
+
+                // Melanoma AJCC 8th staging
+                melanoma_staging: (() => {
+                    const breslow = parseFloat(document.getElementById('mel_breslow').value) || null;
+                    if (!breslow) return null;
+                    return {
+                        breslow_mm:      breslow,
+                        ulceration:      document.getElementById('mel_ulceration').value,
+                        mitotic_rate:    parseFloat(document.getElementById('mel_mitotic').value) || null,
+                        clark_level:     document.getElementById('mel_clark').value || null,
+                        microsatellites: document.getElementById('mel_microsatellites').value,
+                        lvi:             document.getElementById('mel_lvi').value,
+                        pni:             document.getElementById('mel_pni').value,
+                        regression:      document.getElementById('mel_regression').value,
+                        pt_category:     document.getElementById('mel_t_result')?.dataset?.t || null,
+                        pn_category:     document.getElementById('mel_n').value,
+                        pm_category:     document.getElementById('mel_m').value,
+                        ldh:             document.getElementById('mel_ldh').value || null,
+                        slnb_status:     document.getElementById('mel_slnb').value,
+                        ajcc_stage:      document.getElementById('mel_stage_val')?.textContent || null
+                    };
+                })(),
+
+                // Mohs stage-by-stage map
+                mohs_data: isMohs ? {
+                    tumor_type:      document.getElementById('mohs_tumor_type').value,
+                    preop_size_mm:   parseFloat(document.getElementById('mohs_preop_size').value) || null,
+                    location:        document.getElementById('mohs_location').value,
+                    map_orientation: document.getElementById('mohs_map_orient').value,
+                    stages:          collectMohsStages(),
+                    total_stages:    mohsStageCounter,
+                    defect_w_mm:     parseFloat(document.getElementById('mohs_defect_w').value) || null,
+                    defect_h_mm:     parseFloat(document.getElementById('mohs_defect_h').value) || null,
+                    defect_depth:    document.getElementById('mohs_defect_depth').value,
+                    reconstruction:  document.getElementById('mohs_reconstruction').value,
+                    recon_detail:    document.getElementById('mohs_recon_detail').value || null,
+                    graft_donor:     document.getElementById('mohs_graft_donor').value || null,
+                    clear_margin:    document.getElementById('mohs_clear_margin').value
+                } : null
+            };
+
+            console.log('Dermatology procedure data:', procedureData);
             alert('✅ Dermatology procedure saved successfully!');
         }
 
@@ -887,6 +1371,13 @@
 
         // Set current date as default for specimen date
         document.getElementById('specimenDate').valueAsDate = new Date();
+    </script>
+    <script src="allergy-medication-component.js"></script>
+    <script src="/ai-client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AllergyMedComponent.render('amc_derm_container');
+        });
     </script>
 </body>
 </html>

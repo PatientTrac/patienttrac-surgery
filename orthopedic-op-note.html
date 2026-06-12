@@ -627,6 +627,208 @@
     </div>
 
     <div id="closureTab" class="tab-content">
+        <!-- Universal Protocol / Time-Out — JCAHO NPSG UP.01.01.01–UP.01.03.01 -->
+        <div class="section" style="border-left:4px solid #10b981;padding-left:16px;margin-bottom:16px;">
+            <h3 class="section-header" style="color:#10b981;">Universal Protocol &amp; Surgical Time-Out</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                JCAHO NPSG UP.01.01.01–UP.01.03.01 — Required before skin incision. Entire team verbally confirms.
+            </p>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Time-Out Date &amp; Time</label>
+                    <input type="datetime-local" id="ortho_timeout_datetime">
+                </div>
+                <div class="form-field">
+                    <label>Conducted By</label>
+                    <input type="text" id="ortho_timeout_conducted_by" placeholder="Circulating RN name">
+                </div>
+                <div class="form-field" style="grid-column:1/-1;">
+                    <label>Team confirmations</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;">
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_patient"> Correct patient</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_procedure"> Correct procedure</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_site"> Correct site/laterality</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_marked"> Site marked by surgeon</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_consent"> Consent confirmed</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_implants"> Implants/equipment present</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_antibiotic"> Antibiotic within 60 min</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_imaging"> Imaging displayed</label>
+                        <label style="display:flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;"><input type="checkbox" id="ortho_to_concerns"> Concerns raised/addressed</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Surgical Counts — AORN -->
+            <div style="border-top:1px solid rgba(16,185,129,0.2);padding-top:14px;margin-top:14px;">
+                <h4 style="color:#10b981;margin-bottom:10px;">Surgical Counts</h4>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px;">
+                    <div>
+                        <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Sponge Count</label>
+                        <select id="ortho_count_sponges" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                            <option value="">—</option><option value="correct_x2">Correct × 2</option><option value="incorrect">Incorrect</option><option value="na">N/A</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Sharp/Needle Count</label>
+                        <select id="ortho_count_sharps" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                            <option value="">—</option><option value="correct_x2">Correct × 2</option><option value="incorrect">Incorrect</option><option value="na">N/A</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Instrument Count</label>
+                        <select id="ortho_count_instruments" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                            <option value="">—</option><option value="correct_x2">Correct × 2</option><option value="incorrect">Incorrect</option><option value="na">N/A</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-field"><label>Circulating RN</label><input type="text" id="ortho_circulating_rn" placeholder="Name"></div>
+                    <div class="form-field"><label>Scrub Tech / RN</label><input type="text" id="ortho_scrub_tech" placeholder="Name"></div>
+                    <div class="form-field"><label>Discrepancy Notes</label><input type="text" id="ortho_count_discrepancy" placeholder="If any count incorrect, document resolution"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Antibiotic Prophylaxis — SCIP-Inf-1 / ACS NSQIP / CDC NHSN SSI surveillance -->
+        <div class="section" style="margin-bottom:16px;">
+            <h3 class="section-header" style="color:#10b981;">Antibiotic Prophylaxis &amp; Wound Classification</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                SCIP-Inf-1: Prophylactic antibiotic received within 60 minutes before surgical incision.
+                CDC/NHSN wound class required for SSI surveillance reporting.
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;">
+                <div class="form-field">
+                    <label>Antibiotic Agent</label>
+                    <select id="ortho_abx_agent" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">— Select —</option>
+                        <option value="cefazolin">Cefazolin (Ancef) — first-line</option>
+                        <option value="cefuroxime">Cefuroxime</option>
+                        <option value="clindamycin">Clindamycin (PCN allergy)</option>
+                        <option value="vancomycin">Vancomycin (MRSA risk / PCN allergy)</option>
+                        <option value="gentamicin">Gentamicin</option>
+                        <option value="none_documented">None — allergy/contraindication documented</option>
+                        <option value="other">Other (specify in notes)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Dose (weight-based)</label>
+                    <input type="text" id="ortho_abx_dose" placeholder="e.g. 2g IV (≥80kg → 3g)"
+                        style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div class="form-field">
+                    <label>Route</label>
+                    <select id="ortho_abx_route" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="iv">IV</option>
+                        <option value="im">IM</option>
+                        <option value="topical">Topical</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;">
+                <div class="form-field">
+                    <label>Antibiotic Administration Time</label>
+                    <input type="datetime-local" id="ortho_abx_admin_time"
+                        style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div class="form-field">
+                    <label>Incision Time</label>
+                    <input type="datetime-local" id="ortho_abx_incision_time" onchange="calcOrthoAbxInterval()"
+                        style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div class="form-field">
+                    <label>Admin-to-Incision Interval</label>
+                    <input type="text" id="ortho_abx_interval" readonly placeholder="Auto-calculated"
+                        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;cursor:default;">
+                </div>
+                <div class="form-field" style="display:flex;align-items:center;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;">
+                        <input type="checkbox" id="ortho_abx_within_60min" style="accent-color:#10b981;width:16px;height:16px;">
+                        Within 60 min (SCIP-Inf-1 met)
+                    </label>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;">
+                <div class="form-field">
+                    <label>Intraoperative Redosing</label>
+                    <select id="ortho_abx_redosing" onchange="toggleOrthoRedoseFields()"
+                        style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">— Select —</option>
+                        <option value="no">No — case &lt; 4h / minimal blood loss</option>
+                        <option value="yes">Yes — per ASHP interval</option>
+                        <option value="na">N/A</option>
+                    </select>
+                </div>
+                <div class="form-field" id="ortho_abx_redose_row" style="display:none;">
+                    <label>Redose Details</label>
+                    <input type="text" id="ortho_abx_redose_details" placeholder="Agent q4h; last redose time"
+                        style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div class="form-field">
+                    <label>Post-Op ABX Duration</label>
+                    <select id="ortho_abx_postop_duration"
+                        style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">— Select —</option>
+                        <option value="none">None (prophylaxis complete at closure)</option>
+                        <option value="24h">24 hours (SCIP-Inf-3)</option>
+                        <option value="48h">48 hours (implant)</option>
+                        <option value="therapeutic">Therapeutic — active infection</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Skin Prep Agent</label>
+                    <select id="ortho_skin_prep"
+                        style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">— Select —</option>
+                        <option value="chg_alcohol">Chlorhexidine + alcohol (preferred)</option>
+                        <option value="betadine_scrub_paint">Betadine scrub + paint</option>
+                        <option value="duraprep">DuraPrep</option>
+                        <option value="chloraprep">ChloraPrep</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-field" style="margin-bottom:18px;">
+                <label>Antibiotic Notes / Allergy Justification</label>
+                <input type="text" id="ortho_abx_notes" placeholder="Alternative agent rationale, culture results, etc."
+                    style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+            </div>
+
+            <!-- CDC Wound Classification -->
+            <div style="border-top:1px solid rgba(16,185,129,0.2);padding-top:14px;">
+                <h4 style="color:#10b981;margin-bottom:12px;">CDC / NHSN Wound Classification</h4>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;">
+                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px;font-size:0.85rem;">
+                        <input type="radio" name="ortho_wound_class" value="I" style="accent-color:#10b981;margin-top:3px;">
+                        <div><div style="font-weight:600;">Class I — Clean</div><div style="opacity:0.6;font-size:0.78rem;margin-top:2px;">Uninfected, no entry into GI/GU/respiratory tract.</div></div>
+                    </label>
+                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px;font-size:0.85rem;">
+                        <input type="radio" name="ortho_wound_class" value="II" style="accent-color:#f59e0b;margin-top:3px;">
+                        <div><div style="font-weight:600;">Class II — Clean-Contaminated</div><div style="opacity:0.6;font-size:0.78rem;margin-top:2px;">Controlled entry into GI/GU/respiratory tract.</div></div>
+                    </label>
+                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px;font-size:0.85rem;">
+                        <input type="radio" name="ortho_wound_class" value="III" style="accent-color:#f97316;margin-top:3px;">
+                        <div><div style="font-weight:600;">Class III — Contaminated</div><div style="opacity:0.6;font-size:0.78rem;margin-top:2px;">Open trauma, major sterile technique break, GI spillage.</div></div>
+                    </label>
+                    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px;font-size:0.85rem;">
+                        <input type="radio" name="ortho_wound_class" value="IV" style="accent-color:#ef4444;margin-top:3px;">
+                        <div><div style="font-weight:600;">Class IV — Dirty-Infected</div><div style="opacity:0.6;font-size:0.78rem;margin-top:2px;">Devitalized tissue, existing infection, or perforated viscera.</div></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- VTE Prophylaxis Plan — AAOS/ACCP / SCIP-VTE-2 -->
+        <div class="section" style="margin-bottom:16px;">
+            <h3 class="section-header">VTE Prophylaxis Plan (Caprini Score)</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                SCIP-VTE-2 / AAOS — Document prophylaxis plan for all arthroplasty and major orthopedic procedures.
+            </p>
+            <div id="caprini_ortho_op_container"></div>
+        </div>
+
         <div class="section">
             <h3 class="section-header">Wound Closure</h3>
             <div class="form-grid">
@@ -672,6 +874,180 @@
             </div>
         </div>
 
+        <!-- Post-Tourniquet Neurovascular Assessment — AAOS/OTA standard of care -->
+        <div class="section" style="margin-bottom:16px;">
+            <h3 class="section-header" style="color:#c9a96e;">Post-Tourniquet Neurovascular Assessment</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                AAOS/OTA: Neurovascular status must be documented immediately after tourniquet release and at wound closure.
+                Failure to document is a sentinel-event risk factor for undetected vascular injury or compartment syndrome.
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;">
+                <div class="form-field">
+                    <label>Assessment Time</label>
+                    <input type="datetime-local" id="nv_assessment_time"
+                        style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div class="form-field">
+                    <label>Limb Assessed</label>
+                    <select id="nv_limb" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">— Select —</option>
+                        <option value="right_lower">Right Lower Extremity</option>
+                        <option value="left_lower">Left Lower Extremity</option>
+                        <option value="right_upper">Right Upper Extremity</option>
+                        <option value="left_upper">Left Upper Extremity</option>
+                        <option value="bilateral_lower">Bilateral Lower Extremity</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Tourniquet Total Time (min)</label>
+                    <input type="number" id="nv_tourniquet_total_min" placeholder="minutes"
+                        style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+            </div>
+
+            <!-- Pulse assessment -->
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px;margin-bottom:12px;">
+                <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);margin-bottom:10px;">Distal Pulses</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                    <div>
+                        <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Dorsalis Pedis</label>
+                        <select id="nv_pulse_dp" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                            <option value="">—</option>
+                            <option value="present_strong">Present — strong (2+)</option>
+                            <option value="present_weak">Present — weak (1+)</option>
+                            <option value="doppler_only">Doppler only</option>
+                            <option value="absent">Absent</option>
+                            <option value="na">N/A — upper extremity</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Posterior Tibial</label>
+                        <select id="nv_pulse_pt" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                            <option value="">—</option>
+                            <option value="present_strong">Present — strong (2+)</option>
+                            <option value="present_weak">Present — weak (1+)</option>
+                            <option value="doppler_only">Doppler only</option>
+                            <option value="absent">Absent</option>
+                            <option value="na">N/A — upper extremity</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Radial</label>
+                        <select id="nv_pulse_radial" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                            <option value="">—</option>
+                            <option value="present_strong">Present — strong (2+)</option>
+                            <option value="present_weak">Present — weak (1+)</option>
+                            <option value="doppler_only">Doppler only</option>
+                            <option value="absent">Absent</option>
+                            <option value="na">N/A — lower extremity</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Ulnar</label>
+                        <select id="nv_pulse_ulnar" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                            <option value="">—</option>
+                            <option value="present_strong">Present — strong (2+)</option>
+                            <option value="present_weak">Present — weak (1+)</option>
+                            <option value="doppler_only">Doppler only</option>
+                            <option value="absent">Absent</option>
+                            <option value="na">N/A — lower extremity</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sensation, motor, capillary refill -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Sensation</label>
+                    <select id="nv_sensation" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="intact">Intact</option>
+                        <option value="diminished">Diminished</option>
+                        <option value="absent">Absent</option>
+                        <option value="anesthetic_block">Diminished — regional block in effect</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Motor Function</label>
+                    <select id="nv_motor" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="intact_5_5">Intact (5/5)</option>
+                        <option value="slightly_reduced">Slightly reduced (4/5)</option>
+                        <option value="reduced">Reduced (3/5 or less)</option>
+                        <option value="absent">Absent</option>
+                        <option value="anesthetic_block">Blocked — spinal/regional anesthesia</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Capillary Refill</label>
+                    <select id="nv_cap_refill" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="lt2s">&lt; 2 seconds (normal)</option>
+                        <option value="2_3s">2–3 seconds (borderline)</option>
+                        <option value="gt3s">&gt; 3 seconds (prolonged)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Temperature</label>
+                    <select id="nv_temperature" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="warm">Warm</option>
+                        <option value="cool">Cool</option>
+                        <option value="cold">Cold</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Compartment syndrome screening -->
+            <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:14px;margin-bottom:12px;">
+                <div style="font-size:0.8rem;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Compartment Syndrome Screening</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;">
+                        <input type="checkbox" id="nv_pain_passive_stretch" style="accent-color:#ef4444;width:15px;height:15px;">
+                        Pain on passive stretch
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;">
+                        <input type="checkbox" id="nv_tense_compartment" style="accent-color:#ef4444;width:15px;height:15px;">
+                        Tense / woody compartment
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;">
+                        <input type="checkbox" id="nv_paresthesia" style="accent-color:#ef4444;width:15px;height:15px;">
+                        Paresthesia / numbness
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;">
+                        <input type="checkbox" id="nv_pallor" style="accent-color:#ef4444;width:15px;height:15px;">
+                        Pallor / color change
+                    </label>
+                </div>
+                <div style="margin-top:10px;">
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Compartment Pressure (if measured, mmHg)</label>
+                    <input type="number" id="nv_compartment_pressure" placeholder="mmHg — document if measured"
+                        style="width:180px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px;color:#fff;font-size:0.88rem;">
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Compared to Pre-Op Baseline</label>
+                    <select id="nv_vs_preop" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="unchanged">Unchanged — matches pre-op</option>
+                        <option value="improved">Improved from pre-op</option>
+                        <option value="slightly_worse">Slightly worse — monitoring</option>
+                        <option value="significantly_worse">Significantly worse — requires intervention</option>
+                        <option value="preop_not_documented">Pre-op baseline not documented</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Neurovascular Notes / Actions Taken</label>
+                    <input type="text" id="nv_notes" placeholder="Vascular surgery consulted, Doppler obtained, cast split, etc."
+                        style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+            </div>
+        </div>
+
         <div class="section">
             <h3 class="section-header">Operative Summary</h3>
             <div class="form-grid">
@@ -701,6 +1077,25 @@
                 <div class="form-field full-width">
                     <label>Additional Notes</label>
                     <textarea id="additionalNotes" placeholder="Any additional relevant information, complications, patient tolerance..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Surgeon Attestation — Joint Commission RC.02.01.01 / CMS CoP 42 CFR 482.24 -->
+        <div id="attestation-section" style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.22);border-radius:8px;padding:18px 20px;margin:16px 0;">
+            <div style="color:#4ade80;font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">✍️ Surgeon Attestation</div>
+            <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:0.9rem;line-height:1.5;">
+                <input type="checkbox" id="attestation_confirmed" style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:#4ade80;">
+                <span>I attest that this operative note is accurate, complete, and reflects the care rendered. I have personally performed or directly supervised the procedure documented above.</span>
+            </label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                <div class="form-field">
+                    <label>Attending Surgeon</label>
+                    <input type="text" id="attestation_name" placeholder="Dr. ___" style="width:100%;">
+                </div>
+                <div class="form-field">
+                    <label>Attestation Date / Time</label>
+                    <input type="datetime-local" id="attestation_timestamp" readonly style="width:100%;background:rgba(255,255,255,0.05);">
                 </div>
             </div>
         </div>
@@ -748,6 +1143,24 @@
             { name: 'Lumbar Discectomy', cpt: '63030', icon: '🔧' },
             { name: 'Spinal Fusion', cpt: '22612', icon: '🔧' }
         ];
+
+        function calcOrthoAbxInterval() {
+            const adminEl = document.getElementById('ortho_abx_admin_time');
+            const incisionEl = document.getElementById('ortho_abx_incision_time');
+            const displayEl = document.getElementById('ortho_abx_interval');
+            const withinEl = document.getElementById('ortho_abx_within_60min');
+            if (!adminEl?.value || !incisionEl?.value) return;
+            const diffMin = Math.round((new Date(incisionEl.value) - new Date(adminEl.value)) / 60000);
+            if (isNaN(diffMin)) return;
+            displayEl.value = diffMin >= 0 ? `${diffMin} min before incision` : `${Math.abs(diffMin)} min AFTER incision`;
+            if (withinEl) withinEl.checked = diffMin >= 0 && diffMin <= 60;
+        }
+
+        function toggleOrthoRedoseFields() {
+            const val = document.getElementById('ortho_abx_redosing')?.value;
+            const row = document.getElementById('ortho_abx_redose_row');
+            if (row) row.style.display = val === 'yes' ? '' : 'none';
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             validateToken();
@@ -968,6 +1381,13 @@
                 return;
             }
 
+            if (!document.getElementById('attestation_confirmed').checked) {
+                showAlert('⚠️ Surgeon attestation is required before saving the operative note.', 'error');
+                spinner.style.display = 'none';
+                document.getElementById('attestation-section').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
             // Collect implant data
             const implantData = [];
             implants.forEach(implant => {
@@ -1035,7 +1455,81 @@
                     operative_time_mins: parseInt(document.getElementById('operativeTime').value) || null,
                     specimens_sent: document.getElementById('specimens').value,
                     complications: document.getElementById('complications').value,
-                    additional_notes: document.getElementById('additionalNotes').value
+                    additional_notes: document.getElementById('additionalNotes').value,
+
+                    // Universal Protocol — JCAHO NPSG UP.01.01.01–UP.01.03.01
+                    universal_protocol: {
+                        timeout_datetime:     document.getElementById('ortho_timeout_datetime')?.value || null,
+                        conducted_by:         document.getElementById('ortho_timeout_conducted_by')?.value || null,
+                        correct_patient:      document.getElementById('ortho_to_patient')?.checked || false,
+                        correct_procedure:    document.getElementById('ortho_to_procedure')?.checked || false,
+                        correct_site:         document.getElementById('ortho_to_site')?.checked || false,
+                        site_marked:          document.getElementById('ortho_to_marked')?.checked || false,
+                        consent_confirmed:    document.getElementById('ortho_to_consent')?.checked || false,
+                        implants_present:     document.getElementById('ortho_to_implants')?.checked || false,
+                        antibiotic_confirmed: document.getElementById('ortho_to_antibiotic')?.checked || false,
+                        imaging_displayed:    document.getElementById('ortho_to_imaging')?.checked || false,
+                        concerns_addressed:   document.getElementById('ortho_to_concerns')?.checked || false,
+                    },
+
+                    // Surgical counts — AORN
+                    surgical_counts: {
+                        sponges:           document.getElementById('ortho_count_sponges')?.value || null,
+                        sharps:            document.getElementById('ortho_count_sharps')?.value || null,
+                        instruments:       document.getElementById('ortho_count_instruments')?.value || null,
+                        circulating_rn:    document.getElementById('ortho_circulating_rn')?.value || null,
+                        scrub_tech:        document.getElementById('ortho_scrub_tech')?.value || null,
+                        discrepancy_notes: document.getElementById('ortho_count_discrepancy')?.value || null,
+                    },
+
+                    // Antibiotic prophylaxis — SCIP-Inf-1 / ACS NSQIP / CDC NHSN SSI surveillance
+                    antibiotic_prophylaxis: {
+                        agent:            document.getElementById('ortho_abx_agent')?.value || null,
+                        dose:             document.getElementById('ortho_abx_dose')?.value || null,
+                        route:            document.getElementById('ortho_abx_route')?.value || null,
+                        admin_time:       document.getElementById('ortho_abx_admin_time')?.value || null,
+                        incision_time:    document.getElementById('ortho_abx_incision_time')?.value || null,
+                        interval_display: document.getElementById('ortho_abx_interval')?.value || null,
+                        within_60min:     document.getElementById('ortho_abx_within_60min')?.checked || false,
+                        redosing:         document.getElementById('ortho_abx_redosing')?.value || null,
+                        redose_details:   document.getElementById('ortho_abx_redose_details')?.value || null,
+                        postop_duration:  document.getElementById('ortho_abx_postop_duration')?.value || null,
+                        skin_prep:        document.getElementById('ortho_skin_prep')?.value || null,
+                        notes:            document.getElementById('ortho_abx_notes')?.value || null,
+                    },
+
+                    // CDC/NHSN wound classification — SSI surveillance
+                    wound_classification: document.querySelector('input[name="ortho_wound_class"]:checked')?.value || null,
+
+                    // Post-tourniquet neurovascular assessment — AAOS/OTA
+                    neurovascular_assessment: {
+                        assessment_time:     document.getElementById('nv_assessment_time')?.value || null,
+                        limb:                document.getElementById('nv_limb')?.value || null,
+                        tourniquet_min:      parseInt(document.getElementById('nv_tourniquet_total_min')?.value) || null,
+                        pulse_dp:            document.getElementById('nv_pulse_dp')?.value || null,
+                        pulse_pt:            document.getElementById('nv_pulse_pt')?.value || null,
+                        pulse_radial:        document.getElementById('nv_pulse_radial')?.value || null,
+                        pulse_ulnar:         document.getElementById('nv_pulse_ulnar')?.value || null,
+                        sensation:           document.getElementById('nv_sensation')?.value || null,
+                        motor:               document.getElementById('nv_motor')?.value || null,
+                        cap_refill:          document.getElementById('nv_cap_refill')?.value || null,
+                        temperature:         document.getElementById('nv_temperature')?.value || null,
+                        pain_passive_stretch: document.getElementById('nv_pain_passive_stretch')?.checked || false,
+                        tense_compartment:   document.getElementById('nv_tense_compartment')?.checked || false,
+                        paresthesia:         document.getElementById('nv_paresthesia')?.checked || false,
+                        pallor:              document.getElementById('nv_pallor')?.checked || false,
+                        compartment_pressure_mmhg: parseInt(document.getElementById('nv_compartment_pressure')?.value) || null,
+                        vs_preop:            document.getElementById('nv_vs_preop')?.value || null,
+                        notes:               document.getElementById('nv_notes')?.value || null,
+                    },
+
+                    // VTE prophylaxis — SCIP-VTE-2 / AAOS/ACCP
+                    ...(typeof CapriniVTE !== 'undefined' ? CapriniVTE.getData() : {}),
+
+                    // Surgeon attestation — JC RC.02.01.01 / CMS CoP 42 CFR 482.24
+                    attestation_confirmed:  document.getElementById('attestation_confirmed').checked,
+                    attestation_timestamp:  document.getElementById('attestation_timestamp').value || null,
+                    attestation_name:       document.getElementById('attestation_name').value || null
                 };
 
                 const { error } = await supabase
@@ -1058,6 +1552,17 @@
             }
         }
 
+        document.getElementById('attestation_confirmed').addEventListener('change', function () {
+            const ts = document.getElementById('attestation_timestamp');
+            if (this.checked) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                ts.value = now.toISOString().slice(0, 16);
+            } else {
+                ts.value = '';
+            }
+        });
+
         function showAlert(message, type) {
             const alertDiv = document.getElementById('alertMessage');
             alertDiv.innerHTML = `
@@ -1071,5 +1576,12 @@
             }, 5000);
         }
     </script>
+    <script src="caprini-vte-component.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            CapriniVTE.render('caprini_ortho_op_container');
+        });
+    </script>
+    <script src="/ai-client.js"></script>
 </body>
 </html>

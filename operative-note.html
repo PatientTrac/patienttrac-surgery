@@ -475,6 +475,266 @@
 
         <!-- Tab 2: Operative Details -->
         <div class="tab-content">
+            <!-- Universal Protocol / Time-Out — JCAHO NPSG UP.01.01.01–UP.01.03.01 / AORN -->
+            <div class="section-card" style="border:1px solid rgba(16,185,129,0.35);margin-bottom:0;">
+                <h3 style="color:#10b981;">Universal Protocol &amp; Surgical Time-Out</h3>
+                <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                    JCAHO NPSG UP.01.01.01–UP.01.03.01 — Required for every surgical/invasive procedure. All team members must verbally confirm.
+                </p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Time-Out Date &amp; Time</label>
+                        <input type="datetime-local" id="timeout_datetime">
+                    </div>
+                    <div class="form-group">
+                        <label>Time-Out Conducted By (Role)</label>
+                        <input type="text" id="timeout_conducted_by" placeholder="e.g., Circulating RN — Jane Smith">
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;">
+                        <label>Time-Out Confirmations (all team members verbally confirmed)</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;">
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_correct_patient"> Correct patient identity
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_correct_procedure"> Correct procedure
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_correct_site"> Correct site/laterality confirmed
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_site_marked"> Site marked by surgeon (if applicable)
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_consent_reviewed"> Consent reviewed and confirmed
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_imaging_available"> Relevant imaging displayed/available
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_implants_available"> Required implants/equipment present
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_antibiotic"> Prophylactic antibiotic within 60 min confirmed
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="timeout_concerns_raised"> Team concerns raised and addressed
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Surgical Counts — AORN Retained Surgical Item Prevention -->
+                <div style="border-top:1px solid rgba(16,185,129,0.2);padding-top:16px;margin-top:16px;">
+                    <h4 style="color:#10b981;margin-bottom:12px;">Surgical Counts (AORN Standard)</h4>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:12px;">
+                        <div>
+                            <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Sponge Count</label>
+                            <select id="count_sponges" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;">
+                                <option value="">— Select —</option>
+                                <option value="correct_x2">Correct × 2</option>
+                                <option value="incorrect">Incorrect — recount performed</option>
+                                <option value="na">N/A (bedside procedure)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Sharp/Needle Count</label>
+                            <select id="count_sharps" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;">
+                                <option value="">— Select —</option>
+                                <option value="correct_x2">Correct × 2</option>
+                                <option value="incorrect">Incorrect — recount performed</option>
+                                <option value="na">N/A</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:4px;">Instrument Count</label>
+                            <select id="count_instruments" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;">
+                                <option value="">— Select —</option>
+                                <option value="correct_x2">Correct × 2</option>
+                                <option value="incorrect">Incorrect — recount performed</option>
+                                <option value="na">N/A</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Circulating RN</label>
+                            <input type="text" id="circulating_rn" placeholder="Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Scrub Tech / Scrub RN</label>
+                            <input type="text" id="scrub_tech" placeholder="Name">
+                        </div>
+                        <div class="form-group">
+                            <label>Count Discrepancy Notes</label>
+                            <input type="text" id="count_discrepancy_notes" placeholder="If any count was incorrect, document resolution">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Antibiotic Prophylaxis — SCIP-Inf-1 core measure / ACS NSQIP / CDC NHSN SSI surveillance -->
+            <div class="section-card">
+                <h3 style="color:#10b981;">Antibiotic Prophylaxis &amp; Wound Classification</h3>
+                <p style="font-size:0.82rem;opacity:0.6;margin-bottom:16px;">
+                    SCIP-Inf-1: Prophylactic antibiotic received within 60 minutes before surgical incision.
+                    CDC/NHSN wound class required for SSI surveillance reporting.
+                </p>
+
+                <!-- Antibiotic agent + dosing -->
+                <div class="form-grid" style="margin-bottom:14px;">
+                    <div class="form-group">
+                        <label>Antibiotic Agent</label>
+                        <select id="abx_agent">
+                            <option value="">— Select —</option>
+                            <option value="cefazolin">Cefazolin (Ancef) — first-line</option>
+                            <option value="cefuroxime">Cefuroxime</option>
+                            <option value="cefoxitin">Cefoxitin (colorectal)</option>
+                            <option value="ampicillin_sulbactam">Ampicillin-sulbactam</option>
+                            <option value="clindamycin">Clindamycin (PCN allergy)</option>
+                            <option value="vancomycin">Vancomycin (MRSA risk / PCN allergy)</option>
+                            <option value="gentamicin">Gentamicin</option>
+                            <option value="ciprofloxacin">Ciprofloxacin</option>
+                            <option value="metronidazole">Metronidazole</option>
+                            <option value="ertapenem">Ertapenem (high-risk colorectal)</option>
+                            <option value="none_documented">None — allergy/contraindication documented</option>
+                            <option value="other">Other (specify in notes)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Dose (weight-based)</label>
+                        <input type="text" id="abx_dose" placeholder="e.g. 2g IV (≥80kg → 3g)">
+                    </div>
+                    <div class="form-group">
+                        <label>Route</label>
+                        <select id="abx_route">
+                            <option value="iv">IV</option>
+                            <option value="im">IM</option>
+                            <option value="topical">Topical</option>
+                            <option value="oral">Oral (bowel prep)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Timing -->
+                <div class="form-grid" style="margin-bottom:14px;">
+                    <div class="form-group">
+                        <label>Antibiotic Administration Time</label>
+                        <input type="datetime-local" id="abx_admin_time">
+                    </div>
+                    <div class="form-group">
+                        <label>Incision Time</label>
+                        <input type="datetime-local" id="abx_incision_time" onchange="calcAbxInterval()">
+                    </div>
+                    <div class="form-group">
+                        <label>Admin-to-Incision Interval</label>
+                        <input type="text" id="abx_interval_display" readonly
+                            style="background:rgba(255,255,255,0.05);cursor:default;"
+                            placeholder="Auto-calculated">
+                    </div>
+                    <div class="form-group">
+                        <label style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" id="abx_within_60min" style="accent-color:#10b981;width:16px;height:16px;">
+                            Within 60 minutes of incision (SCIP-Inf-1 met)
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Redosing -->
+                <div class="form-grid" style="margin-bottom:14px;">
+                    <div class="form-group">
+                        <label>Intraoperative Redosing Required?</label>
+                        <select id="abx_redosing" onchange="toggleRedoseFields()">
+                            <option value="">— Select —</option>
+                            <option value="no">No — case &lt; 4 hours / minimal blood loss</option>
+                            <option value="yes">Yes — per ASHP redosing interval</option>
+                            <option value="na">N/A — agent does not require redosing</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="abx_redose_interval_row" style="display:none;">
+                        <label>Redosing Interval / Last Redose Time</label>
+                        <input type="text" id="abx_redose_details" placeholder="e.g. Cefazolin q4h; last redose 14:30">
+                    </div>
+                    <div class="form-group">
+                        <label>Post-Op Antibiotic Duration</label>
+                        <select id="abx_postop_duration">
+                            <option value="">— Select —</option>
+                            <option value="none">None (prophylaxis complete at closure)</option>
+                            <option value="24h">24 hours post-op (SCIP-Inf-3)</option>
+                            <option value="48h">48 hours (cardiac / implant)</option>
+                            <option value="therapeutic">Therapeutic course — active infection</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Skin prep -->
+                <div class="form-grid" style="margin-bottom:18px;">
+                    <div class="form-group">
+                        <label>Skin Preparation Agent</label>
+                        <select id="skin_prep_agent">
+                            <option value="">— Select —</option>
+                            <option value="chg_alcohol">Chlorhexidine + alcohol (preferred)</option>
+                            <option value="betadine_scrub_paint">Betadine scrub + paint (povidone-iodine)</option>
+                            <option value="duraprep">DuraPrep (iodophor + isopropyl alcohol)</option>
+                            <option value="chloraprep">ChloraPrep</option>
+                            <option value="betadine_only">Betadine only (mucous membrane)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hair Removal (if applicable)</label>
+                        <select id="hair_removal">
+                            <option value="na">N/A — no hair removal required</option>
+                            <option value="clipper">Clippers (preferred — SCIP-Inf-6)</option>
+                            <option value="none_needed">None needed</option>
+                            <option value="razor">Razor (document reason)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Antibiotic Notes / Allergy Justification</label>
+                        <input type="text" id="abx_notes" placeholder="Alternative agent reason, culture-directed therapy, etc.">
+                    </div>
+                </div>
+
+                <!-- CDC Wound Classification — NHSN SSI surveillance -->
+                <div style="border-top:1px solid rgba(16,185,129,0.2);padding-top:16px;">
+                    <h4 style="color:#10b981;margin-bottom:12px;">CDC / NHSN Wound Classification</h4>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
+                        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:12px;transition:background 0.15s;"
+                            onmouseover="this.style.background='rgba(16,185,129,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                            <input type="radio" name="wound_class" value="I" id="wound_class_I" style="accent-color:#10b981;margin-top:3px;">
+                            <div>
+                                <div style="font-weight:600;font-size:0.9rem;">Class I — Clean</div>
+                                <div style="font-size:0.78rem;opacity:0.6;margin-top:3px;">Uninfected, no inflammation, no entry into GI/GU/respiratory tract. Elective, closed primarily.</div>
+                            </div>
+                        </label>
+                        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:12px;transition:background 0.15s;"
+                            onmouseover="this.style.background='rgba(245,158,11,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                            <input type="radio" name="wound_class" value="II" id="wound_class_II" style="accent-color:#f59e0b;margin-top:3px;">
+                            <div>
+                                <div style="font-weight:600;font-size:0.9rem;">Class II — Clean-Contaminated</div>
+                                <div style="font-size:0.78rem;opacity:0.6;margin-top:3px;">Controlled entry into GI/GU/respiratory tract, no unusual contamination.</div>
+                            </div>
+                        </label>
+                        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:12px;transition:background 0.15s;"
+                            onmouseover="this.style.background='rgba(249,115,22,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                            <input type="radio" name="wound_class" value="III" id="wound_class_III" style="accent-color:#f97316;margin-top:3px;">
+                            <div>
+                                <div style="font-weight:600;font-size:0.9rem;">Class III — Contaminated</div>
+                                <div style="font-size:0.78rem;opacity:0.6;margin-top:3px;">Open/fresh traumatic wounds, major break in sterile technique, gross spillage from GI.</div>
+                            </div>
+                        </label>
+                        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:12px;transition:background 0.15s;"
+                            onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+                            <input type="radio" name="wound_class" value="IV" id="wound_class_IV" style="accent-color:#ef4444;margin-top:3px;">
+                            <div>
+                                <div style="font-weight:600;font-size:0.9rem;">Class IV — Dirty-Infected</div>
+                                <div style="font-size:0.78rem;opacity:0.6;margin-top:3px;">Old traumatic wounds with devitalized tissue, existing infection or perforated viscera present.</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <div class="section-card">
                 <h3>Anesthesia & Positioning</h3>
                 <div class="form-grid">
@@ -524,7 +784,7 @@
                 </div>
                 <div class="form-group" style="margin-top: 1rem;">
                     <label>Operative Technique Description</label>
-                    <textarea id="operativeTechnique" rows="6" placeholder="Describe the surgical technique step-by-step: entry method, port placement, dissection, anastomosis, stapling, etc."></textarea>
+                    <textarea id="operativeTechnique" rows="6" data-dictation="true" data-context="Operative technique" placeholder="Describe the surgical technique step-by-step: entry method, port placement, dissection, anastomosis, stapling, etc."></textarea>
                 </div>
             </div>
 
@@ -561,7 +821,7 @@
             <div class="section-card">
                 <h3>Intraoperative Findings</h3>
                 <div class="form-group">
-                    <textarea id="intraopFindings" rows="5" placeholder="Document visual findings, anatomical variations, adhesions, inflammation, pathology observed..."></textarea>
+                    <textarea id="intraopFindings" rows="5" data-dictation="true" data-context="Intraoperative findings" placeholder="Document visual findings, anatomical variations, adhesions, inflammation, pathology observed..."></textarea>
                 </div>
             </div>
 
@@ -659,7 +919,7 @@
             <div class="section-card">
                 <h3>Post-Operative Plan</h3>
                 <div class="form-group">
-                    <textarea id="postopPlan" rows="5" placeholder="Document post-operative orders, diet progression, activity restrictions, pain management, DVT prophylaxis, follow-up plan..."></textarea>
+                    <textarea id="postopPlan" rows="5" data-dictation="true" data-context="Post-operative plan" placeholder="Document post-operative orders, diet progression, activity restrictions, pain management, DVT prophylaxis, follow-up plan..."></textarea>
                 </div>
             </div>
 
@@ -701,14 +961,81 @@
         </div>
     </div>
 
+    <!-- AI Panel (slide-up overlay) -->
+    <div id="ai-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:linear-gradient(180deg,#0a1628 0%,#060e1c 100%);border-top:2px solid rgba(201,169,110,0.4);max-height:70vh;overflow-y:auto;box-shadow:0 -8px 32px rgba(0,0,0,0.6);transition:transform 0.25s ease;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="showAITab('review')" id="ai-tab-review" class="ai-tab-btn ai-tab-active">Review Note</button>
+                <button onclick="showAITab('draft')" id="ai-tab-draft" class="ai-tab-btn">Draft Section</button>
+                <button onclick="showAITab('codes')" id="ai-tab-codes" class="ai-tab-btn">Suggest Codes</button>
+                <button onclick="showAITab('registry')" id="ai-tab-registry" class="ai-tab-btn">Registry Extract</button>
+            </div>
+            <button onclick="document.getElementById('ai-panel').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1.2rem;padding:4px 8px;">✕</button>
+        </div>
+
+        <!-- Review tab -->
+        <div id="ai-tab-content-review" style="padding:20px 24px;">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                <button id="btn-review" onclick="runNoteReview(this)" style="background:linear-gradient(135deg,rgba(201,169,110,0.2),rgba(201,169,110,0.1));border:1px solid rgba(201,169,110,0.4);color:#c9a96e;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Analyze Note Quality</button>
+            </div>
+            <div id="ai-result-review" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+
+        <!-- Draft tab -->
+        <div id="ai-tab-content-draft" style="display:none;padding:20px 24px;">
+            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+                <button onclick="runDraftSection('operative_technique',this)" style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);color:#60a5fa;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.85rem;">Operative Technique</button>
+                <button onclick="runDraftSection('findings',this)" style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);color:#60a5fa;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.85rem;">Intraop Findings</button>
+                <button onclick="runDraftSection('postop_diagnosis',this)" style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);color:#60a5fa;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.85rem;">Post-op Diagnosis</button>
+                <button onclick="runDraftSection('procedure_note',this)" style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);color:#60a5fa;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.85rem;">Procedure Note</button>
+            </div>
+            <div id="ai-result-draft" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.7;white-space:pre-wrap;"></div>
+            <div id="ai-draft-apply" style="display:none;margin-top:10px;">
+                <button id="btn-apply-draft" onclick="applyDraft()" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#10b981;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:0.85rem;">Apply to Form</button>
+            </div>
+        </div>
+
+        <!-- Codes tab -->
+        <div id="ai-tab-content-codes" style="display:none;padding:20px 24px;">
+            <div style="display:flex;gap:12px;margin-bottom:16px;">
+                <button id="btn-codes" onclick="runCodeSuggest(this)" style="background:linear-gradient(135deg,rgba(201,169,110,0.2),rgba(201,169,110,0.1));border:1px solid rgba(201,169,110,0.4);color:#c9a96e;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Suggest ICD-10 &amp; CPT Codes</button>
+            </div>
+            <div id="ai-result-codes" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+
+        <!-- Registry tab -->
+        <div id="ai-tab-content-registry" style="display:none;padding:20px 24px;">
+            <div style="margin-bottom:14px;">
+                <label style="font-size:0.8rem;opacity:0.65;display:block;margin-bottom:6px;">Registry</label>
+                <select id="ai-registry-select" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:7px 12px;color:#fff;width:100%;max-width:300px;">
+                    <option value="acs_nsqip">ACS NSQIP</option>
+                    <option value="sts_cardiac">STS Adult Cardiac</option>
+                    <option value="ncdr_cathpci">NCDR CathPCI</option>
+                    <option value="mbsaqip">MBSAQIP (Bariatric)</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;margin-bottom:16px;">
+                <button id="btn-registry" onclick="runRegistryExtract(this)" style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(168,85,247,0.1));border:1px solid rgba(168,85,247,0.4);color:#a855f7;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;">Extract Registry Fields</button>
+            </div>
+            <div id="ai-result-registry" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+    </div>
+
     <!-- Action Bar -->
     <div class="action-bar">
         <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
         <div style="display: flex; gap: 1rem;">
+            <button onclick="toggleAIPanel()" style="background:linear-gradient(135deg,rgba(201,169,110,0.25),rgba(201,169,110,0.12));border:1px solid rgba(201,169,110,0.5);color:#c9a96e;padding:0.6rem 1.4rem;border-radius:6px;cursor:pointer;font-size:0.9rem;font-weight:600;">✨ AI Assist</button>
             <button onclick="saveOperativeNote('draft')" class="btn btn-secondary">Save Draft</button>
             <button onclick="saveOperativeNote('final')" class="btn btn-primary">Sign & Finalize</button>
         </div>
     </div>
+
+    <style>
+        .ai-tab-btn { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all 0.15s; }
+        .ai-tab-btn:hover { background:rgba(255,255,255,0.1); }
+        .ai-tab-active { background:rgba(201,169,110,0.2)!important;border-color:rgba(201,169,110,0.5)!important;color:#c9a96e!important; }
+    </style>
 
     <script>
         // Initialize Supabase
@@ -724,6 +1051,10 @@
         let selectedICDCodes = [];
         let selectedCPTCodes = [];
         let selectedLaterality = 'N/A';
+
+        // Authenticated provider identity — populated from encounter on load
+        let currentProviderId = null;
+        let currentProviderName = null;
 
         // Load patient data
         window.addEventListener('DOMContentLoaded', async () => {
@@ -744,9 +1075,20 @@
 
             if (error || !patient) return;
 
+            // Capture authenticated provider identity from encounter
+            currentProviderId = patient.provider_id || null;
+            currentProviderName = patient.provider_name || null;
+            window._ptProviderId = currentProviderId;
+
             document.getElementById('patientName').textContent = `${patient.first_name} ${patient.last_name}`;
             document.getElementById('patientMRN').textContent = patient.mrn || '--';
             document.getElementById('surgeonName').textContent = patient.provider_name || 'Dr. Surgeon';
+
+            // Auto-populate attending surgeon from authenticated provider
+            const attendingEl = document.getElementById('attendingSurgeon');
+            if (attendingEl && !attendingEl.value && patient.provider_name) {
+                attendingEl.value = patient.provider_name;
+            }
             
             if (patient.photo_url) {
                 document.getElementById('patientPhoto').src = patient.photo_url;
@@ -758,6 +1100,24 @@
         });
 
         // Tab switching
+        function calcAbxInterval() {
+            const adminEl = document.getElementById('abx_admin_time');
+            const incisionEl = document.getElementById('abx_incision_time');
+            const displayEl = document.getElementById('abx_interval_display');
+            const withinEl = document.getElementById('abx_within_60min');
+            if (!adminEl?.value || !incisionEl?.value) return;
+            const diffMin = Math.round((new Date(incisionEl.value) - new Date(adminEl.value)) / 60000);
+            if (isNaN(diffMin)) return;
+            displayEl.value = diffMin >= 0 ? `${diffMin} min before incision` : `${Math.abs(diffMin)} min AFTER incision`;
+            if (withinEl) withinEl.checked = diffMin >= 0 && diffMin <= 60;
+        }
+
+        function toggleRedoseFields() {
+            const val = document.getElementById('abx_redosing')?.value;
+            const row = document.getElementById('abx_redose_interval_row');
+            if (row) row.style.display = val === 'yes' ? '' : 'none';
+        }
+
         function switchTab(index) {
             const tabs = document.querySelectorAll('.tab-btn');
             const contents = document.querySelectorAll('.tab-content');
@@ -886,11 +1246,30 @@
                 return;
             }
 
+            // Completeness validation before Sign & Finalize
+            if (status === 'final') {
+                const missing = [];
+                if (!document.getElementById('operativeTechnique')?.value?.trim()) missing.push('Operative Technique narrative');
+                if (!document.getElementById('incisionTime')?.value) missing.push('Incision Time');
+                if (!document.getElementById('closureTime')?.value) missing.push('Closure Time');
+                if (!document.getElementById('timeout_datetime')?.value) missing.push('Time-Out Date/Time');
+                if (!document.getElementById('timeout_correct_patient')?.checked) missing.push('Time-Out: Correct Patient confirmation');
+                if (!document.getElementById('timeout_correct_procedure')?.checked) missing.push('Time-Out: Correct Procedure confirmation');
+                if (!document.getElementById('timeout_correct_site')?.checked) missing.push('Time-Out: Correct Site confirmation');
+                if (!document.getElementById('abx_agent')?.value) missing.push('Antibiotic Prophylaxis agent');
+                if (!document.querySelector('input[name="wound_class"]:checked')) missing.push('CDC Wound Classification');
+                if (!document.getElementById('attendingSurgeon')?.value?.trim()) missing.push('Attending Surgeon name');
+                if (missing.length > 0) {
+                    alert('Cannot finalize — the following required fields are incomplete:\n\n• ' + missing.join('\n• '));
+                    return;
+                }
+            }
+
             const saveData = {
                 org_id: '00000000-0000-0000-0000-000000000001',
                 patient_id: parseInt(patientId),
                 encounter_id: parseInt(encounterId),
-                provider_id: 1,
+                provider_id: currentProviderId || 1,
                 preop_diagnosis_codes: selectedICDCodes.map(c => c.code),
                 procedure_codes: selectedCPTCodes.map(c => c.code),
                 postop_diagnosis: document.getElementById('postOpDiagnosis').value,
@@ -926,6 +1305,52 @@
                 assistant_surgeon: document.getElementById('assistantSurgeon').value || null,
                 status: status,
                 dictated_date: document.getElementById('dictatedDate').value,
+
+                // Universal Protocol — JCAHO NPSG UP.01.01.01–UP.01.03.01
+                universal_protocol: {
+                    timeout_datetime:     document.getElementById('timeout_datetime')?.value || null,
+                    conducted_by:         document.getElementById('timeout_conducted_by')?.value || null,
+                    correct_patient:      document.getElementById('timeout_correct_patient')?.checked || false,
+                    correct_procedure:    document.getElementById('timeout_correct_procedure')?.checked || false,
+                    correct_site:         document.getElementById('timeout_correct_site')?.checked || false,
+                    site_marked:          document.getElementById('timeout_site_marked')?.checked || false,
+                    consent_reviewed:     document.getElementById('timeout_consent_reviewed')?.checked || false,
+                    imaging_available:    document.getElementById('timeout_imaging_available')?.checked || false,
+                    implants_available:   document.getElementById('timeout_implants_available')?.checked || false,
+                    antibiotic_confirmed: document.getElementById('timeout_antibiotic')?.checked || false,
+                    concerns_raised:      document.getElementById('timeout_concerns_raised')?.checked || false,
+                },
+
+                // Surgical counts — AORN retained surgical item prevention
+                surgical_counts: {
+                    sponges:            document.getElementById('count_sponges')?.value || null,
+                    sharps:             document.getElementById('count_sharps')?.value || null,
+                    instruments:        document.getElementById('count_instruments')?.value || null,
+                    circulating_rn:     document.getElementById('circulating_rn')?.value || null,
+                    scrub_tech:         document.getElementById('scrub_tech')?.value || null,
+                    discrepancy_notes:  document.getElementById('count_discrepancy_notes')?.value || null,
+                },
+
+                // Antibiotic prophylaxis — SCIP-Inf-1 / ACS NSQIP / CDC NHSN SSI surveillance
+                antibiotic_prophylaxis: {
+                    agent:              document.getElementById('abx_agent')?.value || null,
+                    dose:               document.getElementById('abx_dose')?.value || null,
+                    route:              document.getElementById('abx_route')?.value || null,
+                    admin_time:         document.getElementById('abx_admin_time')?.value || null,
+                    incision_time:      document.getElementById('abx_incision_time')?.value || null,
+                    interval_display:   document.getElementById('abx_interval_display')?.value || null,
+                    within_60min:       document.getElementById('abx_within_60min')?.checked || false,
+                    redosing:           document.getElementById('abx_redosing')?.value || null,
+                    redose_details:     document.getElementById('abx_redose_details')?.value || null,
+                    postop_duration:    document.getElementById('abx_postop_duration')?.value || null,
+                    skin_prep_agent:    document.getElementById('skin_prep_agent')?.value || null,
+                    hair_removal:       document.getElementById('hair_removal')?.value || null,
+                    notes:              document.getElementById('abx_notes')?.value || null,
+                },
+
+                // CDC/NHSN wound classification — SSI surveillance
+                wound_classification:   document.querySelector('input[name="wound_class"]:checked')?.value || null,
+
                 created_at: new Date().toISOString()
             };
 
@@ -945,6 +1370,189 @@
             }
         }
 
+        // ── AI Panel ──────────────────────────────────────────────────────────
+        let _lastDraft = null;
+        let _lastDraftSection = null;
+
+        function toggleAIPanel() {
+            const p = document.getElementById('ai-panel');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showAITab(tab) {
+            ['review','draft','codes','registry'].forEach(t => {
+                document.getElementById('ai-tab-content-' + t).style.display = t === tab ? 'block' : 'none';
+                const btn = document.getElementById('ai-tab-' + t);
+                if (btn) { btn.classList.toggle('ai-tab-active', t === tab); }
+            });
+        }
+
+        function collectOperativeFormData() {
+            const getV = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const getC = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+            return {
+                encounter_id: encounterId,
+                icd_codes: selectedICDCodes.map(c => c.code + ' ' + c.description).join('; '),
+                cpt_codes: selectedCPTCodes.map(c => c.code + ' ' + c.description).join('; '),
+                preop_diagnosis: selectedICDCodes.map(c => c.description).join(', '),
+                postop_diagnosis: getV('postOpDiagnosis'),
+                laterality: selectedLaterality,
+                anesthesia_type: getV('anesthesiaType'),
+                patient_position: getV('patientPosition'),
+                surgical_approach: getV('surgicalApproach'),
+                operative_technique: getV('operativeTechnique'),
+                intraop_findings: getV('intraopFindings'),
+                complications: getV('complications'),
+                closure_technique: getV('closureTechnique'),
+                postop_plan: getV('postopPlan'),
+                patient_condition: getV('patientCondition'),
+                disposition: getV('disposition'),
+                attending_surgeon: getV('attendingSurgeon')
+            };
+        }
+
+        async function runNoteReview(btn) {
+            AIClient.showSpinner(btn, 'Analyzing…');
+            const resultEl = document.getElementById('ai-result-review');
+            resultEl.style.display = 'none';
+            try {
+                const data = collectOperativeFormData();
+                const result = await AIClient.reviewNote('surgery', data, token);
+                resultEl.style.display = 'block';
+                AIClient.showResult('ai-result-review', AIClient.renderReviewPanel(result), result.quality_grade === 'A' || result.quality_grade === 'B' ? 'success' : result.quality_grade === 'C' ? 'warning' : 'error');
+            } catch (err) {
+                resultEl.style.display = 'block';
+                AIClient.showResult('ai-result-review', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error');
+            }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runDraftSection(section, btn) {
+            AIClient.showSpinner(btn, 'Drafting…');
+            const resultEl = document.getElementById('ai-result-draft');
+            const applyEl = document.getElementById('ai-draft-apply');
+            resultEl.textContent = '';
+            resultEl.style.display = 'block';
+            resultEl.style.border = '1px solid rgba(96,165,250,0.3)';
+            resultEl.style.background = 'rgba(96,165,250,0.06)';
+            applyEl.style.display = 'none';
+            _lastDraft = '';
+            _lastDraftSection = section;
+
+            const data = collectOperativeFormData();
+            await AIClient.draftNoteStream(
+                'surgery',
+                data.cpt_codes || 'surgical procedure',
+                section,
+                data,
+                token,
+                {
+                    onChunk: (text) => {
+                        _lastDraft += text;
+                        resultEl.textContent = _lastDraft;
+                    },
+                    onDone: () => {
+                        AIClient.hideSpinner(btn);
+                        if (_lastDraft) applyEl.style.display = 'block';
+                    },
+                    onError: (err) => {
+                        AIClient.hideSpinner(btn);
+                        resultEl.textContent = 'Error: ' + err.message;
+                        resultEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                        resultEl.style.background = 'rgba(239,68,68,0.06)';
+                    }
+                }
+            );
+        }
+
+        function applyDraft() {
+            if (!_lastDraft) return;
+            const targetMap = {
+                operative_technique: 'operativeTechnique',
+                findings: 'intraopFindings',
+                postop_diagnosis: 'postOpDiagnosis',
+                procedure_note: 'operativeTechnique'
+            };
+            const targetId = targetMap[_lastDraftSection];
+            if (targetId) {
+                const el = document.getElementById(targetId);
+                if (el) { el.value = _lastDraft; }
+            }
+            document.getElementById('btn-apply-draft').textContent = '✓ Applied';
+            setTimeout(() => { document.getElementById('btn-apply-draft').textContent = 'Apply to Form'; }, 2000);
+        }
+
+        async function runCodeSuggest(btn) {
+            AIClient.showSpinner(btn, 'Querying…');
+            const resultEl = document.getElementById('ai-result-codes');
+            resultEl.style.display = 'none';
+            try {
+                const data = collectOperativeFormData();
+                const description = [data.preop_diagnosis, data.postop_diagnosis, data.intraop_findings].filter(Boolean).join('. ');
+                const result = await AIClient.suggestCodes(description, 'surgery', { technique: data.operative_technique, approach: data.surgical_approach }, data.cpt_codes || '', token);
+                resultEl.style.display = 'block';
+                AIClient.showResult('ai-result-codes', AIClient.renderCodesPanel(result), 'info');
+                AIClient.onCodeApply('icd10', (code, desc) => {
+                    if (!selectedICDCodes.find(c => c.code === code)) {
+                        selectedICDCodes.push({ code, description: desc });
+                        renderSelectedCodes();
+                    }
+                });
+                AIClient.onCodeApply('cpt', (code, desc) => {
+                    if (!selectedCPTCodes.find(c => c.code === code)) {
+                        selectedCPTCodes.push({ code, description: desc });
+                        renderSelectedCodes();
+                    }
+                });
+            } catch (err) {
+                resultEl.style.display = 'block';
+                AIClient.showResult('ai-result-codes', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error');
+            }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runRegistryExtract(btn) {
+            AIClient.showSpinner(btn, 'Extracting…');
+            const resultEl = document.getElementById('ai-result-registry');
+            resultEl.style.display = 'none';
+            const registry = document.getElementById('ai-registry-select').value;
+            try {
+                const data = collectOperativeFormData();
+                const result = await AIClient.extractRegistry(data, registry, encounterId, token);
+                resultEl.style.display = 'block';
+                let html = `<div style="display:flex;gap:16px;margin-bottom:12px;"><span style="font-size:1.4rem;font-weight:700;color:#a855f7;">${result.completeness_pct ?? '—'}%</span><span style="opacity:0.7;font-size:0.85rem;align-self:center;">completeness — ${result.submission_ready ? '<span style="color:#4ade80">Submission Ready</span>' : '<span style="color:#f0c040">Not Ready</span>'}</span></div>`;
+                if (result.missing_required_fields?.length) {
+                    html += '<div style="margin-bottom:8px;"><strong style="font-size:0.78rem;color:#f0c040;">MISSING REQUIRED:</strong> ' + result.missing_required_fields.join(', ') + '</div>';
+                }
+                if (result.data_quality_flags?.length) {
+                    html += '<div><strong style="font-size:0.78rem;color:#60a5fa;">QUALITY FLAGS:</strong>';
+                    result.data_quality_flags.forEach(f => { html += `<div style="font-size:0.8rem;padding:2px 0;opacity:0.8;">• ${f.field}: ${f.issue}</div>`; });
+                    html += '</div>';
+                }
+                AIClient.showResult('ai-result-registry', html, result.submission_ready ? 'success' : 'warning');
+            } catch (err) {
+                resultEl.style.display = 'block';
+                AIClient.showResult('ai-result-registry', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error');
+            }
+            AIClient.hideSpinner(btn);
+        }
+
+        // Stub for renderSelectedCodes — actual implementation already in file
+        function renderSelectedCodes() {
+            const icdEl = document.getElementById('selectedICD');
+            const cptEl = document.getElementById('selectedCPT');
+            if (icdEl) {
+                icdEl.innerHTML = selectedICDCodes.map(c =>
+                    `<div class="selected-code-tag">${c.code} — ${c.description} <span onclick="removeICD('${c.code}')" style="cursor:pointer;opacity:0.6;margin-left:6px;">✕</span></div>`
+                ).join('');
+            }
+            if (cptEl) {
+                cptEl.innerHTML = selectedCPTCodes.map(c =>
+                    `<div class="selected-code-tag">${c.code} — ${c.description} <span onclick="removeCPT('${c.code}')" style="cursor:pointer;opacity:0.6;margin-left:6px;">✕</span></div>`
+                ).join('');
+            }
+        }
+
         // Create superbill from operative note
         async function createSuperbill() {
             for (const cpt of selectedCPTCodes) {
@@ -952,7 +1560,7 @@
                     org_id: '00000000-0000-0000-0000-000000000001',
                     patient_id: parseInt(patientId),
                     encounter_id: parseInt(encounterId),
-                    provider_id: 1,
+                    provider_id: currentProviderId || 1,
                     cpt_code: cpt.code,
                     icd10_codes: selectedICDCodes.map(c => c.code),
                     service_date: new Date().toISOString().split('T')[0],
@@ -962,5 +1570,6 @@
             }
         }
     </script>
+    <script src="/ai-client.js"></script>
 </body>
 </html>

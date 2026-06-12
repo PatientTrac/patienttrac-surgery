@@ -491,8 +491,9 @@
     <nav class="tabs">
         <button class="tab-btn active" onclick="switchTab(0)">ASA & Airway</button>
         <button class="tab-btn" onclick="switchTab(1)">Medical History</button>
-        <button class="tab-btn" onclick="switchTab(2)">Anesthesia Plan</button>
-        <button class="tab-btn" onclick="switchTab(3)">Clearance Decision</button>
+        <button class="tab-btn" onclick="switchTab(2)" style="color:#ef4444;">Allergies &amp; Meds</button>
+        <button class="tab-btn" onclick="switchTab(3)">Anesthesia Plan</button>
+        <button class="tab-btn" onclick="switchTab(4)">Clearance Decision</button>
     </nav>
 
     <!-- Content -->
@@ -622,7 +623,7 @@
                     <h4>⚠️ Difficult Airway Predicted</h4>
                     <div class="form-group">
                         <label>Airway Management Plan</label>
-                        <textarea id="airwayPlan" rows="3" placeholder="Document plan for difficult airway (e.g., video laryngoscopy, fiber optic, awake intubation, LMA backup)"></textarea>
+                        <textarea id="airwayPlan" rows="3" data-dictation="true" data-context="Anesthesia airway management plan" placeholder="Document plan for difficult airway (e.g., video laryngoscopy, fiber optic, awake intubation, LMA backup)"></textarea>
                     </div>
                 </div>
             </div>
@@ -733,6 +734,154 @@
                 </div>
             </div>
 
+            <!-- STOP-BANG OSA Screening — ASA Pre-Anesthesia Guidelines 2022 / SAMBA -->
+            <div class="section-card">
+                <h3 style="color:#10b981;">STOP-BANG Obstructive Sleep Apnea Screening</h3>
+                <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                    ASA Pre-Anesthesia Guidelines: Validated OSA screener. Score ≥3 = High Risk.
+                    High risk patients require post-op monitoring, CPAP compliance verification, and consideration of HDU-level care.
+                </p>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-bottom:16px;">
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="sb_snoring" onchange="calcStopBang()">
+                        <div><strong>S — Snoring</strong><br><span style="font-size:0.8rem;opacity:0.6;">Do you snore loudly (through closed doors)?</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="sb_tired" onchange="calcStopBang()">
+                        <div><strong>T — Tired</strong><br><span style="font-size:0.8rem;opacity:0.6;">Often tired, fatigued, or sleepy during daytime?</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="sb_observed" onchange="calcStopBang()">
+                        <div><strong>O — Observed Apnea</strong><br><span style="font-size:0.8rem;opacity:0.6;">Anyone observed you stop breathing during sleep?</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="sb_pressure" onchange="calcStopBang()">
+                        <div><strong>P — Pressure</strong><br><span style="font-size:0.8rem;opacity:0.6;">Treated for or have high blood pressure?</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="sb_bmi" onchange="calcStopBang()">
+                        <div><strong>B — BMI &gt; 35</strong><br><span style="font-size:0.8rem;opacity:0.6;">Body mass index greater than 35 kg/m²?</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="sb_age" onchange="calcStopBang()">
+                        <div><strong>A — Age &gt; 50</strong><br><span style="font-size:0.8rem;opacity:0.6;">Older than 50 years?</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="sb_neck" onchange="calcStopBang()">
+                        <div><strong>N — Neck &gt; 40 cm</strong><br><span style="font-size:0.8rem;opacity:0.6;">Neck circumference greater than 40 cm?</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="sb_gender" onchange="calcStopBang()">
+                        <div><strong>G — Gender = Male</strong><br><span style="font-size:0.8rem;opacity:0.6;">Patient is male?</span></div>
+                    </label>
+                </div>
+
+                <!-- Score card -->
+                <div id="stopbang_result" style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:14px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+                    <div style="text-align:center;min-width:80px;">
+                        <div style="font-size:0.75rem;opacity:0.6;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Score</div>
+                        <div id="sb_score" style="font-size:2.5rem;font-weight:700;color:#10b981;line-height:1;">0</div>
+                        <div style="font-size:0.7rem;opacity:0.5;">/ 8</div>
+                    </div>
+                    <div style="flex:1;min-width:200px;">
+                        <div id="sb_risk_label" style="font-size:1rem;font-weight:600;color:#10b981;margin-bottom:4px;">Low Risk</div>
+                        <div id="sb_recommendation" style="font-size:0.85rem;opacity:0.8;line-height:1.5;">No specific OSA precautions required. Standard monitoring.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RCRI — Revised Cardiac Risk Index — ACC/AHA 2014 Perioperative Guidelines -->
+            <div class="section-card">
+                <h3 style="color:#c9a96e;">Revised Cardiac Risk Index (RCRI)</h3>
+                <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                    ACC/AHA 2014 Perioperative Guidelines: Predicts 30-day MACE (MI, cardiac arrest) risk for non-cardiac surgery.
+                    Score ≥3 (≥5.4% MACE): cardiology consult + consider further cardiac testing before elective surgery.
+                </p>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-bottom:16px;">
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="rcri_high_risk_surgery" onchange="calcRCRI()">
+                        <div><strong>High-Risk Surgery</strong><br><span style="font-size:0.8rem;opacity:0.6;">Intraperitoneal, intrathoracic, or suprainguinal vascular</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="rcri_ihd" onchange="calcRCRI()">
+                        <div><strong>Ischemic Heart Disease</strong><br><span style="font-size:0.8rem;opacity:0.6;">Hx MI, + stress test, angina, nitrates, ECG Q-waves</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="rcri_chf" onchange="calcRCRI()">
+                        <div><strong>Congestive Heart Failure</strong><br><span style="font-size:0.8rem;opacity:0.6;">Hx pulmonary edema or paroxysmal nocturnal dyspnea</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="rcri_cvd" onchange="calcRCRI()">
+                        <div><strong>Cerebrovascular Disease</strong><br><span style="font-size:0.8rem;opacity:0.6;">Hx stroke or TIA</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="rcri_diabetes" onchange="calcRCRI()">
+                        <div><strong>Insulin-Dependent Diabetes</strong><br><span style="font-size:0.8rem;opacity:0.6;">Preoperative insulin therapy (not just oral agents)</span></div>
+                    </label>
+                    <label class="checkbox-item" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;">
+                        <input type="checkbox" id="rcri_creatinine" onchange="calcRCRI()">
+                        <div><strong>Creatinine &gt; 2.0 mg/dL</strong><br><span style="font-size:0.8rem;opacity:0.6;">Preoperative serum creatinine (&gt;176 µmol/L)</span></div>
+                    </label>
+                </div>
+
+                <!-- RCRI score card -->
+                <div id="rcri_result" style="background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.3);border-radius:10px;padding:14px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+                    <div style="text-align:center;min-width:80px;">
+                        <div style="font-size:0.75rem;opacity:0.6;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">RCRI</div>
+                        <div id="rcri_score" style="font-size:2.5rem;font-weight:700;color:#c9a96e;line-height:1;">0</div>
+                        <div style="font-size:0.7rem;opacity:0.5;">/ 6</div>
+                    </div>
+                    <div style="flex:1;min-width:200px;">
+                        <div id="rcri_risk_label" style="font-size:1rem;font-weight:600;color:#10b981;margin-bottom:4px;">Low Risk — 0.4% MACE</div>
+                        <div id="rcri_recommendation" style="font-size:0.85rem;opacity:0.8;line-height:1.5;">Proceed with planned surgery. Standard monitoring.</div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:12px;">
+                    <label>Preoperative Creatinine (mg/dL)</label>
+                    <input type="number" id="preop_creatinine" step="0.1" placeholder="mg/dL" onchange="if(parseFloat(this.value)>2){document.getElementById('rcri_creatinine').checked=true;calcRCRI();}">
+                </div>
+            </div>
+
+            <!-- METs Functional Capacity — ACC/AHA 2014 -->
+            <div class="section-card">
+                <h3 style="color:#c9a96e;">Functional Capacity (METs)</h3>
+                <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                    ACC/AHA 2014: Functional capacity ≥4 METs = acceptable perioperative risk without additional testing.
+                    &lt;4 METs or unknown: consider pharmacological stress testing for high-risk procedures with ≥1 RCRI factor.
+                </p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Estimated Functional Capacity</label>
+                        <select id="mets_level" onchange="calcMETs()">
+                            <option value="">— Select —</option>
+                            <option value="1">1–2 METs — Self-care (eating, dressing)</option>
+                            <option value="2">2–3 METs — Slow walking on level ground</option>
+                            <option value="3">3–4 METs — Walking 1–2 blocks, light housework</option>
+                            <option value="4">4 METs — Climbing stairs, light yard work ✓ (adequate)</option>
+                            <option value="6">5–6 METs — Running short distance, heavy housework</option>
+                            <option value="8">7–10 METs — Heavy exercise (singles tennis, swimming)</option>
+                            <option value="10">10+ METs — Strenuous sports (basketball, skiing)</option>
+                            <option value="unknown">Unknown — cannot assess</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Functional Capacity Basis</label>
+                        <select id="mets_basis">
+                            <option value="patient_report">Patient self-report</option>
+                            <option value="caregiver_report">Caregiver observation</option>
+                            <option value="formal_test">Formal exercise test (CPET)</option>
+                            <option value="unable_to_assess">Unable to assess</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="mets_alert_row" style="display:none;">
+                        <div id="mets_alert" style="background:rgba(245,158,11,0.12);border:1px solid #f59e0b;border-radius:6px;padding:10px 12px;font-size:0.85rem;line-height:1.5;"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="section-card">
                 <h3>NPO Verification</h3>
                 <div class="form-grid">
@@ -754,7 +903,18 @@
             </div>
         </div>
 
-        <!-- Tab 3: Anesthesia Plan -->
+        <!-- Tab 3: Allergies & Medications -->
+        <div class="tab-content">
+            <div class="section-card">
+                <h3>Allergies &amp; Medication Reconciliation</h3>
+                <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                    JCAHO NPSG.03.06.01 — Document all allergies with reaction type and all current medications with perioperative hold plan.
+                </p>
+                <div id="amc_anesthesia_container"></div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Anesthesia Plan -->
         <div class="tab-content">
             <div class="section-card">
                 <h3>Anesthesia Technique</h3>
@@ -829,13 +989,50 @@
                 <h3>Special Considerations</h3>
                 <div class="form-group">
                     <label>Anesthesia notes, concerns, or special equipment needed</label>
-                    <textarea id="specialConsiderations" rows="4" placeholder="Document any special considerations for this case..."></textarea>
+                    <textarea id="specialConsiderations" rows="4" data-dictation="true" data-context="Anesthesia special considerations" placeholder="Document any special considerations for this case..."></textarea>
                 </div>
             </div>
         </div>
 
-        <!-- Tab 4: Clearance Decision -->
+        <!-- Tab 5: Clearance Decision -->
         <div class="tab-content">
+            <!-- Anesthesia Informed Consent — CMS CoP 482.51(b)(2) / JC RC.02.01.01 -->
+            <div class="section-card" style="border:1px solid rgba(168,85,247,0.3);margin-bottom:20px;">
+                <h3>Anesthesia Informed Consent</h3>
+                <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">CMS CoP 42 CFR 482.51(b)(2) — Document consent discussion before anesthesia is administered.</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Anesthesia options discussed</label>
+                        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="consent_risks_discussed"> Risks discussed (awareness, dental injury, aspiration, nerve injury, death)
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="consent_alternatives_discussed"> Alternatives discussed (GA vs. regional vs. MAC)
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="consent_questions_answered"> Patient questions answered
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                                <input type="checkbox" id="consent_patient_agreed"> Patient verbalized understanding and agreed to proceed
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Consent Witnessed By</label>
+                        <input type="text" id="consent_witness" placeholder="Witness name / RN">
+                    </div>
+                    <div class="form-group">
+                        <label>Consent Date &amp; Time</label>
+                        <input type="datetime-local" id="consent_datetime">
+                    </div>
+                    <div class="form-group">
+                        <label>Decision Maker (if not patient)</label>
+                        <input type="text" id="consent_decision_maker" placeholder="e.g., Legal guardian — Jane Doe (daughter)">
+                    </div>
+                </div>
+            </div>
+
             <div class="section-card">
                 <h3>Anesthesia Clearance Decision</h3>
                 <div class="clearance-options">
@@ -881,7 +1078,7 @@
                 <h3>Anesthesiologist Summary</h3>
                 <div class="form-group">
                     <label>Overall assessment and any additional notes</label>
-                    <textarea id="anesthesiaSummary" rows="6" placeholder="Document overall anesthesia assessment, concerns addressed, and final recommendations..."></textarea>
+                    <textarea id="anesthesiaSummary" rows="6" data-dictation="true" data-context="Anesthesia pre-op summary and clearance assessment" placeholder="Document overall anesthesia assessment, concerns addressed, and final recommendations..."></textarea>
                 </div>
 
                 <div class="form-grid" style="margin-top: 1.5rem;">
@@ -898,11 +1095,40 @@
         </div>
     </div>
 
+    <!-- AI Panel -->
+    <div id="ai-panel-anes" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:linear-gradient(180deg,#0a1628 0%,#060e1c 100%);border-top:2px solid rgba(201,169,110,0.4);max-height:65vh;overflow-y:auto;box-shadow:0 -8px 32px rgba(0,0,0,0.6);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="showAnesAITab('drugs')" id="anesai-tab-drugs" class="ai-tab-btn ai-tab-active">Drug Interactions</button>
+                <button onclick="showAnesAITab('risk')" id="anesai-tab-risk" class="ai-tab-btn">Anesthesia Risk</button>
+            </div>
+            <button onclick="document.getElementById('ai-panel-anes').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1.2rem;padding:4px 8px;">✕</button>
+        </div>
+        <div id="anesai-content-drugs" style="padding:20px 24px;">
+            <p style="font-size:0.8rem;opacity:0.55;margin-bottom:12px;">Checks all reconciled medications for perioperative anesthesia-specific interactions.</p>
+            <button id="anesbtn-drugs" onclick="runAnesDrugCheck(this)" style="background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(239,68,68,0.1));border:1px solid rgba(239,68,68,0.4);color:#f87171;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Check Drug Interactions</button>
+            <div id="anesai-result-drugs" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+        <div id="anesai-content-risk" style="display:none;padding:20px 24px;">
+            <p style="font-size:0.8rem;opacity:0.55;margin-bottom:12px;">Enhanced anesthesia risk assessment integrating ASA class, airway score, RCRI, STOP-BANG, and METs.</p>
+            <button id="anesbtn-risk" onclick="runAnesRiskScore(this)" style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(168,85,247,0.1));border:1px solid rgba(168,85,247,0.4);color:#a855f7;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Analyze Anesthesia Risk</button>
+            <div id="anesai-result-risk" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+    </div>
+
     <!-- Action Bar -->
     <div class="action-bar">
         <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
-        <button onclick="saveAnesthesiaEval()" class="btn btn-primary">Save Anesthesia Evaluation</button>
+        <div style="display:flex;gap:1rem;align-items:center;">
+            <button onclick="document.getElementById('ai-panel-anes').style.display='block'" style="background:linear-gradient(135deg,rgba(201,169,110,0.25),rgba(201,169,110,0.12));border:1px solid rgba(201,169,110,0.5);color:#c9a96e;padding:0.55rem 1.3rem;border-radius:6px;cursor:pointer;font-size:0.9rem;font-weight:600;">✨ AI Assist</button>
+            <button onclick="saveAnesthesiaEval()" class="btn btn-primary">Save Anesthesia Evaluation</button>
+        </div>
     </div>
+    <style>
+        .ai-tab-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all .15s}
+        .ai-tab-btn:hover{background:rgba(255,255,255,0.1)}
+        .ai-tab-active{background:rgba(201,169,110,0.2)!important;border-color:rgba(201,169,110,0.5)!important;color:#c9a96e!important}
+    </style>
 
     <script>
         // Initialize Supabase
@@ -920,6 +1146,10 @@
         let selectedASA = null;
         let selectedMallampati = null;
         let airwayRiskScore = 0;
+
+        // Authenticated provider identity — set from encounter on load
+        let currentProviderId = null;
+        let currentProviderName = null;
 
         // Load patient data
         window.addEventListener('DOMContentLoaded', async () => {
@@ -943,10 +1173,21 @@
                 return;
             }
 
+            // Capture authenticated provider identity from encounter
+            currentProviderId = patient.provider_id || null;
+            currentProviderName = patient.provider_name || null;
+            window._ptProviderId = currentProviderId;
+
             document.getElementById('patientName').textContent = `${patient.first_name} ${patient.last_name}`;
             document.getElementById('patientMRN').textContent = patient.mrn || '--';
             document.getElementById('patientDOB').textContent = patient.dob || '--';
             document.getElementById('procedureName').textContent = patient.encounter_type || 'Bariatric Surgery';
+
+            // Auto-populate anesthesiologist name from encounter provider
+            const providerNameEl = document.getElementById('anesthesiologistName');
+            if (providerNameEl && !providerNameEl.value && patient.provider_name) {
+                providerNameEl.value = patient.provider_name;
+            }
             
             if (patient.photo_url) {
                 document.getElementById('patientPhoto').src = patient.photo_url;
@@ -1018,6 +1259,89 @@
             details.style.display = document.getElementById('sleepApnea').checked ? 'block' : 'none';
         }
 
+        // STOP-BANG Calculator — Chung et al., Anesthesiology 2008
+        function calcStopBang() {
+            const ids = ['sb_snoring','sb_tired','sb_observed','sb_pressure','sb_bmi','sb_age','sb_neck','sb_gender'];
+            const score = ids.filter(id => document.getElementById(id)?.checked).length;
+            const scoreEl = document.getElementById('sb_score');
+            const labelEl = document.getElementById('sb_risk_label');
+            const recEl   = document.getElementById('sb_recommendation');
+            const cardEl  = document.getElementById('stopbang_result');
+            if (!scoreEl) return;
+            scoreEl.textContent = score;
+
+            let color, level, rec;
+            if (score <= 2) {
+                color = '#10b981'; level = 'Low Risk';
+                rec = 'No specific OSA precautions required. Standard monitoring.';
+            } else if (score <= 4) {
+                color = '#f59e0b'; level = 'Intermediate Risk';
+                rec = 'Consider pre-op polysomnography if undiagnosed. Post-op continuous pulse oximetry. Verify CPAP compliance if diagnosed.';
+            } else {
+                color = '#ef4444'; level = 'High Risk (≥5)';
+                rec = 'HIGH OSA RISK: Postpone elective surgery if severe untreated OSA suspected. Mandatory pre-op CPAP optimization. Post-op HDU-level monitoring. Avoid opioids where possible — use multimodal analgesia. Head-of-bed 30° post-op.';
+            }
+            scoreEl.style.color = color;
+            if (labelEl) { labelEl.textContent = level; labelEl.style.color = color; }
+            if (recEl) recEl.textContent = rec;
+            if (cardEl) cardEl.style.borderColor = color.replace(')', ', 0.4)').replace('rgb', 'rgba');
+            // Auto-check OSA comorbidity checkbox if high risk
+            const osaEl = document.getElementById('sleepApnea');
+            if (osaEl && score >= 3) { osaEl.checked = true; toggleSleepApneaDetails(); }
+        }
+
+        // RCRI — Revised Cardiac Risk Index (Lee 1999 / Devereaux 2005)
+        function calcRCRI() {
+            const ids = ['rcri_high_risk_surgery','rcri_ihd','rcri_chf','rcri_cvd','rcri_diabetes','rcri_creatinine'];
+            const score = ids.filter(id => document.getElementById(id)?.checked).length;
+            const scoreEl = document.getElementById('rcri_score');
+            const labelEl = document.getElementById('rcri_risk_label');
+            const recEl   = document.getElementById('rcri_recommendation');
+            const cardEl  = document.getElementById('rcri_result');
+            if (!scoreEl) return;
+            scoreEl.textContent = score;
+
+            let color, label, mace, rec;
+            if (score === 0) {
+                color = '#10b981'; label = 'Very Low Risk — 0.4% MACE';
+                rec = 'Proceed. No additional cardiac testing indicated.';
+            } else if (score === 1) {
+                color = '#10b981'; label = 'Low Risk — 1.0% MACE';
+                rec = 'Proceed. Routine pre-op ECG. No stress testing required for non-cardiac surgery.';
+            } else if (score === 2) {
+                color = '#f59e0b'; label = 'Moderate Risk — 2.4% MACE';
+                rec = 'Consider cardiology consult for high-risk procedures. Review medications — continue beta-blockers and statins perioperatively.';
+            } else {
+                color = '#ef4444'; label = `High Risk (${score}) — ≥5.4% MACE`;
+                rec = 'CARDIAC CONSULT RECOMMENDED: High 30-day MACE risk. Consider pharmacological stress testing before elective surgery. Continue beta-blockers/statins. Intraoperative arterial line and continuous ST monitoring.';
+            }
+            scoreEl.style.color = color;
+            if (labelEl) { labelEl.textContent = label; labelEl.style.color = color; }
+            if (recEl) recEl.textContent = rec;
+            if (cardEl) cardEl.style.borderColor = color.replace(')', ', 0.4)').replace('rgb', 'rgba');
+        }
+
+        // METs Functional Capacity
+        function calcMETs() {
+            const val = document.getElementById('mets_level')?.value;
+            const alertRow = document.getElementById('mets_alert_row');
+            const alertEl = document.getElementById('mets_alert');
+            if (!alertRow || !alertEl) return;
+            if (!val || val === 'unknown') {
+                alertRow.style.display = 'block';
+                alertEl.style.borderColor = '#f59e0b';
+                alertEl.innerHTML = '<strong style="color:#f59e0b;">⚠️ Unknown or Inadequate Capacity:</strong> Per ACC/AHA 2014, consider pharmacological stress testing (dobutamine echo or nuclear perfusion) for patients with ≥1 RCRI factor undergoing high-risk surgery.';
+            } else if (parseInt(val) < 4) {
+                alertRow.style.display = 'block';
+                alertEl.style.borderColor = '#f59e0b';
+                alertEl.innerHTML = `<strong style="color:#f59e0b;">⚠️ Poor Functional Capacity (&lt;4 METs):</strong> Elevated perioperative risk. For high-risk surgery with ≥1 RCRI factor, pharmacological stress testing recommended if it will change management.`;
+            } else {
+                alertRow.style.display = 'block';
+                alertEl.style.borderColor = '#10b981';
+                alertEl.innerHTML = `<strong style="color:#10b981;">✓ Adequate Functional Capacity (≥4 METs):</strong> Acceptable perioperative risk. No additional cardiac stress testing required per ACC/AHA 2014 guidelines.`;
+            }
+        }
+
         // Toggle clearance details
         function toggleClearanceDetails(radio) {
             document.querySelectorAll('.clearance-option').forEach(opt => {
@@ -1034,37 +1358,226 @@
                 return;
             }
 
+            const val = id => { const el = document.getElementById(id); return el ? el.value || null : null; };
+            const chk = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+            const num = id => { const v = val(id); return v !== null ? parseFloat(v) || null : null; };
+
+            // Clearance notes based on decision
+            let clearanceNotes = null;
+            if (clearanceRadio.value === 'conditional') clearanceNotes = val('conditionalNotes');
+            else if (clearanceRadio.value === 'denied')      clearanceNotes = val('deniedNotes');
+
             const saveData = {
                 org_id: '00000000-0000-0000-0000-000000000001',
                 patient_id: parseInt(patientId),
                 encounter_id: parseInt(encounterId),
-                provider_id: 1, // Will be actual anesthesiologist ID
-                asa_classification: selectedASA || 'III',
-                asa_emergency: document.getElementById('asaEmergency').checked,
+                provider_id: currentProviderId || 1,
+
+                // ASA & Airway
+                asa_classification: selectedASA || null,
+                asa_emergency: chk('asaEmergency'),
+                mallampati_class: selectedMallampati || null,
+                mouth_opening: val('mouthOpening'),
+                thyromental_distance: val('thyromental'),
+                neck_mobility: val('neckMobility'),
+                dentition: val('dentition'),
                 difficult_airway: airwayRiskScore >= 4,
-                difficult_airway_history: document.getElementById('difficultAirwayHistory').checked,
-                airway_management_notes: document.getElementById('airwayPlan').value,
+                difficult_airway_history: chk('difficultAirwayHistory'),
+                airway_risk_score: airwayRiskScore || null,
+                airway_management_notes: val('airwayPlan'),
+
+                // Vitals
+                blood_pressure: val('bloodPressure'),
+                heart_rate: num('heartRate'),
+                oxygen_saturation: num('oxygenSat'),
+                exercise_tolerance: val('exerciseTolerance'),
+
+                // Cardiovascular comorbidities
+                comorbidity_hypertension: chk('hypertension'),
+                comorbidity_coronary_disease: chk('coronaryDisease'),
+                comorbidity_arrhythmia: chk('arrhythmia'),
+                comorbidity_valve_disease: chk('valveDisease'),
+
+                // Pulmonary comorbidities
+                comorbidity_sleep_apnea: chk('sleepApnea'),
+                cpap_user: val('cpapUser'),
+                ahi_score: num('ahiScore'),
+
+                // STOP-BANG OSA screener — ASA Pre-Anesthesia Guidelines
+                stopbang: {
+                    snoring:   chk('sb_snoring'),
+                    tired:     chk('sb_tired'),
+                    observed:  chk('sb_observed'),
+                    pressure:  chk('sb_pressure'),
+                    bmi_gt35:  chk('sb_bmi'),
+                    age_gt50:  chk('sb_age'),
+                    neck_gt40: chk('sb_neck'),
+                    male:      chk('sb_gender'),
+                    score:     ['sb_snoring','sb_tired','sb_observed','sb_pressure','sb_bmi','sb_age','sb_neck','sb_gender'].filter(id => chk(id)).length,
+                },
+
+                // RCRI — ACC/AHA perioperative cardiac risk
+                rcri: {
+                    high_risk_surgery: chk('rcri_high_risk_surgery'),
+                    ihd:               chk('rcri_ihd'),
+                    chf:               chk('rcri_chf'),
+                    cvd:               chk('rcri_cvd'),
+                    insulin_diabetes:  chk('rcri_diabetes'),
+                    creatinine_gt2:    chk('rcri_creatinine'),
+                    score:             ['rcri_high_risk_surgery','rcri_ihd','rcri_chf','rcri_cvd','rcri_diabetes','rcri_creatinine'].filter(id => chk(id)).length,
+                    preop_creatinine:  num('preop_creatinine'),
+                },
+
+                // METs functional capacity — ACC/AHA 2014
+                mets_level:  val('mets_level'),
+                mets_basis:  val('mets_basis'),
+                cpap_pressure: val('cpapPressure'),
+                comorbidity_asthma: chk('asthma'),
+                comorbidity_copd: chk('copd'),
+                comorbidity_recent_uri: chk('recentURI'),
+                smoking_status: val('smokingStatus'),
+
+                // NPO status
+                last_solid_food: val('lastSolidFood'),
+                last_liquids: val('lastLiquids'),
+                npo_compliant: chk('npoCompliant'),
+
+                // Anesthesia plan
+                anesthesia_type: val('anesthesiaType'),
+                induction_agent: val('inductionAgent'),
+                maintenance_agent: val('maintenanceAgent'),
+                ett_size: val('ettSize'),
+                aspiration_prophylaxis: chk('aspirationProphylaxis'),
+                dvt_prophylaxis: chk('dvtProphylaxis'),
+                antibiotic_prophylaxis: chk('antibioticProphylaxis'),
+                arterial_line_planned: chk('arterialLine'),
+                central_line_planned: chk('centralLine'),
+                special_considerations: val('specialConsiderations'),
+
+                // Clearance decision
                 clearance_status: clearanceRadio.value,
-                clearance_notes: clearanceRadio.value === 'conditional' 
-                    ? document.getElementById('conditionalNotes').value 
-                    : (clearanceRadio.value === 'denied' 
-                        ? document.getElementById('deniedNotes').value 
-                        : null),
-                anesthesia_summary: document.getElementById('anesthesiaSummary').value,
+                clearance_notes: clearanceNotes,
+
+                // Informed consent
+                consent_risks_discussed:        chk('consent_risks_discussed'),
+                consent_alternatives_discussed: chk('consent_alternatives_discussed'),
+                consent_questions_answered:     chk('consent_questions_answered'),
+                consent_patient_agreed:         chk('consent_patient_agreed'),
+                consent_witness:                val('consent_witness'),
+                consent_datetime:               val('consent_datetime'),
+                consent_decision_maker:         val('consent_decision_maker'),
+
+                // Summary & signature
+                anesthesia_summary: val('anesthesiaSummary'),
+                anesthesiologist_name: val('anesthesiologistName'),
+                eval_date: val('evalDate'),
+
                 created_at: new Date().toISOString()
             };
 
+            // Merge allergy/medication data
+            if (typeof AllergyMedComponent !== 'undefined') {
+                if (!AllergyMedComponent.validate()) {
+                    alert('Please complete the Allergies & Medications tab before saving.');
+                    return;
+                }
+                const amcData = AllergyMedComponent.getData();
+                saveData.nkda                   = amcData.nkda;
+                saveData.allergies              = amcData.allergies;
+                saveData.no_current_medications = amcData.no_current_medications;
+                saveData.medications            = amcData.medications;
+                saveData.high_risk_med_flags    = amcData.high_risk_flags;
+            }
+
             const { error } = await supabase
+                .schema('cr')
                 .from('anesthesia_progress_note')
                 .insert(saveData);
 
             if (error) {
-                console.error('Error:', error);
+                console.error('Error saving anesthesia evaluation:', error);
                 alert('Error saving: ' + error.message);
             } else {
                 alert('✅ Anesthesia evaluation saved successfully!');
                 window.location.href = '/dashboard.html?encounter_id=' + encounterId + '&patient_id=' + patientId + '&token=' + token;
             }
+        }
+    </script>
+    <script src="allergy-medication-component.js"></script>
+    <script src="/ai-client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AllergyMedComponent.render('amc_anesthesia_container');
+        });
+
+        function showAnesAITab(tab) {
+            ['drugs','risk'].forEach(t => {
+                document.getElementById('anesai-content-' + t).style.display = t === tab ? 'block' : 'none';
+                const btn = document.getElementById('anesai-tab-' + t);
+                if (btn) btn.classList.toggle('ai-tab-active', t === tab);
+            });
+        }
+
+        function getAnesClinicalData() {
+            const chk = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+            const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const amc = (typeof AllergyMedComponent !== 'undefined') ? AllergyMedComponent.getData() : {};
+            const sbScore = ['sb_snoring','sb_tired','sb_observed','sb_pressure','sb_bmi','sb_age','sb_neck','sb_gender'].filter(id => chk(id)).length;
+            const rcriScore = ['rcri_high_risk_surgery','rcri_ihd','rcri_chf','rcri_cvd','rcri_diabetes','rcri_creatinine'].filter(id => chk(id)).length;
+            return {
+                asa_class: selectedASA,
+                airway_risk_score: airwayRiskScore,
+                difficult_airway: airwayRiskScore >= 4,
+                mallampati: selectedMallampati,
+                stopbang_score: sbScore,
+                rcri_score: rcriScore,
+                mets_level: val('mets_level'),
+                medications: amc.medications || [],
+                allergies: amc.allergies || [],
+                planned_procedure: val('plannedProcedure') || 'surgical procedure'
+            };
+        }
+
+        async function runAnesDrugCheck(btn) {
+            AIClient.showSpinner(btn, 'Checking…');
+            const resultEl = document.getElementById('anesai-result-drugs');
+            resultEl.style.display = 'none';
+            try {
+                const data = getAnesClinicalData();
+                const meds = (data.medications || []).map(m => typeof m === 'string' ? m : (m.medication_name || m.name || ''));
+                const allergies = (data.allergies || []).map(a => typeof a === 'string' ? a : (a.allergen || a.name || ''));
+                const result = await AIClient.checkDrugInteractions(meds, allergies, 'Pre-anesthesia evaluation — planned surgical procedure', token);
+                resultEl.style.display = 'block';
+                AIClient.showResult('anesai-result-drugs', AIClient.renderDrugPanel(result), (result.interactions?.length || result.periop_holds?.length) ? 'warning' : 'success');
+            } catch (err) {
+                resultEl.style.display = 'block';
+                AIClient.showResult('anesai-result-drugs', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error');
+            }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runAnesRiskScore(btn) {
+            AIClient.showSpinner(btn, 'Analyzing…');
+            const resultEl = document.getElementById('anesai-result-risk');
+            resultEl.style.display = 'none';
+            try {
+                const data = getAnesClinicalData();
+                const clinicalParams = { asa_class: data.asa_class, airway_risk_score: data.airway_risk_score, difficult_airway: data.difficult_airway, mallampati: data.mallampati, mets_level: data.mets_level };
+                const calculatedScores = { stopbang_score: data.stopbang_score, rcri_score: data.rcri_score };
+                const result = await AIClient.scoreRisk(clinicalParams, calculatedScores, 'anesthesia', data.planned_procedure, token);
+                resultEl.style.display = 'block';
+                const riskColor = { low: '#4ade80', moderate: '#f0c040', high: '#f97316', very_high: '#f87171' }[result.enhanced_risk_level] || '#60a5fa';
+                let html = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><span style="font-size:1.5rem;font-weight:700;color:${riskColor};">${(result.enhanced_risk_level || '—').toUpperCase().replace('_',' ')}</span></div><div style="font-size:0.85rem;opacity:0.8;margin-bottom:12px;">${result.summary || ''}</div>`;
+                if (result.red_flags?.length) { html += '<div style="margin-bottom:8px;"><strong style="font-size:0.78rem;color:#f87171;">RED FLAGS:</strong>'; result.red_flags.forEach(f => { html += `<div style="font-size:0.82rem;color:#f87171;padding:2px 0;">⚠ ${f}</div>`; }); html += '</div>'; }
+                if (result.intraop_alerts?.length) { html += '<div style="margin-bottom:8px;"><strong style="font-size:0.78rem;color:#f0c040;">INTRAOP ALERTS:</strong>'; result.intraop_alerts.forEach(a => { html += `<div style="font-size:0.82rem;padding:2px 0;opacity:0.85;">• ${a}</div>`; }); html += '</div>'; }
+                if (result.pacu_monitoring?.length) { html += '<div><strong style="font-size:0.78rem;color:#60a5fa;">PACU MONITORING:</strong>'; result.pacu_monitoring.forEach(m => { html += `<div style="font-size:0.82rem;padding:2px 0;opacity:0.85;">• ${m}</div>`; }); html += '</div>'; }
+                const rtype = result.enhanced_risk_level === 'low' ? 'success' : result.enhanced_risk_level === 'moderate' ? 'warning' : 'error';
+                AIClient.showResult('anesai-result-risk', html, rtype);
+            } catch (err) {
+                resultEl.style.display = 'block';
+                AIClient.showResult('anesai-result-risk', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error');
+            }
+            AIClient.hideSpinner(btn);
         }
     </script>
 </body>

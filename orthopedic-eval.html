@@ -513,6 +513,8 @@
         <button class="tab-btn" data-tab="rom">📐 Range of Motion</button>
         <button class="tab-btn" data-tab="strength">💪 Strength Testing</button>
         <button class="tab-btn" data-tab="special">🔍 Special Tests</button>
+        <button class="tab-btn" data-tab="proms">📊 PROMs</button>
+        <button class="tab-btn" data-tab="allergies" style="color:#ef4444;">⚠️ Allergies & Meds</button>
         <button class="tab-btn" data-tab="plan">🏥 Assessment & Plan</button>
     </div>
 
@@ -523,7 +525,7 @@
             <div class="form-grid">
                 <div class="form-field full-width">
                     <label>Chief Complaint</label>
-                    <textarea id="chiefComplaint" placeholder="Patient's primary complaint in their own words..."></textarea>
+                    <textarea id="chiefComplaint" data-dictation="true" data-context="Orthopedic chief complaint" placeholder="Patient's primary complaint in their own words..."></textarea>
                 </div>
                 <div class="form-field">
                     <label>Onset</label>
@@ -586,7 +588,7 @@
             <div class="form-grid">
                 <div class="form-field full-width">
                     <label>Inspection</label>
-                    <textarea id="inspection" placeholder="Gait, posture, deformity, swelling, ecchymosis, atrophy..."></textarea>
+                    <textarea id="inspection" data-dictation="true" data-context="Orthopedic physical exam inspection" placeholder="Gait, posture, deformity, swelling, ecchymosis, atrophy..."></textarea>
                 </div>
                 <div class="form-field full-width">
                     <label>Palpation</label>
@@ -657,6 +659,165 @@
         </div>
     </div>
 
+    <!-- PROMs Tab — AAOS PRO Requirement / CMS MIPS Quality Measures -->
+    <div id="promsTab" class="tab-content" style="display:none;">
+        <!-- Procedure type selector drives which instrument shows -->
+        <div class="section">
+            <h3 class="section-header">Patient-Reported Outcome Measures (PROMs)</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                AAOS / CMS MIPS: Collect validated baseline PROMs before surgery. Select the relevant instrument for this patient's procedure.
+                Re-administer at 3, 6, and 12 months post-op to track functional recovery.
+            </p>
+            <div class="form-field" style="margin-bottom:16px;">
+                <label>PROMs Instrument</label>
+                <select id="proms_instrument" onchange="togglePromsInstrument()" style="width:100%;max-width:380px;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.9rem;">
+                    <option value="">— Select instrument —</option>
+                    <option value="koos12">KOOS-12 (Knee)</option>
+                    <option value="hoos12">HOOS-12 (Hip)</option>
+                    <option value="ases">ASES (Shoulder)</option>
+                    <option value="dash">DASH / QuickDASH (Upper Extremity)</option>
+                    <option value="foot_mfas">MFAS (Foot & Ankle)</option>
+                    <option value="promis10">PROMIS-10 Global Health (all)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- VAS Pain scale (always shown) -->
+        <div class="section">
+            <h3 class="section-header">Pain — Visual Analogue Scale (VAS)</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;">
+                <div class="form-field">
+                    <label>Pain at Rest (VAS 0–10)</label>
+                    <input type="range" id="vas_rest" min="0" max="10" step="1" value="0" oninput="document.getElementById('vas_rest_val').textContent=this.value" style="width:100%;accent-color:#c9a96e;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.75rem;opacity:0.5;"><span>0 No pain</span><span id="vas_rest_val" style="font-weight:700;color:#c9a96e;font-size:1rem;">0</span><span>10 Worst</span></div>
+                </div>
+                <div class="form-field">
+                    <label>Pain with Activity (VAS 0–10)</label>
+                    <input type="range" id="vas_activity" min="0" max="10" step="1" value="0" oninput="document.getElementById('vas_activity_val').textContent=this.value" style="width:100%;accent-color:#c9a96e;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.75rem;opacity:0.5;"><span>0 No pain</span><span id="vas_activity_val" style="font-weight:700;color:#c9a96e;font-size:1rem;">0</span><span>10 Worst</span></div>
+                </div>
+                <div class="form-field">
+                    <label>Pain at Night (VAS 0–10)</label>
+                    <input type="range" id="vas_night" min="0" max="10" step="1" value="0" oninput="document.getElementById('vas_night_val').textContent=this.value" style="width:100%;accent-color:#c9a96e;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.75rem;opacity:0.5;"><span>0 No pain</span><span id="vas_night_val" style="font-weight:700;color:#c9a96e;font-size:1rem;">0</span><span>10 Worst</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KOOS-12 -->
+        <div id="koos12_panel" class="section" style="display:none;">
+            <h3 class="section-header">KOOS-12 — Knee Injury & Osteoarthritis Outcome Score</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:14px;">KOOS-12: 12 items across Pain (4), Function (4), and Quality of Life (4) subscales. Score 0–100 per subscale (100 = no problems).</p>
+            <div id="koos12_questions"></div>
+            <div id="koos12_scores" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;background:rgba(255,255,255,0.04);border-radius:8px;padding:14px;text-align:center;">
+                <div><div style="font-size:0.75rem;opacity:0.6;">Pain</div><div id="koos_pain_score" style="font-size:1.8rem;font-weight:700;color:#c9a96e;">—</div></div>
+                <div><div style="font-size:0.75rem;opacity:0.6;">Function</div><div id="koos_func_score" style="font-size:1.8rem;font-weight:700;color:#c9a96e;">—</div></div>
+                <div><div style="font-size:0.75rem;opacity:0.6;">QoL</div><div id="koos_qol_score" style="font-size:1.8rem;font-weight:700;color:#c9a96e;">—</div></div>
+            </div>
+        </div>
+
+        <!-- HOOS-12 -->
+        <div id="hoos12_panel" class="section" style="display:none;">
+            <h3 class="section-header">HOOS-12 — Hip Disability & Osteoarthritis Outcome Score</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:14px;">HOOS-12: 12 items across Pain (4), Function (4), and Quality of Life (4) subscales. Score 0–100 (100 = no problems).</p>
+            <div id="hoos12_questions"></div>
+            <div id="hoos12_scores" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;background:rgba(255,255,255,0.04);border-radius:8px;padding:14px;text-align:center;">
+                <div><div style="font-size:0.75rem;opacity:0.6;">Pain</div><div id="hoos_pain_score" style="font-size:1.8rem;font-weight:700;color:#c9a96e;">—</div></div>
+                <div><div style="font-size:0.75rem;opacity:0.6;">Function</div><div id="hoos_func_score" style="font-size:1.8rem;font-weight:700;color:#c9a96e;">—</div></div>
+                <div><div style="font-size:0.75rem;opacity:0.6;">QoL</div><div id="hoos_qol_score" style="font-size:1.8rem;font-weight:700;color:#c9a96e;">—</div></div>
+            </div>
+        </div>
+
+        <!-- PROMIS-10 Global Health (always available) -->
+        <div id="promis10_panel" class="section" style="display:none;">
+            <h3 class="section-header">PROMIS-10 Global Health</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:14px;">10-item instrument measuring global physical and mental health. Norm-referenced T-score (mean 50, SD 10). T &lt;40 = below average.</p>
+            <div id="promis10_questions"></div>
+            <div id="promis10_scores" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;background:rgba(255,255,255,0.04);border-radius:8px;padding:14px;text-align:center;">
+                <div><div style="font-size:0.75rem;opacity:0.6;">Physical Health T-score</div><div id="promis_phys_score" style="font-size:1.8rem;font-weight:700;color:#c9a96e;">—</div></div>
+                <div><div style="font-size:0.75rem;opacity:0.6;">Mental Health T-score</div><div id="promis_ment_score" style="font-size:1.8rem;font-weight:700;color:#c9a96e;">—</div></div>
+            </div>
+        </div>
+
+        <!-- Functional Status baseline -->
+        <div class="section">
+            <h3 class="section-header">Functional Baseline</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+                <div class="form-field">
+                    <label>Ambulation Status</label>
+                    <select id="baseline_ambulation" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="community_ambulator">Community ambulator — no device</option>
+                        <option value="cane">Cane / single point</option>
+                        <option value="crutches">Crutches</option>
+                        <option value="walker">Walker</option>
+                        <option value="wheelchair">Wheelchair</option>
+                        <option value="non_ambulatory">Non-ambulatory</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Employment / Activity Level</label>
+                    <select id="baseline_activity" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="heavy_labor">Heavy labor / competitive sport</option>
+                        <option value="moderate_activity">Moderate activity / recreational sport</option>
+                        <option value="light_activity">Light activity / sedentary work</option>
+                        <option value="retired_limited">Retired / limited mobility</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Stairs</label>
+                    <select id="baseline_stairs" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="normal">Normal (reciprocating)</option>
+                        <option value="one_step">One step at a time — with rail</option>
+                        <option value="unable">Unable</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Prior Surgery on this Joint</label>
+                    <select id="prior_joint_surgery" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="none">None</option>
+                        <option value="arthroscopy">Arthroscopy</option>
+                        <option value="osteotomy">Osteotomy</option>
+                        <option value="partial_replacement">Partial replacement</option>
+                        <option value="tka_tha">Prior TKA/THA</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Patient Expectations</label>
+                    <select id="patient_expectations" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="">—</option>
+                        <option value="pain_relief">Pain relief</option>
+                        <option value="improved_function">Improved function</option>
+                        <option value="return_sport">Return to sport/work</option>
+                        <option value="all_above">All of the above</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>PROMIS Administration</label>
+                    <select id="proms_admin_method" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="paper">Paper — patient self-complete</option>
+                        <option value="tablet_in_office">Tablet — in-office</option>
+                        <option value="patient_portal">Patient portal — pre-visit</option>
+                        <option value="phone">Phone/video call</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="allergiesTab" class="tab-content" style="display:none;">
+        <div class="section">
+            <h3 class="section-header">Allergies &amp; Medication Reconciliation</h3>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                JCAHO NPSG.03.06.01 — Document all drug allergies and perioperative medication hold plan including anticoagulants and antiplatelet agents.
+            </p>
+            <div id="amc_ortho_container"></div>
+        </div>
+    </div>
+
     <div id="planTab" class="tab-content">
         <div class="section">
             <h3 class="section-header">Imaging & Diagnostics</h3>
@@ -699,7 +860,7 @@
                 </div>
                 <div class="form-field full-width">
                     <label>Imaging Notes</label>
-                    <textarea id="imagingNotes" placeholder="Describe relevant findings from imaging studies..."></textarea>
+                    <textarea id="imagingNotes" data-dictation="true" data-context="Orthopedic imaging findings" placeholder="Describe relevant findings from imaging studies..."></textarea>
                 </div>
             </div>
         </div>
@@ -755,6 +916,15 @@
         </div>
 
         <div id="alertMessage"></div>
+
+        <!-- VTE Risk Assessment — AAOS/ACCP / SCIP-VTE-2 -->
+        <div class="section" style="margin-bottom:16px;">
+            <h3 class="section-header">VTE Risk Assessment (Caprini Score)</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                AAOS/ACCP guidelines / SCIP-VTE-2 — Required for arthroplasty candidates. PE is the leading preventable cause of post-arthroplasty mortality.
+            </p>
+            <div id="caprini_ortho_eval_container"></div>
+        </div>
 
         <div class="btn-group">
             <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
@@ -1148,7 +1318,16 @@
                     procedure_cpt_code: selectedProcedure?.cpt || null,
                     treatment_type: document.getElementById('treatmentType').value,
                     urgency: document.getElementById('urgency').value,
-                    treatment_plan: document.getElementById('treatmentPlan').value
+                    treatment_plan: document.getElementById('treatmentPlan').value,
+
+                    // VTE risk — AAOS/ACCP / SCIP-VTE-2
+                    ...(typeof CapriniVTE !== 'undefined' ? CapriniVTE.getData() : {}),
+
+                    // Allergy/medication reconciliation — JCAHO NPSG.03.06.01
+                    ...(typeof AllergyMedComponent !== 'undefined' ? AllergyMedComponent.getData() : {}),
+
+                    // PROMs — AAOS / CMS MIPS baseline
+                    proms: collectPromsData()
                 };
 
                 const { error } = await supabase
@@ -1171,6 +1350,235 @@
             }
         }
 
+        // ── PROMs Engine ───────────────────────────────────────────────────────
+        const LIKERT_OPTS = [
+            {val:0,label:'None'},{val:1,label:'Mild'},{val:2,label:'Moderate'},
+            {val:3,label:'Severe'},{val:4,label:'Extreme'}
+        ];
+
+        const KOOS12_ITEMS = [
+            // Pain subscale (P2-P5)
+            {id:'kp2', sub:'pain',  text:'Straightening knee fully'},
+            {id:'kp3', sub:'pain',  text:'Bending knee fully'},
+            {id:'kp4', sub:'pain',  text:'Walking on flat surface'},
+            {id:'kp5', sub:'pain',  text:'Going up or down stairs'},
+            // Function subscale (A1, A2, A6, A14)
+            {id:'ka1', sub:'func',  text:'Descending stairs'},
+            {id:'ka2', sub:'func',  text:'Ascending stairs'},
+            {id:'ka6', sub:'func',  text:'Standing upright'},
+            {id:'ka14',sub:'func',  text:'Getting in/out of car or using public transport'},
+            // QoL subscale (Q1-Q4)
+            {id:'kq1', sub:'qol',   text:'How often are you aware of your knee problem?'},
+            {id:'kq2', sub:'qol',   text:'Have you modified your lifestyle to avoid damaging activities?'},
+            {id:'kq3', sub:'qol',   text:'How troubled are you with lack of confidence in your knee?'},
+            {id:'kq4', sub:'qol',   text:'In general, how much difficulty do you have with your knee?'}
+        ];
+
+        const HOOS12_ITEMS = [
+            // Pain subscale
+            {id:'hp1', sub:'pain',  text:'How often do you experience hip pain?'},
+            {id:'hp5', sub:'pain',  text:'Going up or down stairs'},
+            {id:'hp6', sub:'pain',  text:'Standing fully upright'},
+            {id:'hp8', sub:'pain',  text:'Walking on flat surface'},
+            // Function subscale
+            {id:'ha6', sub:'func',  text:'Bending to the floor (e.g. pick up an object)'},
+            {id:'ha7', sub:'func',  text:'Walking on flat surface'},
+            {id:'ha8', sub:'func',  text:'Getting in/out of car'},
+            {id:'ha15',sub:'func',  text:'Heavy domestic duties (moving heavy boxes, scrubbing floors)'},
+            // QoL subscale
+            {id:'hq1', sub:'qol',   text:'How often are you aware of your hip problem?'},
+            {id:'hq2', sub:'qol',   text:'Have you modified your lifestyle to avoid damaging activities?'},
+            {id:'hq3', sub:'qol',   text:'How troubled are you with lack of confidence in your hip?'},
+            {id:'hq4', sub:'qol',   text:'In general, how much difficulty do you have with your hip?'}
+        ];
+
+        // PROMIS-10 items with their unique response sets
+        const PROMIS10_ITEMS = [
+            {id:'pr01', pool:'phys_raw', text:'In general, would you say your health is:',
+             opts:[{v:1,l:'Poor'},{v:2,l:'Fair'},{v:3,l:'Good'},{v:4,l:'Very good'},{v:5,l:'Excellent'}]},
+            {id:'pr02', pool:'ment_raw', text:'In general, would you say your quality of life is:',
+             opts:[{v:1,l:'Poor'},{v:2,l:'Fair'},{v:3,l:'Good'},{v:4,l:'Very good'},{v:5,l:'Excellent'}]},
+            {id:'pr03', pool:'phys_raw', text:'In general, how would you rate your physical health?',
+             opts:[{v:1,l:'Poor'},{v:2,l:'Fair'},{v:3,l:'Good'},{v:4,l:'Very good'},{v:5,l:'Excellent'}]},
+            {id:'pr04', pool:'ment_raw', text:'In general, how would you rate your mental health, including mood and ability to think?',
+             opts:[{v:1,l:'Poor'},{v:2,l:'Fair'},{v:3,l:'Good'},{v:4,l:'Very good'},{v:5,l:'Excellent'}]},
+            {id:'pr05', pool:'ment_raw', text:'How would you rate your satisfaction with your social activities and relationships?',
+             opts:[{v:1,l:'Poor'},{v:2,l:'Fair'},{v:3,l:'Good'},{v:4,l:'Very good'},{v:5,l:'Excellent'}]},
+            {id:'pr06', pool:'phys_raw', text:'How well do you carry out your everyday social activities and roles (errands, family, leisure, work)?',
+             opts:[{v:1,l:'Not at all'},{v:2,l:'A little'},{v:3,l:'Somewhat'},{v:4,l:'Mostly'},{v:5,l:'Completely'}]},
+            {id:'pr07', pool:'phys_raw', text:'To what extent are you able to carry out your everyday physical activities (walking, climbing stairs, carrying groceries)?',
+             opts:[{v:1,l:'Not at all'},{v:2,l:'A little'},{v:3,l:'Somewhat'},{v:4,l:'Mostly'},{v:5,l:'Completely'}]},
+            {id:'pr08', pool:'ment_raw', text:'In the past 7 days, how often have you been bothered by emotional problems (anxiety, depression, irritability)?',
+             opts:[{v:5,l:'Never'},{v:4,l:'Rarely'},{v:3,l:'Sometimes'},{v:2,l:'Often'},{v:1,l:'Always'}], reversed:true},
+            {id:'pr09', pool:'phys_raw', text:'In the past 7 days, how would you rate your pain on average? (0 = no pain)',
+             opts:[{v:5,l:'0 – None'},{v:4,l:'1-3 – Mild'},{v:3,l:'4-6 – Moderate'},{v:2,l:'7-8 – Severe'},{v:1,l:'9-10 – Worst'}], reversed:true},
+            {id:'pr10', pool:'phys_raw', text:'In the past 7 days, how would you rate your fatigue on average?',
+             opts:[{v:5,l:'None'},{v:4,l:'Mild'},{v:3,l:'Moderate'},{v:2,l:'Severe'},{v:1,l:'Very severe'}], reversed:true}
+        ];
+
+        // PROMIS-10 T-score crosswalk (sum of 5 items per domain, range 5-25 → T)
+        const PROMIS_PHYS_T = {5:14.9,6:18.9,7:22.4,8:25.5,9:28.3,10:31.0,11:33.7,12:36.3,13:38.9,14:41.6,15:44.3,16:47.3,17:50.5,18:54.1,19:58.3,20:65.0,21:65.0,22:65.0,23:65.0,24:65.0,25:65.0};
+        const PROMIS_MENT_T = {5:21.2,6:25.1,7:28.4,8:31.3,9:33.8,10:36.3,11:38.8,12:41.1,13:43.5,14:46.1,15:48.8,16:51.9,17:55.4,18:59.3,19:63.7,20:67.6,21:67.6,22:67.6,23:67.6,24:67.6,25:67.6};
+
+        function buildLikertQuestion(item, prefix) {
+            const opts = item.opts || LIKERT_OPTS;
+            const optHtml = opts.map(o =>
+                `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:background 0.15s;">
+                    <input type="radio" name="${prefix}_${item.id}" value="${o.val !== undefined ? o.val : o.v}" onchange="${prefix === 'k' ? 'calcKOOS12' : prefix === 'h' ? 'calcHOOS12' : 'calcPROMIS10'}()">
+                    <span style="font-size:0.85rem;">${o.label || o.l}</span>
+                </label>`
+            ).join('');
+            return `<div style="margin-bottom:12px;padding:10px;background:rgba(255,255,255,0.04);border-radius:6px;border-left:3px solid rgba(201,169,110,0.35);">
+                <div style="font-size:0.88rem;margin-bottom:8px;opacity:0.9;">${item.text}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">${optHtml}</div>
+            </div>`;
+        }
+
+        function renderKOOS12Questions() {
+            const el = document.getElementById('koos12_questions');
+            if (!el || el.dataset.rendered) return;
+            const subs = [{key:'pain',label:'Pain'},{key:'func',label:'Function / Daily Living'},{key:'qol',label:'Quality of Life'}];
+            let html = '';
+            subs.forEach(s => {
+                html += `<div style="font-size:0.8rem;font-weight:600;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 6px;">${s.label}</div>`;
+                KOOS12_ITEMS.filter(i => i.sub === s.key).forEach(item => { html += buildLikertQuestion(item, 'k'); });
+            });
+            el.innerHTML = html;
+            el.dataset.rendered = '1';
+        }
+
+        function renderHOOS12Questions() {
+            const el = document.getElementById('hoos12_questions');
+            if (!el || el.dataset.rendered) return;
+            const subs = [{key:'pain',label:'Pain'},{key:'func',label:'Function / Daily Living'},{key:'qol',label:'Quality of Life'}];
+            let html = '';
+            subs.forEach(s => {
+                html += `<div style="font-size:0.8rem;font-weight:600;color:#c9a96e;text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 6px;">${s.label}</div>`;
+                HOOS12_ITEMS.filter(i => i.sub === s.key).forEach(item => { html += buildLikertQuestion(item, 'h'); });
+            });
+            el.innerHTML = html;
+            el.dataset.rendered = '1';
+        }
+
+        function renderPROMIS10Questions() {
+            const el = document.getElementById('promis10_questions');
+            if (!el || el.dataset.rendered) return;
+            el.innerHTML = PROMIS10_ITEMS.map(item => buildLikertQuestion(item, 'p')).join('');
+            el.dataset.rendered = '1';
+        }
+
+        function scoreSubscale(items, prefix, sub) {
+            const filtered = sub ? items.filter(i => i.sub === sub) : items;
+            const vals = filtered.map(i => {
+                const checked = document.querySelector(`input[name="${prefix}_${i.id}"]:checked`);
+                return checked ? parseFloat(checked.value) : null;
+            });
+            if (vals.some(v => v === null)) return null;
+            return Math.round(100 - (vals.reduce((a,b) => a+b, 0) / vals.length * 25));
+        }
+
+        function calcKOOS12() {
+            const pain = scoreSubscale(KOOS12_ITEMS, 'k', 'pain');
+            const func = scoreSubscale(KOOS12_ITEMS, 'k', 'func');
+            const qol  = scoreSubscale(KOOS12_ITEMS, 'k', 'qol');
+            document.getElementById('koos_pain_score').textContent = pain !== null ? pain : '—';
+            document.getElementById('koos_func_score').textContent = func !== null ? func : '—';
+            document.getElementById('koos_qol_score').textContent  = qol  !== null ? qol  : '—';
+        }
+
+        function calcHOOS12() {
+            const pain = scoreSubscale(HOOS12_ITEMS, 'h', 'pain');
+            const func = scoreSubscale(HOOS12_ITEMS, 'h', 'func');
+            const qol  = scoreSubscale(HOOS12_ITEMS, 'h', 'qol');
+            document.getElementById('hoos_pain_score').textContent = pain !== null ? pain : '—';
+            document.getElementById('hoos_func_score').textContent = func !== null ? func : '—';
+            document.getElementById('hoos_qol_score').textContent  = qol  !== null ? qol  : '—';
+        }
+
+        function calcPROMIS10() {
+            let physSum = 0, physCount = 0, mentSum = 0, mentCount = 0;
+            PROMIS10_ITEMS.forEach(item => {
+                const checked = document.querySelector(`input[name="p_${item.id}"]:checked`);
+                if (checked) {
+                    const v = parseFloat(checked.value);
+                    if (item.pool === 'phys_raw') { physSum += v; physCount++; }
+                    else                          { mentSum += v; mentCount++; }
+                }
+            });
+            const physT = physCount === 5 ? (PROMIS_PHYS_T[physSum] || '—') : '—';
+            const mentT = mentCount === 4 ? (PROMIS_MENT_T[mentSum] || '—') : '—';
+            document.getElementById('promis_phys_score').textContent = physT !== '—' ? physT.toFixed(1) : '—';
+            document.getElementById('promis_ment_score').textContent = mentT !== '—' ? mentT.toFixed(1) : '—';
+        }
+
+        function togglePromsInstrument() {
+            const val = document.getElementById('proms_instrument').value;
+            document.getElementById('koos12_panel').style.display  = val === 'koos12'   ? '' : 'none';
+            document.getElementById('hoos12_panel').style.display  = val === 'hoos12'   ? '' : 'none';
+            document.getElementById('promis10_panel').style.display = val === 'promis10' ? '' : 'none';
+            if (val === 'koos12')   renderKOOS12Questions();
+            if (val === 'hoos12')   renderHOOS12Questions();
+            if (val === 'promis10') renderPROMIS10Questions();
+        }
+
+        function collectPromsData() {
+            const inst = document.getElementById('proms_instrument').value;
+            const data = {
+                instrument: inst,
+                vas_rest:     parseInt(document.getElementById('vas_rest').value),
+                vas_activity: parseInt(document.getElementById('vas_activity').value),
+                vas_night:    parseInt(document.getElementById('vas_night').value),
+                baseline_ambulation:  document.getElementById('baseline_ambulation').value || null,
+                baseline_activity:    document.getElementById('baseline_activity').value || null,
+                baseline_stairs:      document.getElementById('baseline_stairs').value || null,
+                prior_joint_surgery:  document.getElementById('prior_joint_surgery').value || null,
+                patient_expectations: document.getElementById('patient_expectations').value || null,
+                admin_method:         document.getElementById('proms_admin_method').value || null
+            };
+            if (inst === 'koos12') {
+                data.koos12 = {
+                    pain_score: scoreSubscale(KOOS12_ITEMS, 'k', 'pain'),
+                    function_score: scoreSubscale(KOOS12_ITEMS, 'k', 'func'),
+                    qol_score: scoreSubscale(KOOS12_ITEMS, 'k', 'qol'),
+                    items: Object.fromEntries(KOOS12_ITEMS.map(i => {
+                        const c = document.querySelector(`input[name="k_${i.id}"]:checked`);
+                        return [i.id, c ? parseInt(c.value) : null];
+                    }))
+                };
+            }
+            if (inst === 'hoos12') {
+                data.hoos12 = {
+                    pain_score: scoreSubscale(HOOS12_ITEMS, 'h', 'pain'),
+                    function_score: scoreSubscale(HOOS12_ITEMS, 'h', 'func'),
+                    qol_score: scoreSubscale(HOOS12_ITEMS, 'h', 'qol'),
+                    items: Object.fromEntries(HOOS12_ITEMS.map(i => {
+                        const c = document.querySelector(`input[name="h_${i.id}"]:checked`);
+                        return [i.id, c ? parseInt(c.value) : null];
+                    }))
+                };
+            }
+            if (inst === 'promis10') {
+                let physSum = 0, physCount = 0, mentSum = 0, mentCount = 0;
+                const itemScores = {};
+                PROMIS10_ITEMS.forEach(item => {
+                    const c = document.querySelector(`input[name="p_${item.id}"]:checked`);
+                    if (c) {
+                        const v = parseFloat(c.value);
+                        itemScores[item.id] = v;
+                        if (item.pool === 'phys_raw') { physSum += v; physCount++; }
+                        else                          { mentSum += v; mentCount++; }
+                    }
+                });
+                data.promis10 = {
+                    physical_t_score: physCount === 5 ? (PROMIS_PHYS_T[physSum] || null) : null,
+                    mental_t_score:   mentCount === 4 ? (PROMIS_MENT_T[mentSum] || null) : null,
+                    items: itemScores
+                };
+            }
+            return data;
+        }
+        // ── End PROMs Engine ───────────────────────────────────────────────────
+
         function showAlert(message, type) {
             const alertDiv = document.getElementById('alertMessage');
             alertDiv.innerHTML = `
@@ -1183,6 +1591,15 @@
                 alertDiv.innerHTML = '';
             }, 5000);
         }
+    </script>
+    <script src="allergy-medication-component.js"></script>
+    <script src="caprini-vte-component.js"></script>
+    <script src="/ai-client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AllergyMedComponent.render('amc_ortho_container');
+            CapriniVTE.render('caprini_ortho_eval_container');
+        });
     </script>
 </body>
 </html>

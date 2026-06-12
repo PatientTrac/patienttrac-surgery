@@ -533,7 +533,7 @@
             </div>
             <div class="form-group" style="margin-top: 1rem;">
                 <label>Pain Management Provided</label>
-                <textarea id="painManagement" rows="2" placeholder="Document pain medications given, timing, and effectiveness..."></textarea>
+                <textarea id="painManagement" rows="2" data-dictation="true" data-context="PACU pain management" placeholder="Document pain medications given, timing, and effectiveness..."></textarea>
             </div>
         </div>
 
@@ -685,7 +685,7 @@
                 </label>
 
                 <label class="discharge-item">
-                    <input type="checkbox" id="vitalsSt able">
+                    <input type="checkbox" id="vitalsStable">
                     <div class="discharge-content">
                         <h4>Vital Signs Stable</h4>
                         <p>BP, HR, RR, SpO₂, temp within acceptable ranges</p>
@@ -742,12 +742,208 @@
             </div>
         </div>
 
+        <!-- Anesthesia Handoff — JCAHO PC.02.01.01 / ASA closed-claims recommendation -->
+        <div class="section-card">
+            <h3>Anesthesia-to-PACU Handoff</h3>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                JCAHO PC.02.01.01: Document structured handoff at care transition. Include procedure, airway, anesthetic agents, fluid balance, and ongoing concerns.
+            </p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Anesthesiologist / CRNA</label>
+                    <input type="text" id="handoff_anesthesia_provider" placeholder="Handoff provider name">
+                </div>
+                <div class="form-group">
+                    <label>Handoff Time</label>
+                    <input type="datetime-local" id="handoff_time">
+                </div>
+                <div class="form-group">
+                    <label>Anesthesia Type Used</label>
+                    <select id="handoff_anesthesia_type">
+                        <option value="">— Select —</option>
+                        <option value="general_ett">General — ETT</option>
+                        <option value="general_lma">General — LMA</option>
+                        <option value="spinal">Spinal</option>
+                        <option value="epidural">Epidural</option>
+                        <option value="regional_block">Regional block</option>
+                        <option value="mac">MAC (Monitored Anesthesia Care)</option>
+                        <option value="local">Local only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Airway Status on Arrival</label>
+                    <select id="handoff_airway">
+                        <option value="">— Select —</option>
+                        <option value="extubated_awake">Extubated — awake, cooperative</option>
+                        <option value="extubated_sleepy">Extubated — drowsy but protecting airway</option>
+                        <option value="lma_in_situ">LMA in situ</option>
+                        <option value="intubated">Intubated — planned ICU</option>
+                        <option value="natural_airway">Natural airway — no artificial device</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Total Crystalloid (mL)</label>
+                    <input type="number" id="handoff_crystalloid_ml" placeholder="mL">
+                </div>
+                <div class="form-group">
+                    <label>EBL (mL)</label>
+                    <input type="number" id="handoff_ebl_ml" placeholder="mL">
+                </div>
+                <div class="form-group">
+                    <label>Urine Output (mL)</label>
+                    <input type="number" id="handoff_urine_ml" placeholder="mL">
+                </div>
+                <div class="form-group">
+                    <label>Blood Products Given</label>
+                    <select id="handoff_blood_products">
+                        <option value="none">None</option>
+                        <option value="prbc_1">pRBCs — 1 unit</option>
+                        <option value="prbc_2">pRBCs — 2 units</option>
+                        <option value="prbc_3plus">pRBCs — 3+ units</option>
+                        <option value="ffp">FFP given</option>
+                        <option value="platelets">Platelets given</option>
+                        <option value="multiple">Multiple products</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:12px;">
+                <label>Handoff Concerns / Ongoing Issues</label>
+                <textarea id="handoff_concerns" rows="2" data-dictation="true" data-context="PACU handoff concerns" placeholder="Pain management plan, reversal agents given, regional block in effect, hemodynamic concerns, antiemetic regimen, patient history flags..."></textarea>
+            </div>
+        </div>
+
+        <!-- Serial Vital Signs Flowsheet — q15min PACU standard -->
+        <div class="section-card">
+            <h3>Serial Vital Signs Flowsheet (q15 min)</h3>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                AAAHC / CMS CoP: PACU vital signs documented at least every 15 minutes until discharge criteria met.
+            </p>
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:0.85rem;" id="vitals_flowsheet">
+                    <thead>
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.15);">
+                            <th style="padding:8px 10px;text-align:left;opacity:0.7;white-space:nowrap;">Time</th>
+                            <th style="padding:8px 10px;text-align:center;opacity:0.7;">HR</th>
+                            <th style="padding:8px 10px;text-align:center;opacity:0.7;">BP (sys/dia)</th>
+                            <th style="padding:8px 10px;text-align:center;opacity:0.7;">SpO₂ %</th>
+                            <th style="padding:8px 10px;text-align:center;opacity:0.7;">RR</th>
+                            <th style="padding:8px 10px;text-align:center;opacity:0.7;">Temp (°F)</th>
+                            <th style="padding:8px 10px;text-align:center;opacity:0.7;">Pain (0–10)</th>
+                            <th style="padding:8px 10px;text-align:center;opacity:0.7;">O₂ Supplement</th>
+                            <th style="padding:8px 10px;text-align:center;opacity:0.7;">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vitals_rows">
+                        <!-- Rows generated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" onclick="addVitalsRow()"
+                style="margin-top:12px;padding:7px 18px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);border-radius:6px;color:#10b981;cursor:pointer;font-size:0.88rem;">
+                + Add Reading
+            </button>
+        </div>
+
+        <!-- Allergy & Medication Review on Arrival -->
+        <div class="section-card">
+            <h3>Allergy &amp; Medication Reconciliation on PACU Arrival</h3>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                JCAHO NPSG.03.06.01 — Confirm and document allergies; reconcile intraoperative medications administered.
+            </p>
+            <div id="amc_pacu_container"></div>
+        </div>
+
+        <!-- PACU Medication Administration Record (MAR) — CMS CoP 42 CFR 482.24 / JCAHO MM.04.01.01 -->
+        <div class="section-card" style="border:1px solid rgba(201,169,110,0.2);">
+            <h3>Medication Administration Record (MAR)</h3>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                CMS CoP 482.24(c): All medications administered in PACU must be documented with name, dose, route, time, indication, and administering nurse. Required for TJC MM.04.01.01 compliance.
+            </p>
+            <div style="overflow-x:auto;">
+                <table id="mar_table" style="width:100%;border-collapse:collapse;font-size:0.83rem;">
+                    <thead>
+                        <tr style="background:rgba(255,255,255,0.06);text-align:left;">
+                            <th style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.1);min-width:130px;">Medication</th>
+                            <th style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.1);min-width:80px;">Dose</th>
+                            <th style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.1);min-width:80px;">Route</th>
+                            <th style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.1);min-width:80px;">Time</th>
+                            <th style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.1);min-width:120px;">Indication</th>
+                            <th style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.1);min-width:80px;">Response</th>
+                            <th style="padding:7px 10px;border-bottom:1px solid rgba(255,255,255,0.1);min-width:80px;">Administered By</th>
+                            <th style="padding:7px 6px;border-bottom:1px solid rgba(255,255,255,0.1);width:36px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="mar_body">
+                        <!-- rows inserted by addMARRow() -->
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" onclick="addMARRow()" style="margin-top:10px;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.3);color:#c9a96e;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:0.85rem;">+ Add Medication</button>
+
+            <!-- Common PACU meds quick-add -->
+            <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+                <span style="font-size:0.75rem;opacity:0.5;align-self:center;">Quick add:</span>
+                <button type="button" onclick="quickMAR('Fentanyl','25-50 mcg','IV','Pain')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Fentanyl</button>
+                <button type="button" onclick="quickMAR('Morphine','2-4 mg','IV','Pain')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Morphine</button>
+                <button type="button" onclick="quickMAR('Ondansetron (Zofran)','4 mg','IV','Nausea/PONV')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Ondansetron</button>
+                <button type="button" onclick="quickMAR('Ketorolac (Toradol)','15-30 mg','IV','Pain')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Ketorolac</button>
+                <button type="button" onclick="quickMAR('Midazolam (Versed)','1-2 mg','IV','Anxiety')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Midazolam</button>
+                <button type="button" onclick="quickMAR('Neostigmine','2.5 mg','IV','Reversal')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Neostigmine</button>
+                <button type="button" onclick="quickMAR('Naloxone (Narcan)','0.04-0.4 mg','IV','Opioid reversal')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Naloxone</button>
+                <button type="button" onclick="quickMAR('Ephedrine','5-10 mg','IV','Hypotension')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Ephedrine</button>
+                <button type="button" onclick="quickMAR('Phenylephrine','50-100 mcg','IV','Hypotension')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Phenylephrine</button>
+                <button type="button" onclick="quickMAR('Atropine','0.5 mg','IV','Bradycardia')" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78rem;">Atropine</button>
+            </div>
+        </div>
+
+        <!-- Physician Discharge Authorization — CMS CoP 42 CFR 482.13 / AAAHC -->
+        <div class="section-card">
+            <h3>Physician Discharge Authorization</h3>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                CMS CoP 42 CFR 482.13(e): A physician or qualified licensed independent practitioner must authorize discharge from PACU/post-anesthesia care.
+            </p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Authorizing Physician / CRNA</label>
+                    <input type="text" id="discharge_auth_provider" placeholder="Name of authorizing provider">
+                </div>
+                <div class="form-group">
+                    <label>Discharge Authorization Time</label>
+                    <input type="datetime-local" id="discharge_auth_time">
+                </div>
+                <div class="form-group">
+                    <label>Authorization Method</label>
+                    <select id="discharge_auth_method">
+                        <option value="">— Select —</option>
+                        <option value="in_person">In-person physician examination</option>
+                        <option value="telephone_order">Telephone order (physician reviewed criteria)</option>
+                        <option value="protocol_standing_order">Approved PACU standing order / protocol</option>
+                        <option value="crna_licensed">CRNA — licensed independent practice</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Discharge Condition</label>
+                    <select id="discharge_condition">
+                        <option value="">— Select —</option>
+                        <option value="good">Good — alert, comfortable, ambulatory</option>
+                        <option value="fair">Fair — requires assistance, mild residual symptoms</option>
+                        <option value="guarded">Guarded — transferred to extended observation</option>
+                        <option value="admitted">Admitted — unplanned admission</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:12px;">
+                <label>Discharge Authorization Notes</label>
+                <input type="text" id="discharge_auth_notes" placeholder="Any conditions at discharge, follow-up instructions confirmed, transport confirmed...">
+            </div>
+        </div>
+
         <!-- Nursing Notes -->
         <div class="section-card">
             <h3>PACU Nursing Notes</h3>
             <div class="form-group">
                 <label>Recovery progress, interventions, complications, and patient response</label>
-                <textarea id="nursingNotes" rows="6" placeholder="Document patient's recovery course, any interventions performed, patient/family education, and overall condition at discharge..."></textarea>
+                <textarea id="nursingNotes" rows="6" data-dictation="true" data-context="PACU nursing notes and recovery documentation" placeholder="Document patient's recovery course, any interventions performed, patient/family education, and overall condition at discharge..."></textarea>
             </div>
 
             <div class="form-grid" style="margin-top: 1.5rem;">
@@ -772,11 +968,39 @@
         </div>
     </div>
 
+    <!-- AI Panel -->
+    <div id="ai-panel-pacu" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:linear-gradient(180deg,#0a1628 0%,#060e1c 100%);border-top:2px solid rgba(16,185,129,0.4);max-height:65vh;overflow-y:auto;box-shadow:0 -8px 32px rgba(0,0,0,0.6);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="showPacuAITab('drugs')" id="pacuai-tab-drugs" class="ai-tab-btn ai-tab-active">Drug Interactions</button>
+                <button onclick="showPacuAITab('review')" id="pacuai-tab-review" class="ai-tab-btn">Review Note</button>
+            </div>
+            <button onclick="document.getElementById('ai-panel-pacu').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1.2rem;padding:4px 8px;">✕</button>
+        </div>
+        <div id="pacuai-content-drugs" style="padding:20px 24px;">
+            <p style="font-size:0.8rem;opacity:0.55;margin-bottom:12px;">Checks PACU medications for interactions — especially reversal agents, analgesics, and antiemetics.</p>
+            <button id="pacubtn-drugs" onclick="runPacuDrugCheck(this)" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#f87171;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Check Drug Interactions</button>
+            <div id="pacuai-result-drugs" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+        <div id="pacuai-content-review" style="display:none;padding:20px 24px;">
+            <button id="pacubtn-review" onclick="runPacuReview(this)" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);color:#10b981;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Analyze Discharge Note</button>
+            <div id="pacuai-result-review" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+    </div>
+
     <!-- Action Bar -->
     <div class="action-bar">
         <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
-        <button onclick="savePACUDischarge()" class="btn btn-primary">Complete Discharge</button>
+        <div style="display:flex;gap:1rem;align-items:center;">
+            <button onclick="document.getElementById('ai-panel-pacu').style.display='block'" style="background:linear-gradient(135deg,rgba(201,169,110,0.25),rgba(201,169,110,0.12));border:1px solid rgba(201,169,110,0.5);color:#c9a96e;padding:0.55rem 1.3rem;border-radius:6px;cursor:pointer;font-size:0.9rem;font-weight:600;">✨ AI Assist</button>
+            <button onclick="savePACUDischarge()" class="btn btn-primary">Complete Discharge</button>
+        </div>
     </div>
+    <style>
+        .ai-tab-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all .15s}
+        .ai-tab-btn:hover{background:rgba(255,255,255,0.1)}
+        .ai-tab-active{background:rgba(201,169,110,0.2)!important;border-color:rgba(201,169,110,0.5)!important;color:#c9a96e!important}
+    </style>
 
     <script>
         // Initialize Supabase
@@ -792,6 +1016,131 @@
         let selectedPain = null;
         let aldreteScore = 0;
         let pacuArrival = new Date();
+        let vitalsFlowsheet = []; // serial vital sign readings
+
+        // Serial vitals flowsheet row management
+        // ── PACU MAR ──────────────────────────────────────────────────────────
+        let marCounter = 0;
+
+        function addMARRow(med, dose, route, indication) {
+            marCounter++;
+            const tbody = document.getElementById('mar_body');
+            const row = document.createElement('tr');
+            row.id = `mar_row_${marCounter}`;
+            row.style.borderBottom = '1px solid rgba(255,255,255,0.06)';
+            const inputStyle = 'width:100%;background:rgba(20,30,50,0.85);border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:5px 6px;color:#fff;font-size:0.82rem;';
+            const routeOpts = ['IV','IM','SQ','PO','SL','IN','PR','Topical','ETT'].map(r =>
+                `<option value="${r}" ${r === route ? 'selected' : ''}>${r}</option>`
+            ).join('');
+            const respOpts = ['','Effective','Partial','No response','Adverse reaction'].map(r =>
+                `<option value="${r}">${r || '—'}</option>`
+            ).join('');
+            row.innerHTML = `
+                <td style="padding:5px 6px;"><input type="text" id="mar_${marCounter}_med" value="${med||''}" placeholder="Drug name" style="${inputStyle}"></td>
+                <td style="padding:5px 6px;"><input type="text" id="mar_${marCounter}_dose" value="${dose||''}" placeholder="Dose + unit" style="${inputStyle}"></td>
+                <td style="padding:5px 6px;"><select id="mar_${marCounter}_route" style="${inputStyle}">${routeOpts}</select></td>
+                <td style="padding:5px 6px;"><input type="time" id="mar_${marCounter}_time" style="${inputStyle}"></td>
+                <td style="padding:5px 6px;"><input type="text" id="mar_${marCounter}_indication" value="${indication||''}" placeholder="Pain / PONV…" style="${inputStyle}"></td>
+                <td style="padding:5px 6px;"><select id="mar_${marCounter}_response" style="${inputStyle}">${respOpts}</select></td>
+                <td style="padding:5px 6px;"><input type="text" id="mar_${marCounter}_rn" placeholder="RN initials" style="${inputStyle}"></td>
+                <td style="padding:5px 4px;text-align:center;"><button type="button" onclick="removeMARRow(${marCounter})" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:0.8rem;">✕</button></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function quickMAR(med, dose, route, indication) {
+            addMARRow(med, dose, route, indication);
+        }
+
+        function removeMARRow(n) {
+            const el = document.getElementById(`mar_row_${n}`);
+            if (el) el.remove();
+        }
+
+        function collectMAR() {
+            const rows = [];
+            for (let i = 1; i <= marCounter; i++) {
+                const medEl = document.getElementById(`mar_${i}_med`);
+                if (!medEl) continue;
+                const med = medEl.value;
+                if (!med) continue;
+                rows.push({
+                    medication: med,
+                    dose:       document.getElementById(`mar_${i}_dose`)?.value || null,
+                    route:      document.getElementById(`mar_${i}_route`)?.value || null,
+                    time:       document.getElementById(`mar_${i}_time`)?.value || null,
+                    indication: document.getElementById(`mar_${i}_indication`)?.value || null,
+                    response:   document.getElementById(`mar_${i}_response`)?.value || null,
+                    administered_by: document.getElementById(`mar_${i}_rn`)?.value || null
+                });
+            }
+            return rows;
+        }
+        // ── End PACU MAR ──────────────────────────────────────────────────────
+
+        function addVitalsRow() {
+            const tbody = document.getElementById('vitals_rows');
+            if (!tbody) return;
+            const now = new Date();
+            const timeVal = now.toTimeString().slice(0,5);
+            const rowId = 'vr_' + Date.now();
+            const cellStyle = 'padding:4px 6px;';
+            const inputStyle = 'width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:5px;color:#fff;font-size:0.82rem;text-align:center;';
+            const tr = document.createElement('tr');
+            tr.id = rowId;
+            tr.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
+            tr.innerHTML = `
+                <td style="${cellStyle}"><input type="time" value="${timeVal}" style="${inputStyle}width:90px;" class="vf_time"></td>
+                <td style="${cellStyle}"><input type="number" placeholder="HR" min="20" max="250" style="${inputStyle}" class="vf_hr"></td>
+                <td style="${cellStyle}"><input type="text" placeholder="120/80" style="${inputStyle}width:90px;" class="vf_bp"></td>
+                <td style="${cellStyle}"><input type="number" placeholder="SpO₂" min="50" max="100" style="${inputStyle}" class="vf_spo2" oninput="checkSpO2(this)"></td>
+                <td style="${cellStyle}"><input type="number" placeholder="RR" min="4" max="60" style="${inputStyle}" class="vf_rr"></td>
+                <td style="${cellStyle}"><input type="number" placeholder="Temp" step="0.1" style="${inputStyle}" class="vf_temp"></td>
+                <td style="${cellStyle}"><input type="number" placeholder="Pain" min="0" max="10" style="${inputStyle}" class="vf_pain"></td>
+                <td style="${cellStyle}">
+                    <select class="vf_o2" style="${inputStyle}width:110px;">
+                        <option value="ra">Room air</option>
+                        <option value="nc_2l">NC 2L</option>
+                        <option value="nc_4l">NC 4L</option>
+                        <option value="mask_6l">Mask 6L</option>
+                        <option value="nrb">NRB mask</option>
+                        <option value="cpap">CPAP</option>
+                        <option value="intubated">Intubated</option>
+                    </select>
+                </td>
+                <td style="${cellStyle}"><input type="text" placeholder="Notes" style="${inputStyle}width:120px;" class="vf_notes"></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function checkSpO2(el) {
+            const val = parseInt(el.value);
+            if (!isNaN(val) && val < 92) {
+                el.style.borderColor = '#ef4444';
+                el.style.color = '#ef4444';
+            } else {
+                el.style.borderColor = 'rgba(255,255,255,0.15)';
+                el.style.color = '#fff';
+            }
+        }
+
+        function collectVitalsRows() {
+            const rows = document.querySelectorAll('#vitals_rows tr');
+            return Array.from(rows).map(row => ({
+                time:   row.querySelector('.vf_time')?.value || null,
+                hr:     parseInt(row.querySelector('.vf_hr')?.value) || null,
+                bp:     row.querySelector('.vf_bp')?.value || null,
+                spo2:   parseInt(row.querySelector('.vf_spo2')?.value) || null,
+                rr:     parseInt(row.querySelector('.vf_rr')?.value) || null,
+                temp_f: parseFloat(row.querySelector('.vf_temp')?.value) || null,
+                pain:   parseInt(row.querySelector('.vf_pain')?.value) || null,
+                o2:     row.querySelector('.vf_o2')?.value || null,
+                notes:  row.querySelector('.vf_notes')?.value || null,
+            })).filter(r => r.time || r.hr || r.bp);
+        }
+
+        // Auto-add first row on load
+        window.addEventListener('DOMContentLoaded', () => { addVitalsRow(); });
 
         // Load patient data
         window.addEventListener('DOMContentLoaded', async () => {
@@ -897,6 +1246,9 @@
                 return;
             }
 
+            const chk = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+            const val = id => { const el = document.getElementById(id); return el ? el.value || null : null; };
+
             const saveData = {
                 org_id: '00000000-0000-0000-0000-000000000001',
                 patient_id: parseInt(patientId),
@@ -905,16 +1257,54 @@
                 aldrete_score: aldreteScore,
                 pain_score: selectedPain,
                 vital_signs: {
-                    hr: document.getElementById('hrInput').value,
-                    bp: document.getElementById('bpInput').value,
-                    rr: document.getElementById('rrInput').value,
-                    spo2: document.getElementById('spo2Input').value,
-                    temp: document.getElementById('tempInput').value
+                    hr: val('hrInput'),
+                    bp: val('bpInput'),
+                    rr: val('rrInput'),
+                    spo2: val('spo2Input'),
+                    temp: val('tempInput')
                 },
-                nursing_notes: document.getElementById('nursingNotes').value,
-                discharge_time: document.getElementById('dischargeTime').value,
-                discharged_to: document.getElementById('dischargedTo').value,
-                nurse_name: document.getElementById('nurseName').value,
+                discharge_criteria: {
+                    aldrete_met: aldreteScore >= 9,
+                    vitals_stable: chk('vitalsStable'),
+                    pain_controlled: chk('painControlled'),
+                    nausea_controlled: chk('nauseaControlled'),
+                    voided: chk('voided'),
+                    ambulated: chk('ambulated'),
+                    instructions_given: chk('instructionsGiven'),
+                    responsible_adult_present: chk('responsibleAdult')
+                },
+                // Anesthesia-to-PACU handoff — JCAHO PC.02.01.01
+                anesthesia_handoff: {
+                    provider:          val('handoff_anesthesia_provider'),
+                    handoff_time:      val('handoff_time'),
+                    anesthesia_type:   val('handoff_anesthesia_type'),
+                    airway_status:     val('handoff_airway'),
+                    crystalloid_ml:    parseInt(val('handoff_crystalloid_ml')) || null,
+                    ebl_ml:            parseInt(val('handoff_ebl_ml')) || null,
+                    urine_ml:          parseInt(val('handoff_urine_ml')) || null,
+                    blood_products:    val('handoff_blood_products'),
+                    concerns:          val('handoff_concerns'),
+                },
+
+                // PACU Medication Administration Record — CMS CoP 482.24(c) / TJC MM.04.01.01
+                medication_mar: collectMAR(),
+
+                // Serial vital signs flowsheet — AAAHC / CMS CoP q15min standard
+                vitals_flowsheet: collectVitalsRows(),
+
+                // Physician discharge authorization — CMS CoP 42 CFR 482.13(e)
+                discharge_authorization: {
+                    provider:    val('discharge_auth_provider'),
+                    auth_time:   val('discharge_auth_time'),
+                    method:      val('discharge_auth_method'),
+                    condition:   val('discharge_condition'),
+                    notes:       val('discharge_auth_notes'),
+                },
+
+                nursing_notes: val('nursingNotes'),
+                discharge_time: val('dischargeTime'),
+                discharged_to: val('dischargedTo'),
+                nurse_name: val('nurseName'),
                 created_at: new Date().toISOString()
             };
 
@@ -928,6 +1318,65 @@
                 alert('✅ PACU discharge completed!');
                 window.location.href = '/dashboard.html?encounter_id=' + encounterId + '&patient_id=' + patientId + '&token=' + token;
             }
+        }
+    </script>
+    <script src="allergy-medication-component.js"></script>
+    <script src="/ai-client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AllergyMedComponent.render('amc_pacu_container');
+        });
+
+        function showPacuAITab(tab) {
+            ['drugs','review'].forEach(t => {
+                document.getElementById('pacuai-content-' + t).style.display = t === tab ? 'block' : 'none';
+                const btn = document.getElementById('pacuai-tab-' + t);
+                if (btn) btn.classList.toggle('ai-tab-active', t === tab);
+            });
+        }
+
+        function getPacuFormData() {
+            const getV = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const amc = (typeof AllergyMedComponent !== 'undefined') ? AllergyMedComponent.getData() : {};
+            return {
+                pain_management: getV('painManagement'),
+                nursing_notes: getV('nursingNotes'),
+                handoff_concerns: getV('handoff_concerns'),
+                aldrete_score: getV('aldreteScore') || null,
+                medications: amc.medications || [],
+                allergies: amc.allergies || []
+            };
+        }
+
+        async function runPacuDrugCheck(btn) {
+            AIClient.showSpinner(btn, 'Checking…');
+            const r = document.getElementById('pacuai-result-drugs');
+            r.style.display = 'none';
+            try {
+                const data = getPacuFormData();
+                const mar = typeof collectMAR !== 'undefined' ? collectMAR() : [];
+                const marMedNames = mar.map(m => m.medication + (m.dose ? ' ' + m.dose : ''));
+                const reconciledMeds = (data.medications || []).map(m => typeof m === 'string' ? m : (m.medication_name || m.name || ''));
+                const allMeds = [...new Set([...marMedNames, ...reconciledMeds])].filter(Boolean);
+                const allergies = (data.allergies || []).map(a => typeof a === 'string' ? a : (a.allergen || a.name || ''));
+                const result = await AIClient.checkDrugInteractions(allMeds, allergies, 'PACU post-anesthesia care unit — post-surgical recovery', token);
+                r.style.display = 'block';
+                AIClient.showResult('pacuai-result-drugs', AIClient.renderDrugPanel(result), (result.interactions?.length || result.periop_holds?.length) ? 'warning' : 'success');
+            } catch (err) { r.style.display = 'block'; AIClient.showResult('pacuai-result-drugs', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error'); }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runPacuReview(btn) {
+            AIClient.showSpinner(btn, 'Analyzing…');
+            const r = document.getElementById('pacuai-result-review');
+            r.style.display = 'none';
+            try {
+                const data = getPacuFormData();
+                const result = await AIClient.reviewNote('pacu', data, token);
+                r.style.display = 'block';
+                AIClient.showResult('pacuai-result-review', AIClient.renderReviewPanel(result), ['A','B'].includes(result.quality_grade) ? 'success' : result.quality_grade === 'C' ? 'warning' : 'error');
+            } catch (err) { r.style.display = 'block'; AIClient.showResult('pacuai-result-review', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error'); }
+            AIClient.hideSpinner(btn);
         }
     </script>
 </body>

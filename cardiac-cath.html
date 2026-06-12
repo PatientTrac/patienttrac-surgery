@@ -488,10 +488,21 @@
 
     <div class="tabs">
         <button class="tab-btn active" data-tab="assessment">📋 Pre-Procedure</button>
+        <button class="tab-btn" data-tab="allergies" style="color:#ef4444;">⚠️ Allergies & Meds</button>
         <button class="tab-btn" data-tab="hemodynamics">💓 Hemodynamics</button>
         <button class="tab-btn" data-tab="coronary">🌳 Coronary Anatomy</button>
         <button class="tab-btn" data-tab="intervention">🔧 Intervention</button>
         <button class="tab-btn" data-tab="postprocedure">📊 Post-Procedure</button>
+    </div>
+
+    <div id="allergiesTab" class="tab-content" style="display:none;">
+        <div class="section-card" style="background:rgba(15,25,45,0.6);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:24px;margin:24px;">
+            <h3 style="color:#ef4444;margin-bottom:6px;">Allergies &amp; Medication Reconciliation</h3>
+            <p style="opacity:0.65;font-size:0.88rem;margin-bottom:16px;">
+                JCAHO NPSG.03.06.01 — Document contrast allergy (premedication protocol), anticoagulant last-dose timing, antiplatelet hold plan, and all high-risk medications.
+            </p>
+            <div id="amc_cardiac_container"></div>
+        </div>
     </div>
 
     <div id="assessmentTab" class="tab-content active">
@@ -500,7 +511,7 @@
             <div class="form-grid">
                 <div class="form-field full-width">
                     <label>Chief Complaint</label>
-                    <textarea id="chiefComplaint" placeholder="Chest pain, dyspnea, palpitations..."></textarea>
+                    <textarea id="chiefComplaint" data-dictation="true" data-context="Cardiac cath chief complaint" placeholder="Chest pain, dyspnea, palpitations..."></textarea>
                 </div>
                 <div class="form-field">
                     <label>NYHA Class</label>
@@ -569,7 +580,7 @@
             <div class="form-grid">
                 <div class="form-field">
                     <label>Creatinine (mg/dL)</label>
-                    <input type="number" id="creatinine" step="0.1" placeholder="0.0">
+                    <input type="number" id="creatinine" step="0.1" placeholder="0.0" oninput="calcGRACE()">
                 </div>
                 <div class="form-field">
                     <label>eGFR (mL/min/1.73m²)</label>
@@ -577,11 +588,124 @@
                 </div>
                 <div class="form-field">
                     <label>Troponin</label>
-                    <input type="text" id="troponin" placeholder="Value">
+                    <input type="text" id="troponin" placeholder="Value" oninput="calcHEART()">
                 </div>
                 <div class="form-field">
                     <label>BNP/NT-proBNP</label>
                     <input type="text" id="bnp" placeholder="Value">
+                </div>
+            </div>
+        </div>
+
+        <!-- HEART Score — Six et al. 2010 / ACC Chest Pain Guideline -->
+        <div class="section" style="border:1px solid rgba(201,169,110,0.2);">
+            <h3 class="section-header">HEART Score — Chest Pain Risk Stratification</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:14px;">ACC/AHA 2021 Chest Pain Guideline: HEART score ≤3 supports early discharge without stress testing (NPV 99.7% for MACE at 30 days). Score 4-6 = observation; ≥7 = early invasive.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:14px;">
+                <!-- H: History -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;">
+                    <div style="font-size:0.78rem;font-weight:700;color:#c9a96e;margin-bottom:6px;">H — History</div>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_h" value="0" onchange="calcHEART()"> <span style="font-size:0.83rem;">0 — Slightly suspicious</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_h" value="1" onchange="calcHEART()"> <span style="font-size:0.83rem;">1 — Moderately suspicious</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="heart_h" value="2" onchange="calcHEART()"> <span style="font-size:0.83rem;">2 — Highly suspicious (classic ACS)</span></label>
+                </div>
+                <!-- E: ECG -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;">
+                    <div style="font-size:0.78rem;font-weight:700;color:#c9a96e;margin-bottom:6px;">E — ECG</div>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_e" value="0" onchange="calcHEART()"> <span style="font-size:0.83rem;">0 — Normal</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_e" value="1" onchange="calcHEART()"> <span style="font-size:0.83rem;">1 — Non-specific repolarization change</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="heart_e" value="2" onchange="calcHEART()"> <span style="font-size:0.83rem;">2 — Significant ST deviation / LBBB / LVH</span></label>
+                </div>
+                <!-- A: Age -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;">
+                    <div style="font-size:0.78rem;font-weight:700;color:#c9a96e;margin-bottom:6px;">A — Age</div>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_a" value="0" onchange="calcHEART()"> <span style="font-size:0.83rem;">0 — &lt;45 years</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_a" value="1" onchange="calcHEART()"> <span style="font-size:0.83rem;">1 — 45–64 years</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="heart_a" value="2" onchange="calcHEART()"> <span style="font-size:0.83rem;">2 — ≥65 years</span></label>
+                </div>
+                <!-- R: Risk factors -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;">
+                    <div style="font-size:0.78rem;font-weight:700;color:#c9a96e;margin-bottom:6px;">R — Risk Factors</div>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_r" value="0" onchange="calcHEART()"> <span style="font-size:0.83rem;">0 — No known risk factors</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_r" value="1" onchange="calcHEART()"> <span style="font-size:0.83rem;">1 — 1–2 risk factors</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="heart_r" value="2" onchange="calcHEART()"> <span style="font-size:0.83rem;">2 — ≥3 risk factors, DM, known atherosclerosis</span></label>
+                </div>
+                <!-- T: Troponin -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:12px;">
+                    <div style="font-size:0.78rem;font-weight:700;color:#c9a96e;margin-bottom:6px;">T — Troponin (× upper limit of normal)</div>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_t" value="0" onchange="calcHEART()"> <span style="font-size:0.83rem;">0 — ≤ normal limit</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;cursor:pointer;"><input type="radio" name="heart_t" value="1" onchange="calcHEART()"> <span style="font-size:0.83rem;">1 — 1–3× ULN</span></label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="heart_t" value="2" onchange="calcHEART()"> <span style="font-size:0.83rem;">2 — &gt;3× ULN</span></label>
+                </div>
+            </div>
+            <!-- HEART score result -->
+            <div id="heart_result" style="display:none;padding:12px 16px;border-radius:8px;margin-top:4px;">
+                <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                    <div><div style="font-size:0.72rem;opacity:0.6;text-transform:uppercase;">HEART Score</div><div id="heart_score" style="font-size:2.4rem;font-weight:700;color:#c9a96e;">—</div></div>
+                    <div style="flex:1;">
+                        <div id="heart_risk_label" style="font-size:1rem;font-weight:700;margin-bottom:4px;"></div>
+                        <div id="heart_recommendation" style="font-size:0.83rem;opacity:0.8;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRACE Score 2.0 — Fox et al. 2014 / ESC ACS Guidelines -->
+        <div class="section" style="border:1px solid rgba(201,169,110,0.2);">
+            <h3 class="section-header">GRACE 2.0 Score — ACS Mortality Risk</h3>
+            <p style="opacity:0.65;font-size:0.82rem;margin-bottom:14px;">ESC 2020 NSTE-ACS Guidelines: GRACE &gt;140 = high risk → early invasive strategy within 24 h. Documents 6-month post-discharge all-cause mortality. Pre-populate from vitals and labs above.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;">
+                <div class="form-field">
+                    <label>Age (years)</label>
+                    <input type="number" id="grace_age" min="18" max="120" placeholder="years" oninput="calcGRACE()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div class="form-field">
+                    <label>Heart Rate (bpm)</label>
+                    <input type="number" id="grace_hr" min="20" max="300" placeholder="bpm" oninput="calcGRACE()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div class="form-field">
+                    <label>Systolic BP (mmHg)</label>
+                    <input type="number" id="grace_sbp" min="40" max="300" placeholder="mmHg" oninput="calcGRACE()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                </div>
+                <div class="form-field">
+                    <label>Killip Class</label>
+                    <select id="grace_killip" onchange="calcGRACE()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="0">I — No CHF signs</option>
+                        <option value="20">II — Rales, JVD, or S3</option>
+                        <option value="39">III — Pulmonary edema</option>
+                        <option value="59">IV — Cardiogenic shock</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Cardiac Arrest at Admission</label>
+                    <select id="grace_arrest" onchange="calcGRACE()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="0">No</option>
+                        <option value="39">Yes (+39 pts)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>ST Deviation on ECG</label>
+                    <select id="grace_st" onchange="calcGRACE()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="0">No</option>
+                        <option value="28">Yes (+28 pts)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Elevated Cardiac Enzymes</label>
+                    <select id="grace_enzymes" onchange="calcGRACE()" style="width:100%;background:rgba(20,30,50,0.9);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:8px;color:#fff;font-size:0.88rem;">
+                        <option value="0">No</option>
+                        <option value="14">Yes (+14 pts)</option>
+                    </select>
+                </div>
+            </div>
+            <!-- GRACE score result -->
+            <div id="grace_result" style="display:none;padding:12px 16px;border-radius:8px;margin-top:4px;">
+                <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                    <div><div style="font-size:0.72rem;opacity:0.6;text-transform:uppercase;">GRACE Score</div><div id="grace_score_val" style="font-size:2.4rem;font-weight:700;color:#c9a96e;">—</div></div>
+                    <div style="flex:1;">
+                        <div id="grace_risk_label" style="font-size:1rem;font-weight:700;margin-bottom:4px;"></div>
+                        <div id="grace_recommendation" style="font-size:0.83rem;opacity:0.8;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -691,6 +815,117 @@
             </div>
         </div>
 
+        <!-- Procedural Anticoagulation & ACT — ACC/AHA PCI Guidelines / HRS/EHRA device guidelines -->
+        <div class="section">
+            <h3 class="section-header" style="color:#c9a96e;">Procedural Anticoagulation</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                ACC/AHA: Document anticoagulant agent, total dose, and ACT values. Target ACT: UFH 250–300 s (PCI), 300–350 s (no GPI); Bivalirudin ACT ≥ 225 s.
+            </p>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Anticoagulant Agent</label>
+                    <select id="anticoag_agent" onchange="toggleAnticoagFields()">
+                        <option value="">— Select —</option>
+                        <option value="heparin_ufh">UFH (Unfractionated Heparin)</option>
+                        <option value="bivalirudin">Bivalirudin (Angiomax)</option>
+                        <option value="enoxaparin">Enoxaparin (Lovenox)</option>
+                        <option value="fondaparinux">Fondaparinux</option>
+                        <option value="none">None — anticoagulation withheld</option>
+                        <option value="other">Other (specify in notes)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Initial Bolus Dose</label>
+                    <input type="text" id="anticoag_bolus" placeholder="e.g. 70 units/kg IV (max 5000 units)">
+                </div>
+                <div class="form-field">
+                    <label>Total Dose Administered</label>
+                    <input type="text" id="anticoag_total_dose" placeholder="e.g. 8,000 units total">
+                </div>
+                <div class="form-field">
+                    <label>Additional Bolus(es)</label>
+                    <input type="text" id="anticoag_additional" placeholder="e.g. 2,000 units at 60 min — ACT check">
+                </div>
+            </div>
+
+            <!-- ACT values -->
+            <div style="border-top:1px solid rgba(201,169,110,0.2);margin-top:14px;padding-top:14px;">
+                <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);margin-bottom:10px;">ACT (Activated Clotting Time) — Seconds</div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Baseline ACT (pre-heparin)</label>
+                        <input type="number" id="act_baseline" placeholder="seconds">
+                    </div>
+                    <div class="form-field">
+                        <label>Post-Bolus ACT (target ≥250 s UFH)</label>
+                        <input type="number" id="act_post_bolus" placeholder="seconds" oninput="checkACT(this, 'act_post_bolus_flag', 250)">
+                        <span id="act_post_bolus_flag" style="display:none;font-size:0.78rem;color:#ef4444;margin-top:4px;">⚠️ Below target — additional heparin may be needed</span>
+                    </div>
+                    <div class="form-field">
+                        <label>Procedural ACT Check</label>
+                        <input type="number" id="act_procedural" placeholder="seconds" oninput="checkACT(this, 'act_procedural_flag', 250)">
+                        <span id="act_procedural_flag" style="display:none;font-size:0.78rem;color:#ef4444;margin-top:4px;">⚠️ Below target — assess additional anticoagulation</span>
+                    </div>
+                    <div class="form-field">
+                        <label>Pre-Sheath Removal ACT</label>
+                        <input type="number" id="act_pre_sheath" placeholder="seconds" oninput="checkACT(this, 'act_pre_sheath_flag', 0)">
+                        <div id="act_pre_sheath_flag" style="display:none;margin-top:4px;"></div>
+                        <div style="font-size:0.75rem;opacity:0.55;margin-top:3px;">Manual pull: wait for ACT &lt;150–170 s; closure device: ACT &lt;250 s</div>
+                    </div>
+                    <div class="form-field">
+                        <label>Sheath Removal Time</label>
+                        <input type="datetime-local" id="sheath_removal_time">
+                    </div>
+                    <div class="form-field">
+                        <label>Protamine Given?</label>
+                        <select id="protamine_given">
+                            <option value="no">No</option>
+                            <option value="yes">Yes — document dose</option>
+                            <option value="partial">Partial reversal only</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-field" style="margin-top:8px;">
+                    <label>Anticoagulation Notes</label>
+                    <input type="text" id="anticoag_notes" placeholder="GPI given, thrombus, reversal, access site hemostasis events...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Radiation Dose — ICRP 85 / ACR / Joint Commission Sentinel Event (high-dose fluoro) -->
+        <div class="section">
+            <h3 class="section-header" style="color:#c9a96e;">Radiation Dose Record</h3>
+            <p style="opacity:0.65;font-size:0.85rem;margin-bottom:14px;">
+                ICRP 85 / Joint Commission: Radiation dose must be recorded for all fluoroscopic procedures.
+                Significant dose events: DAP &gt; 5 Gy·cm² or Air Kerma &gt; 5 Gy — patient follow-up for skin injury required.
+            </p>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>DAP — Dose Area Product (Gy·cm²)</label>
+                    <input type="number" id="dap_gy_cm2" step="0.1" placeholder="Gy·cm²" oninput="checkRadDose()">
+                </div>
+                <div class="form-field">
+                    <label>Peak Skin Air Kerma (Gy)</label>
+                    <input type="number" id="air_kerma_gy" step="0.01" placeholder="Gy" oninput="checkRadDose()">
+                </div>
+                <div class="form-field">
+                    <label>Total Fluoroscopy Time (min)</label>
+                    <input type="number" id="fluoro_time_total" step="0.1" placeholder="minutes">
+                </div>
+                <div class="form-field">
+                    <label>Number of Cine Acquisitions</label>
+                    <input type="number" id="cine_acquisitions" placeholder="runs">
+                </div>
+            </div>
+            <div id="rad_dose_alert" style="display:none;background:rgba(239,68,68,0.1);border:1px solid #ef4444;border-radius:6px;padding:12px;margin-top:10px;">
+                <div style="font-size:0.88rem;font-weight:700;color:#ef4444;">⚠️ HIGH RADIATION DOSE — Patient Notification Required</div>
+                <div style="font-size:0.82rem;margin-top:6px;line-height:1.5;opacity:0.85;">
+                    Dose exceeds threshold for potential skin injury (ICRP 85 / Joint Commission Sentinel Event policy).
+                    Document patient notification, schedule follow-up skin assessment at 2–3 weeks post-procedure.
+                </div>
+            </div>
+        </div>
+
         <div class="section">
             <h3 class="section-header">Stent Details</h3>
             <div class="stent-list" id="stentList">
@@ -732,7 +967,7 @@
                 </div>
                 <div class="form-field full-width">
                     <label>Follow-up Recommendations</label>
-                    <textarea id="followupPlan" placeholder="Return in 1 week, cardiac rehab referral, echo in 6 weeks..."></textarea>
+                    <textarea id="followupPlan" data-dictation="true" data-context="Cardiac cath follow-up plan" placeholder="Return in 1 week, cardiac rehab referral, echo in 6 weeks..."></textarea>
                 </div>
             </div>
         </div>
@@ -743,12 +978,43 @@
             <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
                 ⬅️ Back to Dashboard
             </button>
+            <button onclick="document.getElementById('ai-panel-cath').style.display='block'" style="background:linear-gradient(135deg,rgba(201,169,110,0.25),rgba(201,169,110,0.12));border:1px solid rgba(201,169,110,0.5);color:#c9a96e;padding:0.55rem 1.3rem;border-radius:6px;cursor:pointer;font-size:0.9rem;font-weight:600;">✨ AI Assist</button>
             <button class="btn btn-primary" onclick="saveProcedure()">
                 <span class="spinner" id="saveSpinner" style="display: none;"></span>
                 💾 Save Procedure
             </button>
         </div>
     </div>
+
+    <!-- AI Panel -->
+    <div id="ai-panel-cath" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:500;background:linear-gradient(180deg,#0a1628 0%,#060e1c 100%);border-top:2px solid rgba(239,68,68,0.4);max-height:65vh;overflow-y:auto;box-shadow:0 -8px 32px rgba(0,0,0,0.6);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="showCathAITab('review')" id="cathai-tab-review" class="ai-tab-btn ai-tab-active" style="--tab-color:#ef4444;">Review Report</button>
+                <button onclick="showCathAITab('codes')" id="cathai-tab-codes" class="ai-tab-btn">Suggest Codes</button>
+                <button onclick="showCathAITab('risk')" id="cathai-tab-risk" class="ai-tab-btn">Risk Assessment</button>
+            </div>
+            <button onclick="document.getElementById('ai-panel-cath').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1.2rem;padding:4px 8px;">✕</button>
+        </div>
+        <div id="cathai-content-review" style="padding:20px 24px;">
+            <button id="cathbtn-review" onclick="runCathReview(this)" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#f87171;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Analyze Report Quality</button>
+            <div id="cathai-result-review" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+        <div id="cathai-content-codes" style="display:none;padding:20px 24px;">
+            <button id="cathbtn-codes" onclick="runCathCodes(this)" style="background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.35);color:#c9a96e;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Suggest ICD-10 &amp; CPT Codes</button>
+            <div id="cathai-result-codes" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+        <div id="cathai-content-risk" style="display:none;padding:20px 24px;">
+            <p style="font-size:0.8rem;opacity:0.55;margin-bottom:12px;">Enhanced cardiac risk analysis integrating HEART Score, GRACE 2.0, and catheterization findings.</p>
+            <button id="cathbtn-risk" onclick="runCathRisk(this)" style="background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.35);color:#a855f7;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-bottom:16px;">Analyze Cardiac Risk</button>
+            <div id="cathai-result-risk" style="display:none;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;"></div>
+        </div>
+    </div>
+    <style>
+        .ai-tab-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:0.82rem;transition:all .15s}
+        .ai-tab-btn:hover{background:rgba(255,255,255,0.1)}
+        .ai-tab-active{background:rgba(201,169,110,0.2)!important;border-color:rgba(201,169,110,0.5)!important;color:#c9a96e!important}
+    </style>
 
     <script>
         const SUPABASE_URL = 'https://mskormozwekezjmtcylv.supabase.co';
@@ -771,6 +1037,143 @@
             { name: 'OM (Obtuse Marginal)', id: 'om' },
             { name: 'PDA (Posterior Descending)', id: 'pda' }
         ];
+
+        // ── HEART Score ──────────────────────────────────────────────────────
+        function calcHEART() {
+            const h = document.querySelector('input[name="heart_h"]:checked');
+            const e = document.querySelector('input[name="heart_e"]:checked');
+            const a = document.querySelector('input[name="heart_a"]:checked');
+            const r = document.querySelector('input[name="heart_r"]:checked');
+            const t = document.querySelector('input[name="heart_t"]:checked');
+            if (!h || !e || !a || !r || !t) return;
+            const score = [h,e,a,r,t].reduce((s,el) => s + parseInt(el.value), 0);
+            const resultDiv = document.getElementById('heart_result');
+            resultDiv.style.display = '';
+            document.getElementById('heart_score').textContent = score;
+            let risk, rec, bg, color;
+            if (score <= 3) {
+                risk = 'Low Risk (MACE ~1.7%)';
+                rec  = 'Early discharge without additional testing appropriate. Outpatient follow-up.';
+                bg = 'rgba(34,197,94,0.1)'; color = '#4ade80';
+            } else if (score <= 6) {
+                risk = 'Moderate Risk (MACE ~12%)';
+                rec  = 'Observation and serial troponins. Consider non-invasive stress testing or CT coronary angiography before discharge.';
+                bg = 'rgba(239,180,60,0.12)'; color = '#f0c040';
+            } else {
+                risk = 'High Risk (MACE ~65%)';
+                rec  = 'Early invasive strategy. Cardiology consultation. Admission to monitored bed.';
+                bg = 'rgba(239,68,68,0.12)'; color = '#f87171';
+            }
+            resultDiv.style.background = bg; resultDiv.style.border = `1px solid ${color}40`;
+            document.getElementById('heart_risk_label').style.color = color;
+            document.getElementById('heart_risk_label').textContent = risk;
+            document.getElementById('heart_recommendation').textContent = rec;
+        }
+
+        // ── GRACE 2.0 Score ──────────────────────────────────────────────────
+        function calcGRACE() {
+            const age = parseInt(document.getElementById('grace_age').value) || 0;
+            const hr  = parseInt(document.getElementById('grace_hr').value)  || 0;
+            const sbp = parseInt(document.getElementById('grace_sbp').value) || 0;
+            const cr  = parseFloat(document.getElementById('creatinine').value) || 0;
+            const killip  = parseInt(document.getElementById('grace_killip').value)  || 0;
+            const arrest  = parseInt(document.getElementById('grace_arrest').value)  || 0;
+            const st      = parseInt(document.getElementById('grace_st').value)      || 0;
+            const enzymes = parseInt(document.getElementById('grace_enzymes').value) || 0;
+            if (!age && !hr && !sbp) return;
+
+            // Age points
+            let agePts = 0;
+            if      (age < 30) agePts = 0;
+            else if (age < 40) agePts = 8;
+            else if (age < 50) agePts = 25;
+            else if (age < 60) agePts = 41;
+            else if (age < 70) agePts = 58;
+            else if (age < 80) agePts = 75;
+            else if (age < 90) agePts = 91;
+            else               agePts = 100;
+
+            // Heart rate points
+            let hrPts = 0;
+            if      (hr < 70)  hrPts = 0;
+            else if (hr < 90)  hrPts = 7;
+            else if (hr < 110) hrPts = 13;
+            else if (hr < 150) hrPts = 23;
+            else if (hr < 200) hrPts = 36;
+            else               hrPts = 46;
+
+            // SBP points
+            let sbpPts = 0;
+            if      (sbp < 80)  sbpPts = 58;
+            else if (sbp < 100) sbpPts = 53;
+            else if (sbp < 120) sbpPts = 43;
+            else if (sbp < 140) sbpPts = 34;
+            else if (sbp < 160) sbpPts = 24;
+            else if (sbp < 200) sbpPts = 10;
+            else                sbpPts = 0;
+
+            // Creatinine points (mg/dL)
+            let crPts = 0;
+            if      (cr <= 0.40) crPts = 1;
+            else if (cr <= 0.79) crPts = 3;
+            else if (cr <= 1.19) crPts = 5;
+            else if (cr <= 1.59) crPts = 7;
+            else if (cr <= 1.99) crPts = 9;
+            else if (cr <= 3.99) crPts = 15;
+            else                 crPts = 20;
+
+            const total = agePts + hrPts + sbpPts + crPts + killip + arrest + st + enzymes;
+            const resultDiv = document.getElementById('grace_result');
+            resultDiv.style.display = '';
+            document.getElementById('grace_score_val').textContent = total;
+
+            let risk, rec, bg, color;
+            if (total <= 108) {
+                risk = 'Low Risk — in-hospital mortality &lt;1%';
+                rec  = '6-month post-discharge mortality <3%. Conservative or early invasive strategy per clinical judgment.';
+                bg = 'rgba(34,197,94,0.1)'; color = '#4ade80';
+            } else if (total <= 140) {
+                risk = 'Intermediate Risk — in-hospital mortality 1–3%';
+                rec  = 'Early invasive strategy within 72 h. Serial troponins, continuous ECG monitoring.';
+                bg = 'rgba(239,180,60,0.12)'; color = '#f0c040';
+            } else {
+                risk = 'High Risk — in-hospital mortality &gt;3%';
+                rec  = 'Urgent invasive strategy within 24 h. ICU-level monitoring. Dual antiplatelet + anticoagulation.';
+                bg = 'rgba(239,68,68,0.12)'; color = '#f87171';
+            }
+            resultDiv.style.background = bg; resultDiv.style.border = `1px solid ${color}40`;
+            document.getElementById('grace_risk_label').style.color = color;
+            document.getElementById('grace_risk_label').innerHTML = risk;
+            document.getElementById('grace_recommendation').textContent = rec;
+        }
+        // ── End HEART/GRACE ──────────────────────────────────────────────────
+
+        function checkACT(inputEl, flagId, threshold) {
+            const flagEl = document.getElementById(flagId);
+            if (!flagEl) return;
+            const val = parseInt(inputEl.value);
+            if (!isNaN(val) && threshold > 0) {
+                flagEl.style.display = val < threshold ? 'inline-block' : 'none';
+            }
+            // Pre-sheath: show guidance based on hemostasis method
+            if (flagId === 'act_pre_sheath_flag' && !isNaN(val)) {
+                const method = document.getElementById('hemostasisMethod')?.value;
+                const limit = method === 'closure_device' ? 250 : 170;
+                flagEl.style.display = val > limit ? 'block' : 'none';
+                flagEl.innerHTML = val > limit
+                    ? `<span style="font-size:0.78rem;color:#f59e0b;">ACT ${val}s — above safe threshold for sheath removal (limit ${limit}s). Wait or use closure device protocol.</span>`
+                    : '';
+            }
+        }
+
+        function checkRadDose() {
+            const dap = parseFloat(document.getElementById('dap_gy_cm2')?.value) || 0;
+            const kerma = parseFloat(document.getElementById('air_kerma_gy')?.value) || 0;
+            const alertEl = document.getElementById('rad_dose_alert');
+            if (alertEl) alertEl.style.display = (dap > 5 || kerma > 5) ? 'block' : 'none';
+        }
+
+        function toggleAnticoagFields() { /* reserved for future agent-specific UI */ }
 
         window.addEventListener('DOMContentLoaded', () => {
             validateToken();
@@ -1037,6 +1440,41 @@
                     egfr: parseInt(document.getElementById('egfr').value) || null,
                     troponin: document.getElementById('troponin').value,
                     bnp: document.getElementById('bnp').value,
+
+                    // HEART score — ACC/AHA 2021
+                    heart_score: (() => {
+                        const h = document.querySelector('input[name="heart_h"]:checked');
+                        const e = document.querySelector('input[name="heart_e"]:checked');
+                        const a = document.querySelector('input[name="heart_a"]:checked');
+                        const r = document.querySelector('input[name="heart_r"]:checked');
+                        const t = document.querySelector('input[name="heart_t"]:checked');
+                        if (!h || !e || !a || !r || !t) return null;
+                        return {
+                            history:   parseInt(h.value),
+                            ecg:       parseInt(e.value),
+                            age:       parseInt(a.value),
+                            risk:      parseInt(r.value),
+                            troponin:  parseInt(t.value),
+                            total: [h,e,a,r,t].reduce((s,el) => s + parseInt(el.value), 0)
+                        };
+                    })(),
+
+                    // GRACE 2.0 score — ESC 2020
+                    grace_score: (() => {
+                        const graceEl = document.getElementById('grace_score_val');
+                        const total = graceEl ? parseInt(graceEl.textContent) : null;
+                        if (!total) return null;
+                        return {
+                            total,
+                            age:     parseInt(document.getElementById('grace_age').value) || null,
+                            hr:      parseInt(document.getElementById('grace_hr').value)  || null,
+                            sbp:     parseInt(document.getElementById('grace_sbp').value) || null,
+                            killip:  document.getElementById('grace_killip').options[document.getElementById('grace_killip').selectedIndex].text.split(' ')[0],
+                            arrest:  document.getElementById('grace_arrest').value === '39',
+                            st_dev:  document.getElementById('grace_st').value === '28',
+                            enzymes: document.getElementById('grace_enzymes').value === '14'
+                        };
+                    })(),
                     
                     // Hemodynamics
                     hemodynamics: {
@@ -1062,7 +1500,32 @@
                     contrast_volume_ml: parseInt(document.getElementById('contrastVolume').value) || null,
                     fluoroscopy_time_mins: fluoroTime,
                     stent_details: stentData,
-                    
+
+                    // Procedural anticoagulation — ACC/AHA PCI guidelines
+                    anticoagulation: {
+                        agent:           document.getElementById('anticoag_agent')?.value || null,
+                        bolus:           document.getElementById('anticoag_bolus')?.value || null,
+                        total_dose:      document.getElementById('anticoag_total_dose')?.value || null,
+                        additional:      document.getElementById('anticoag_additional')?.value || null,
+                        act_baseline:    parseInt(document.getElementById('act_baseline')?.value) || null,
+                        act_post_bolus:  parseInt(document.getElementById('act_post_bolus')?.value) || null,
+                        act_procedural:  parseInt(document.getElementById('act_procedural')?.value) || null,
+                        act_pre_sheath:  parseInt(document.getElementById('act_pre_sheath')?.value) || null,
+                        sheath_removal_time: document.getElementById('sheath_removal_time')?.value || null,
+                        protamine_given: document.getElementById('protamine_given')?.value || null,
+                        notes:           document.getElementById('anticoag_notes')?.value || null,
+                    },
+
+                    // Radiation dose — ICRP 85 / Joint Commission sentinel event policy
+                    radiation_dose: {
+                        dap_gy_cm2:       parseFloat(document.getElementById('dap_gy_cm2')?.value) || null,
+                        air_kerma_gy:     parseFloat(document.getElementById('air_kerma_gy')?.value) || null,
+                        fluoro_time_min:  parseFloat(document.getElementById('fluoro_time_total')?.value) || null,
+                        cine_acquisitions: parseInt(document.getElementById('cine_acquisitions')?.value) || null,
+                        high_dose_event:  (parseFloat(document.getElementById('dap_gy_cm2')?.value) > 5 ||
+                                           parseFloat(document.getElementById('air_kerma_gy')?.value) > 5),
+                    },
+
                     // Post-procedure
                     hemostasis_method: document.getElementById('hemostasisMethod').value,
                     complications: document.getElementById('complications').value,
@@ -1101,6 +1564,89 @@
             setTimeout(() => {
                 alertDiv.innerHTML = '';
             }, 5000);
+        }
+    </script>
+    <script src="allergy-medication-component.js"></script>
+    <script src="/ai-client.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            AllergyMedComponent.render('amc_cardiac_container');
+        });
+
+        function showCathAITab(tab) {
+            ['review','codes','risk'].forEach(t => {
+                document.getElementById('cathai-content-' + t).style.display = t === tab ? 'block' : 'none';
+                const btn = document.getElementById('cathai-tab-' + t);
+                if (btn) btn.classList.toggle('ai-tab-active', t === tab);
+            });
+        }
+
+        function getCathFormData() {
+            const getV = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const getR = name => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : null; };
+            const getC = id => { const el = document.getElementById(id); return el ? el.checked : false; };
+            const heartScore = parseInt(document.getElementById('heart_score')?.textContent) || null;
+            const graceScore = parseInt(document.getElementById('grace_score')?.textContent) || null;
+            return {
+                chief_complaint: getV('chiefComplaint'),
+                procedure_type: getV('procedureType') || 'cardiac catheterization',
+                indication: getV('indication'),
+                heart_score: heartScore,
+                grace_score: graceScore,
+                heart_risk: heartScore != null ? (heartScore <= 3 ? 'Low' : heartScore <= 6 ? 'Moderate' : 'High') : null,
+                grace_risk: graceScore != null ? (graceScore <= 108 ? 'Low' : graceScore <= 140 ? 'Intermediate' : 'High') : null,
+                access_site: getV('accessSite'),
+                stent_placed: getC('stentPlaced'),
+                stent_type: getV('stentType'),
+                dapt_plan: getV('daptPlan'),
+                followup_plan: getV('followupPlan'),
+                contrast_volume: getV('contrastVolume'),
+                complications: getV('complications')
+            };
+        }
+
+        async function runCathReview(btn) {
+            AIClient.showSpinner(btn, 'Analyzing…');
+            const r = document.getElementById('cathai-result-review');
+            r.style.display = 'none';
+            try {
+                const data = getCathFormData();
+                const result = await AIClient.reviewNote('cardiology', data, token);
+                r.style.display = 'block';
+                AIClient.showResult('cathai-result-review', AIClient.renderReviewPanel(result), ['A','B'].includes(result.quality_grade) ? 'success' : result.quality_grade === 'C' ? 'warning' : 'error');
+            } catch (err) { r.style.display = 'block'; AIClient.showResult('cathai-result-review', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error'); }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runCathCodes(btn) {
+            AIClient.showSpinner(btn, 'Querying…');
+            const r = document.getElementById('cathai-result-codes');
+            r.style.display = 'none';
+            try {
+                const data = getCathFormData();
+                const description = [data.indication, data.chief_complaint, data.procedure_type].filter(Boolean).join('. ');
+                const result = await AIClient.suggestCodes(description, 'cardiology', data, data.procedure_type, token);
+                r.style.display = 'block';
+                AIClient.showResult('cathai-result-codes', AIClient.renderCodesPanel(result), 'info');
+            } catch (err) { r.style.display = 'block'; AIClient.showResult('cathai-result-codes', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error'); }
+            AIClient.hideSpinner(btn);
+        }
+
+        async function runCathRisk(btn) {
+            AIClient.showSpinner(btn, 'Analyzing…');
+            const r = document.getElementById('cathai-result-risk');
+            r.style.display = 'none';
+            try {
+                const data = getCathFormData();
+                const result = await AIClient.scoreRisk({ access_site: data.access_site, stent_placed: data.stent_placed, contrast_volume: data.contrast_volume }, { heart_score: data.heart_score, grace_score: data.grace_score, heart_risk: data.heart_risk, grace_risk: data.grace_risk }, 'cardiology', data.procedure_type, token);
+                r.style.display = 'block';
+                const riskColor = { low: '#4ade80', moderate: '#f0c040', high: '#f97316', very_high: '#f87171' }[result.enhanced_risk_level] || '#60a5fa';
+                let html = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;"><span style="font-size:1.4rem;font-weight:700;color:${riskColor};">${(result.enhanced_risk_level||'—').toUpperCase().replace('_',' ')}</span></div><div style="font-size:0.85rem;opacity:0.8;margin-bottom:10px;">${result.summary||''}</div>`;
+                if (result.red_flags?.length) { html += '<div style="margin-bottom:8px;"><strong style="font-size:0.78rem;color:#f87171;">RED FLAGS:</strong>'; result.red_flags.forEach(f => { html += `<div style="font-size:0.82rem;color:#f87171;padding:1px 0;">⚠ ${f}</div>`; }); html += '</div>'; }
+                if (result.pacu_monitoring?.length) { html += '<div><strong style="font-size:0.78rem;color:#60a5fa;">POST-CATH MONITORING:</strong>'; result.pacu_monitoring.forEach(m => { html += `<div style="font-size:0.82rem;padding:1px 0;opacity:0.85;">• ${m}</div>`; }); html += '</div>'; }
+                AIClient.showResult('cathai-result-risk', html, result.enhanced_risk_level === 'low' ? 'success' : result.enhanced_risk_level === 'moderate' ? 'warning' : 'error');
+            } catch (err) { r.style.display = 'block'; AIClient.showResult('cathai-result-risk', '<p style="color:#f87171">Error: ' + err.message + '</p>', 'error'); }
+            AIClient.hideSpinner(btn);
         }
     </script>
 </body>
