@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { PDFDownloadLink, BlobProvider } from '@react-pdf/renderer';
+import { useState, useEffect, useCallback } from 'react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import { supabase } from '../../lib/supabase';
 import {
-  Sparkles, Download, Send, ChevronDown, Edit3, Check,
-  DollarSign, FileText, Loader2, Plus, Trash2, RefreshCw,
+  Sparkles, Download, Send, Check,
+  DollarSign, FileText, Loader2, Trash2, RefreshCw,
 } from 'lucide-react';
 import { ProposalDocument } from './ProposalPDF';
 import type { ProposalPDFProps } from './ProposalPDF';
+
+// Shared platform functions live on the surgery site; sibling apps set VITE_SHARED_FN_BASE
+const FN_BASE: string = (import.meta as any).env?.VITE_SHARED_FN_BASE ?? '';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface CostLineItem   { label: string; amount: number; category: string; editable: boolean }
@@ -63,12 +66,6 @@ const PROCEDURE_OPTIONS = [
   { label: 'Botox / Dysport Treatment', type: 'non_surgical', duration: 0.5 },
   { label: 'Filler Treatment', type: 'non_surgical', duration: 0.5 },
 ];
-
-const FINANCING_LABELS: Record<string, string> = {
-  pay_in_full: 'Pay in Full',
-  carecredit_24: 'CareCredit 24-Month 0%',
-  in_house: 'In-House Payment Plan',
-};
 
 function fmt(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(n ?? 0);
@@ -140,7 +137,7 @@ export default function ProposalBuilder({ orgId, encounterId, procedureNamePrese
     setProposal(null);
 
     try {
-      const res = await fetch('/.netlify/functions/ai-proposal', {
+      const res = await fetch(`${FN_BASE}/.netlify/functions/ai-proposal`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -184,7 +181,7 @@ export default function ProposalBuilder({ orgId, encounterId, procedureNamePrese
     setSentSuccess(false);
     setSendError('');
     try {
-      const res = await fetch('/.netlify/functions/send-proposal', {
+      const res = await fetch(`${FN_BASE}/.netlify/functions/send-proposal`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

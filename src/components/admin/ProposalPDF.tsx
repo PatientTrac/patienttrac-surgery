@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Document, Page, View, Text, Image, StyleSheet, Font,
 } from '@react-pdf/renderer';
@@ -149,7 +148,7 @@ export function ProposalDocument({
             </View>
             {categories.map((cat, ci) => (
               <View key={ci}>
-                {lineItems.filter(i => i.category === cat).map((item, idx, arr) => (
+                {lineItems.filter(i => i.category === cat).map((item, idx) => (
                   <View key={idx} style={[S.tableRow, idx % 2 === 1 ? S.tableRowAlt : {}]}>
                     <Text style={[{ fontSize: 10, color: '#1a1a1a' }, S.col1]}>{item.label}</Text>
                     <Text style={[{ fontSize: 10, color: NAVY, fontWeight: 'bold' }, S.col2]}>{fmt(item.amount)}</Text>

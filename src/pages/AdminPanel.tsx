@@ -37,8 +37,7 @@ export default function AdminPanel() {
 
       // Look up org membership
       const { data: member } = await supabase
-        .schema('saas' as any)
-        .from('org_members')
+        .from('org_members')  // public view (saas schema is not API-exposed)
         .select('org_id, role')
         .eq('user_id', user.id)
         .eq('is_active', true)
@@ -50,8 +49,7 @@ export default function AdminPanel() {
 
       // Load org name for the header
       const { data: org } = await supabase
-        .schema('saas' as any)
-        .from('organizations')
+        .from('organizations')  // public view
         .select('org_id, org_name, plan')
         .eq('org_id', member.org_id)
         .single();

@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
   Send, ExternalLink, Clock, CheckCircle2, Eye, FileSignature,
-  Loader2, RefreshCw, ChevronDown, ChevronRight, User, Mail,
+  Loader2, RefreshCw, ChevronRight, User, Mail,
 } from 'lucide-react';
+
+// Shared platform functions live on the surgery site; sibling apps set VITE_SHARED_FN_BASE
+const FN_BASE: string = (import.meta as any).env?.VITE_SHARED_FN_BASE ?? '';
 
 interface Template {
   template_id: number;
@@ -65,11 +68,6 @@ const label: React.CSSProperties = {
   color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: 600,
   textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6,
 };
-const card: React.CSSProperties = {
-  background: '#0f1e35', border: '1px solid rgba(201,169,110,0.15)',
-  borderRadius: 12, padding: '20px 24px', marginBottom: 16,
-};
-
 export default function ConsentSender({ orgId }: Props) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -156,7 +154,7 @@ export default function ConsentSender({ orgId }: Props) {
 
     const t = selectedTemplate!;
     try {
-      const res = await fetch('/.netlify/functions/send-consent', {
+      const res = await fetch(`${FN_BASE}/.netlify/functions/send-consent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -199,7 +197,7 @@ export default function ConsentSender({ orgId }: Props) {
     setSendError('');
     const t = selectedTemplate!;
     try {
-      const res = await fetch('/.netlify/functions/send-consent', {
+      const res = await fetch(`${FN_BASE}/.netlify/functions/send-consent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

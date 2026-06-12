@@ -5,6 +5,7 @@
 // ============================================================
 
 import type { Handler, HandlerEvent } from '@netlify/functions';
+import { withCors } from './_shared/cors';
 
 const RESEND_API = 'https://api.resend.com/emails';
 
@@ -146,7 +147,7 @@ function buildEmailHtml(req: SendProposalRequest): string {
 </html>`;
 }
 
-export const handler: Handler = async (event: HandlerEvent) => {
+const handlerImpl: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
@@ -202,3 +203,5 @@ export const handler: Handler = async (event: HandlerEvent) => {
     return { statusCode: 500, body: JSON.stringify({ error: 'Failed to send email' }) };
   }
 };
+
+export const handler = withCors(handlerImpl);

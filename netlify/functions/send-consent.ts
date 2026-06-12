@@ -5,6 +5,7 @@
 // ============================================================
 
 import type { Handler, HandlerEvent } from '@netlify/functions';
+import { withCors } from './_shared/cors';
 
 const RESEND_API = 'https://api.resend.com/emails';
 
@@ -38,7 +39,7 @@ function svcHeaders(key: string) {
   };
 }
 
-export const handler: Handler = async (event: HandlerEvent) => {
+const handlerImpl: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
@@ -196,3 +197,5 @@ function buildConsentEmail({ patientName, facilityName, surgeonName, procedureNa
 </body>
 </html>`;
 }
+
+export const handler = withCors(handlerImpl);

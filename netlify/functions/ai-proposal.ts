@@ -4,6 +4,7 @@
 // ============================================================
 
 import type { Handler, HandlerEvent } from '@netlify/functions';
+import { withCors } from './_shared/cors';
 
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
 const MODEL = 'claude-fable-5';
@@ -98,7 +99,7 @@ async function logAudit(opts: {
   } catch { /* audit failure must not block the clinical response */ }
 }
 
-export const handler: Handler = async (event: HandlerEvent) => {
+const handlerImpl: Handler = async (event: HandlerEvent) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
@@ -173,3 +174,5 @@ Generate all line items, total estimate, three financing options, and patient su
     return { statusCode: 500, body: JSON.stringify({ error: 'AI service error' }) };
   }
 };
+
+export const handler = withCors(handlerImpl);

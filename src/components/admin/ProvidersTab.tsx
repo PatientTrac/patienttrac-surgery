@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { ToggleLeft, ToggleRight, UserCheck, UserX, BadgeCheck, Phone, Mail, Building2 } from 'lucide-react';
 
