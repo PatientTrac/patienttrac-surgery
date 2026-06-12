@@ -12,6 +12,10 @@ import {
   Calculator, ShieldCheck,
 } from 'lucide-react';
 
+// Lazy: fabric.js canvas + anatomy templates only load when the
+// surgeon opens the drawing tool.
+const SurgicalDrawingTool = React.lazy(() => import('../SurgicalDrawingTool'));
+
 // ── Props ────────────────────────────────────────────────────────
 interface Props {
   patientId: string | number;
@@ -288,7 +292,7 @@ function DrawingPlaceholder() {
         Surgical Drawing Tool
       </div>
       <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>
-        Drawing tool integration point — attach SurgicalDrawingTool component here
+        Mark the operative site on anatomical templates or patient photos.
       </div>
     </div>
   );
@@ -387,6 +391,7 @@ function Checkbox({ checked, onChange, label }: { checked: boolean; onChange: (v
 // ══════════════════════════════════════════════════════════════════
 export default function PreOpModule({ patientId, encounterId, orgId, onComplete }: Props) {
   const [data, setData] = useState<PreOpData>(defaultPreOpData());
+  const [showDrawing, setShowDrawing] = useState(false);
   const [open, setOpen] = useState<Record<string, boolean>>({
     assessment: true, risk: false, clearance: false, siteMarking: false, checklist: false,
   });
@@ -1177,7 +1182,17 @@ export default function PreOpModule({ patientId, encounterId, orgId, onComplete 
           Surgical site marking must be completed per Joint Commission Universal Protocol requirements. Mark the operative site with patient awake and involved.
         </div>
 
-        <DrawingPlaceholder />
+        {showDrawing ? (
+          <React.Suspense fallback={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: 'rgba(201,169,110,0.6)', fontSize: 13 }}>
+              Loading drawing tool…
+            </div>
+          }>
+            <SurgicalDrawingTool patientId={String(patientId)} encounterId={String(encounterId)} orgId={orgId} />
+          </React.Suspense>
+        ) : (
+          <DrawingPlaceholder />
+        )}
 
         <div style={{ marginTop: 14 }}>
           <button
@@ -1189,15 +1204,12 @@ export default function PreOpModule({ patientId, encounterId, orgId, onComplete 
               color: '#c9a96e', fontSize: 13, fontWeight: 600,
               cursor: 'pointer',
             }}
-            onClick={() => {
-              // Integrators should replace this with navigation or modal open to SurgicalDrawingTool
-              alert('Open drawing tool — attach SurgicalDrawingTool component or navigate to drawing view');
-            }}
+            onClick={() => setShowDrawing(s => !s)}
           >
-            <PenLine size={14} /> Open Drawing Tool
+            <PenLine size={14} /> {showDrawing ? 'Hide Drawing Tool' : 'Open Drawing Tool'}
           </button>
           <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, marginLeft: 12 }}>
-            Use the iPad drawing tool to annotate the operative site directly on patient anatomy photos.
+            Annotate anatomical templates or patient photos — Apple Pencil supported.
           </span>
         </div>
 
