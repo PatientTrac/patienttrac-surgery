@@ -11,6 +11,9 @@ import {
   ClipboardList, Activity, FlaskConical, CheckSquare, Square,
   FileText, Stethoscope,
 } from 'lucide-react';
+import TimeOutChecklist from './TimeOutChecklist';
+import MARPanel from './MARPanel';
+import ImplantPanel from './ImplantPanel';
 
 // ── Props ────────────────────────────────────────────────────────
 interface Props {
@@ -774,6 +777,9 @@ const OperativeModule: React.FC<Props> = ({ patientId, encounterId, orgId, onSav
         </div>
       )}
 
+      {/* Universal Protocol time-out — gates the case before incision */}
+      <TimeOutChecklist caseId={Number(patientId) || null} orgId={orgId} />
+
       {/* Two-column layout */}
       <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, alignItems: 'start' }}>
 
@@ -1315,6 +1321,10 @@ const OperativeModule: React.FC<Props> = ({ patientId, encounterId, orgId, onSav
 
         </div>
       </div>
+
+      {/* Intra-op clinical records on the shared case spine */}
+      <MARPanel caseId={Number(patientId) || null} orgId={orgId} />
+      <ImplantPanel caseId={Number(patientId) || null} orgId={orgId} />
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

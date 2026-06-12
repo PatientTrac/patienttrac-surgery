@@ -11,6 +11,7 @@ import {
   Stethoscope, CheckSquare, Square, Plus, Trash2,
   Calendar, FlaskConical, ShieldAlert, Bell,
 } from 'lucide-react';
+import MARPanel from './MARPanel';
 
 // ── Props ────────────────────────────────────────────────────────
 interface Props {
@@ -1463,6 +1464,9 @@ export default function PostOpModule({ patientId, encounterId, orgId, procedure 
             : <><Save size={15} /> Save Post-Op Documentation</>}
         </button>
       </div>
+
+      {/* Recovery-phase MAR — same shared case spine the OR app reads */}
+      <MARPanel caseId={Number(patientId) || null} orgId={orgId} />
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
