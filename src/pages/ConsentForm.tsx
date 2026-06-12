@@ -533,10 +533,13 @@ export default function ConsentForm() {
 
         {/* Validation hint */}
         {!canSubmit && (
-          <div style={{ background: '#fef9ee', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e' }}>
-            {!agreedToProcedure || !agreedToRisks
-              ? '⚠ Please agree to the procedure and risks (required) before signing.'
-              : '⚠ Please provide your signature above.'}
+          <div style={{ background: '#fef9ee', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+            <span>
+              {!agreedToProcedure || !agreedToRisks
+                ? 'Please agree to the procedure and risks (required) before signing.'
+                : 'Please provide your signature above.'}
+            </span>
           </div>
         )}
 

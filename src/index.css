@@ -8,7 +8,7 @@ body {
 }
 :root {
   --font-sans: "DM Sans", system-ui, sans-serif;
-  --font-rajdhani: "Rajdhani", system-ui, sans-serif;
+  --font-rajdhani: "DM Sans", system-ui, sans-serif; /* retired Rajdhani — institutional type only */
   --color-navy: #060e1c;
   --color-navy-deep: #0a1628;
   --color-gold: #c9a96e;

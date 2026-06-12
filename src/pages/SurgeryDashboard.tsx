@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useAppStore } from '../lib/store'
 import { supabase } from '../lib/supabase'
+import { STAGE_ICONS, MODULE_MARKS } from '../components/surgery/MedicalIcons'
 
 const PreOpModule    = lazy(() => import('../components/surgery/PreOpModule'))
 const OperativeModule = lazy(() => import('../components/surgery/OperativeModule'))
@@ -246,12 +247,21 @@ function PatientDrawer({ patient, orgId, onClose }: {
           background: '#060e1c', borderBottom: `1px solid rgba(201,169,110,0.15)`,
           padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.text, fontFamily: 'Rajdhani,sans-serif' }}>
-              {patient.name}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(201,169,110,0.08)', border: '1px solid rgba(201,169,110,0.25)', borderRadius: 6,
+              color: C.gold,
+            }}>
+              {MODULE_MARKS[patient.stage]({ size: 26 })}
             </div>
-            <div style={{ fontSize: 11, color: C.muted, fontFamily: 'DM Mono,monospace', marginTop: 2 }}>
-              {patient.procedure} · {patient.surgeon} · {stageLabel(patient.stage).toUpperCase()}
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.text, fontFamily: "'DM Sans',sans-serif" }}>
+                {patient.name}
+              </div>
+              <div style={{ fontSize: 11, color: C.muted, fontFamily: 'DM Mono,monospace', marginTop: 2 }}>
+                {patient.procedure} · {patient.surgeon} · {stageLabel(patient.stage).toUpperCase()}
+              </div>
             </div>
           </div>
           <button
@@ -331,7 +341,7 @@ function PatientFlowCard({ patient, onClick }: { patient: PatientCard; onClick: 
         </div>
       )}
 
-      <div style={{ fontSize:13, fontWeight:600, color:C.text, fontFamily:'Rajdhani,sans-serif', letterSpacing:'0.02em', paddingRight: patient.urgency !== 'routine' ? 50 : 0 }}>
+      <div style={{ fontSize:13, fontWeight:600, color:C.text, fontFamily:"'DM Sans',sans-serif", letterSpacing:'0.02em', paddingRight: patient.urgency !== 'routine' ? 50 : 0 }}>
         {patient.name}
       </div>
       <div style={{ fontSize:11, color:C.muted, marginTop:3, lineHeight:1.4 }}>
@@ -366,8 +376,11 @@ function FlowLane({ stage, patients, onClick }: { stage: FlowStage; patients: Pa
         borderTop: `2px solid ${accent.color}`,
         marginBottom:8,
       }}>
-        <div style={{ fontSize:11, fontFamily:'DM Mono,monospace', color:accent.color, letterSpacing:'0.1em', textTransform:'uppercase', fontWeight:600 }}>
-          {stageLabel(stage)}
+        <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+          {STAGE_ICONS[stage]({ size: 15, color: accent.color })}
+          <span style={{ fontSize:11, fontFamily:'DM Mono,monospace', color:accent.color, letterSpacing:'0.1em', textTransform:'uppercase', fontWeight:600 }}>
+            {stageLabel(stage)}
+          </span>
         </div>
         <div style={{ fontSize:12, fontFamily:'DM Mono,monospace', color:accent.color, background:`rgba(0,0,0,0.3)`, padding:'1px 8px', borderRadius:2 }}>
           {patients.length}
@@ -552,7 +565,7 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
               <rect x="13" y="2" width="6" height="28" rx="2" fill={C.gold} opacity="0.9"/>
               <rect x="2" y="13" width="28" height="6" rx="2" fill={C.gold} opacity="0.9"/>
             </svg>
-            <span style={{ fontFamily:'Rajdhani,sans-serif', fontSize:20, fontWeight:700, letterSpacing:'0.06em', color:C.gold }}>
+            <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:20, fontWeight:700, letterSpacing:'0.06em', color:C.gold }}>
               PatientTrac Surgery
             </span>
           </div>
@@ -609,7 +622,7 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
               {label}
             </div>
             <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
-              <span style={{ fontSize:28, fontWeight:700, fontFamily:'Rajdhani,sans-serif', color, lineHeight:1 }}>
+              <span style={{ fontSize:28, fontWeight:700, fontFamily:"'DM Sans',sans-serif", color, lineHeight:1 }}>
                 {value}
               </span>
               {unit && (
@@ -739,7 +752,7 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
                     onMouseLeave={e => (e.currentTarget.style.background = C.bg)}
                   >
                     <div>
-                      <div style={{ fontSize:13, fontWeight:500, color:C.text, fontFamily:'Rajdhani,sans-serif' }}>{c.patient}</div>
+                      <div style={{ fontSize:13, fontWeight:500, color:C.text, fontFamily:"'DM Sans',sans-serif" }}>{c.patient}</div>
                       <div style={{ fontSize:10, color:C.dim, fontFamily:'DM Mono,monospace' }}>{c.completedAt}</div>
                     </div>
                     <div style={{ fontSize:12, color:C.muted, paddingRight:12 }}>{c.procedure}</div>
@@ -814,7 +827,7 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
                       {c.room}
                     </div>
                     <div>
-                      <div style={{ fontSize:13, color:C.text, fontFamily:'Rajdhani,sans-serif', fontWeight:500 }}>{c.procedure}</div>
+                      <div style={{ fontSize:13, color:C.text, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{c.procedure}</div>
                       <div style={{ fontSize:10, color:C.dim, fontFamily:'DM Mono,monospace', marginTop:2 }}>{fmtDuration(c.duration)}</div>
                     </div>
                     <div style={{ fontSize:13, color:C.muted }}>{c.patient}</div>
@@ -855,7 +868,7 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
                     gap:6,
                   }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                      <div style={{ fontSize:14, fontFamily:'Rajdhani,sans-serif', fontWeight:600, color:C.text }}>{c.patient}</div>
+                      <div style={{ fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:600, color:C.text }}>{c.patient}</div>
                       <span style={{
                         fontSize:9, fontFamily:'DM Mono,monospace',
                         color: outcomeColor(c.outcome),

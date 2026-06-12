@@ -104,14 +104,14 @@ export default function SurgeryLogin({ onAuthenticated }: Props) {
 
   const handleTotpInput = (val: string, setter: (v: string) => void) => setter(val.replace(/\D/g, '').slice(0, 6))
 
-  // Accent color: clinical blue-green #00d4ff (replaces Revela gold #c9a96e)
-  const A = '#00d4ff'
-  const Adim = 'rgba(0,212,255,0.7)'
-  const Afaint = 'rgba(0,212,255,0.3)'
-  const Aborder = 'rgba(0,212,255,0.2)'
-  const Abg = 'rgba(0,212,255,0.08)'
-  const AborderActive = 'rgba(0,212,255,0.5)'
-  const AbgActive = 'rgba(0,212,255,0.15)'
+  // Accent: institutional gold — matches the dashboard design system
+  const A = '#c9a96e'
+  const Adim = 'rgba(201,169,110,0.7)'
+  const Afaint = 'rgba(201,169,110,0.3)'
+  const Aborder = 'rgba(201,169,110,0.2)'
+  const Abg = 'rgba(201,169,110,0.08)'
+  const AborderActive = 'rgba(201,169,110,0.5)'
+  const AbgActive = 'rgba(201,169,110,0.15)'
 
   const S = {
     page: { minHeight: '100vh', background: '#060e1c', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' } as React.CSSProperties,

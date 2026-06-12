@@ -465,7 +465,7 @@ export default function ProposalBuilder({ orgId, encounterId, procedureNamePrese
                           </div>
                         )}
                         {opt.discountApplied && (
-                          <div style={{ color: '#2ecc71', fontSize: 10, marginTop: 3, fontWeight: 600 }}>✓ 5% courtesy discount</div>
+                          <div style={{ color: '#2ecc71', fontSize: 10, marginTop: 3, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={11} /> 5% courtesy discount</div>
                         )}
                       </button>
                     ))}
@@ -512,7 +512,7 @@ export default function ProposalBuilder({ orgId, encounterId, procedureNamePrese
               </div>
             </div>
             {sendError && <p style={{ color: '#e74c3c', fontSize: 12, marginTop: 8 }}>{sendError}</p>}
-            {sentSuccess && <p style={{ color: '#2ecc71', fontSize: 12, marginTop: 8 }}>✓ Proposal email sent successfully</p>}
+            {sentSuccess && <p style={{ color: '#2ecc71', fontSize: 12, marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}><Check size={13} /> Proposal email sent successfully</p>}
           </>
         )}
       </div>
