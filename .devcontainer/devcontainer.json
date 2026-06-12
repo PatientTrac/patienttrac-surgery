@@ -1,0 +1,14 @@
+{
+  "name": "patienttrac-surgery",
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "PatientTrac/patienttrac-or": {
+          "permissions": {
+            "contents": "write"
+          }
+        }
+      }
+    }
+  }
+}
