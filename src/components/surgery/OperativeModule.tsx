@@ -14,6 +14,7 @@ import {
 import TimeOutChecklist from './TimeOutChecklist';
 import MARPanel from './MARPanel';
 import ImplantPanel from './ImplantPanel';
+import AnesthesiaRecord from './AnesthesiaRecord';
 
 // ── Props ────────────────────────────────────────────────────────
 interface Props {
@@ -1323,6 +1324,7 @@ const OperativeModule: React.FC<Props> = ({ patientId, encounterId, orgId, onSav
       </div>
 
       {/* Intra-op clinical records on the shared case spine */}
+      <AnesthesiaRecord caseId={Number(patientId) || null} patientId={patientId} encounterId={encounterId} orgId={orgId} />
       <MARPanel caseId={Number(patientId) || null} orgId={orgId} />
       <ImplantPanel caseId={Number(patientId) || null} orgId={orgId} />
 

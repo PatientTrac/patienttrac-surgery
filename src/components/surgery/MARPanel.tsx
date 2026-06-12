@@ -5,7 +5,7 @@
 // ================================================================
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pill, Plus, Loader2 } from 'lucide-react';
+import { Pill, Plus, Loader2, Sparkles, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const C = {
@@ -27,10 +27,17 @@ interface MarRow {
   indication: string | null;
 }
 
+interface Interaction {
+  drug1: string; drug2: string; severity: string;
+  clinical_effect: string; perioperative_relevance: string; management: string;
+}
+
 interface Props {
   caseId: number | null;
   orgId: string;
 }
+
+const SEV_COLOR: Record<string, string> = { major: '#ef4444', moderate: '#f59e0b', minor: '#8a9bc0' };
 
 export default function MARPanel({ caseId, orgId }: Props) {
   const [rows, setRows] = useState<MarRow[]>([]);
@@ -38,6 +45,32 @@ export default function MARPanel({ caseId, orgId }: Props) {
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
   const [form, setForm] = useState({ medication_name: '', dose: '', dose_unit: 'mg', route: 'IV', indication: '' });
+  const [checking, setChecking] = useState(false);
+  const [interactions, setInteractions] = useState<Interaction[] | null>(null);
+
+  const checkInteractions = useCallback(async () => {
+    if (rows.length < 2) return;
+    setChecking(true); setErr('');
+    try {
+      const res = await fetch('/.netlify/functions/ai-drug-interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          medications: rows.map(r => `${r.medication_name} ${r.dose}${r.dose_unit} ${r.route}`),
+          clinicalContext: 'Perioperative — surgical case in progress',
+        }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error ?? `Server error ${res.status}`);
+      }
+      const data = await res.json();
+      setInteractions(data.interactions ?? []);
+    } catch (e: any) {
+      setErr(e.message ?? 'Interaction check failed');
+    }
+    setChecking(false);
+  }, [rows]);
 
   const load = useCallback(async () => {
     if (!caseId) return;
@@ -95,15 +128,65 @@ export default function MARPanel({ caseId, orgId }: Props) {
         <Pill size={17} color={C.gold} />
         <span style={{ color: C.text, fontSize: 14, fontWeight: 700 }}>Medication Administration Record</span>
         <span style={{ color: C.dim, fontSize: 11 }}>{rows.length} entr{rows.length === 1 ? 'y' : 'ies'}</span>
-        <button onClick={() => setAdding(a => !a)}
-          style={{
-            marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '6px 14px', borderRadius: 7, border: '1px solid rgba(201,169,110,0.3)',
-            background: 'rgba(201,169,110,0.1)', color: C.gold, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-          }}>
-          <Plus size={13} /> {adding ? 'Cancel' : 'Record dose'}
-        </button>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          {rows.length >= 2 && (
+            <button onClick={checkInteractions} disabled={checking}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 14px', borderRadius: 7, border: '1px solid rgba(201,169,110,0.3)',
+                background: 'rgba(201,169,110,0.06)', color: C.gold, fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', opacity: checking ? 0.6 : 1,
+              }}>
+              {checking ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
+              Check interactions
+            </button>
+          )}
+          <button onClick={() => setAdding(a => !a)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', borderRadius: 7, border: '1px solid rgba(201,169,110,0.3)',
+              background: 'rgba(201,169,110,0.1)', color: C.gold, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            }}>
+            <Plus size={13} /> {adding ? 'Cancel' : 'Record dose'}
+          </button>
+        </div>
       </div>
+
+      {interactions !== null && (
+        interactions.length === 0 ? (
+          <div style={{ color: '#4ade80', fontSize: 12, marginBottom: 10 }}>
+            No significant interactions identified among recorded medications.
+          </div>
+        ) : (
+          <div style={{ marginBottom: 12 }}>
+            {interactions.map((ix, i) => (
+              <div key={i} style={{
+                border: `1px solid ${(SEV_COLOR[ix.severity] ?? C.dim)}55`,
+                background: `${SEV_COLOR[ix.severity] ?? C.dim}11`,
+                borderRadius: 8, padding: '8px 12px', marginBottom: 6,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                  <AlertTriangle size={13} color={SEV_COLOR[ix.severity] ?? C.muted} />
+                  <span style={{ color: C.text, fontSize: 12.5, fontWeight: 700 }}>
+                    {ix.drug1} + {ix.drug2}
+                  </span>
+                  <span style={{ color: SEV_COLOR[ix.severity] ?? C.muted, fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase' }}>
+                    {ix.severity}
+                  </span>
+                </div>
+                <div style={{ color: C.muted, fontSize: 12 }}>
+                  {ix.clinical_effect} {ix.perioperative_relevance && `· ${ix.perioperative_relevance}`}
+                </div>
+                {ix.management && (
+                  <div style={{ color: C.text, fontSize: 12, marginTop: 2 }}>
+                    <strong style={{ color: C.gold }}>Management:</strong> {ix.management}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      )}
 
       {adding && (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12, alignItems: 'center' }}>

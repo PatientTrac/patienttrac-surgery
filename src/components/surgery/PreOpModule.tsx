@@ -15,6 +15,7 @@ import {
 // Lazy: fabric.js canvas + anatomy templates only load when the
 // surgeon opens the drawing tool.
 const SurgicalDrawingTool = React.lazy(() => import('../SurgicalDrawingTool'));
+import AIRiskAssessment from './AIRiskAssessment';
 
 // ── Props ────────────────────────────────────────────────────────
 interface Props {
@@ -965,6 +966,18 @@ export default function PreOpModule({ patientId, encounterId, orgId, onComplete 
             />
           ))}
         </div>
+
+        {/* AI augmentation over the calculated scores */}
+        <AIRiskAssessment
+          clinicalParams={{
+            asaClass: data.risk.asaClass,
+            heightCm: data.risk.heightCm,
+            weightKg: data.risk.weightKg,
+            procedureRiskCategory: data.risk.procedureType,
+          }}
+          calculatedScores={{ capriniFactors: data.risk.caprini }}
+          specialty="general_surgery"
+        />
       </AccordionPanel>
 
       {/* ══════════════════════════════════════════════════════════
