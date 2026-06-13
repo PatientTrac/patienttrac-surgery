@@ -12,6 +12,37 @@ interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
+// Cross-app handoff: Forge/OR open this app with ?token= (single-use session
+// token). Stash it pre-auth; once a session exists, resolve it to patient/
+// encounter context for the modules.
+function captureCrossAppToken() {
+  const params = new URLSearchParams(window.location.search)
+  const token = params.get('token')
+  if (token) {
+    sessionStorage.setItem('pt-surg:pending-token', token)
+    const url = new URL(window.location.href)
+    url.searchParams.delete('token')
+    window.history.replaceState({}, '', url.toString())
+  }
+}
+
+async function resolveCrossAppToken() {
+  const token = sessionStorage.getItem('pt-surg:pending-token')
+  if (!token) return
+  sessionStorage.removeItem('pt-surg:pending-token')
+  const { data, error } = await supabase.rpc('validate_cross_app_token', { p_token: token })
+  if (!error && data?.valid) {
+    sessionStorage.setItem('pt-surg:encounter-context', JSON.stringify({
+      org_id: data.org_id,
+      patient_id: data.patient_id ?? null,
+      encounter_id: data.encounter_id ?? null,
+      provider_id: data.provider_id ?? null,
+      source_app: data.source_app ?? null,
+      patient: data.patient ?? null,
+    }))
+  }
+}
+
 function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate()
   const setSession = useAppStore(s => s.setSession)
@@ -25,6 +56,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (member?.org_id) {
       setSession({ org_id: member.org_id, provider_id: userId, access_token: undefined })
     }
+    await resolveCrossAppToken()
   }
 
   useEffect(() => {
@@ -112,6 +144,8 @@ function LoginRoute() {
 }
 
 // ── App routes ────────────────────────────────────────────────
+captureCrossAppToken()
+
 export default function App() {
   return (
     <Routes>
