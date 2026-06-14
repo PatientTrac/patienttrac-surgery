@@ -355,17 +355,27 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-function PatientFlowCard({ patient, onClick }: { patient: PatientCard; onClick: () => void }) {
+function PatientFlowCard({ patient, onClick, onDragStart, onDragEnd, dragging }: {
+  patient: PatientCard
+  onClick: () => void
+  onDragStart: () => void
+  onDragEnd: () => void
+  dragging: boolean
+}) {
   const accent = stageAccent(patient.stage)
   return (
     <div
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       onClick={onClick}
       style={{
         background: C.card,
         border: `1px solid ${C.goldBorder}`,
         padding: '12px 14px',
-        cursor: 'pointer',
-        transition: 'border-color 0.15s',
+        cursor: 'grab',
+        transition: 'border-color 0.15s, opacity 0.15s',
+        opacity: dragging ? 0.4 : 1,
         minWidth: 0,
         position: 'relative',
         borderLeft: `3px solid ${accent.color}`,
@@ -409,10 +419,26 @@ function PatientFlowCard({ patient, onClick }: { patient: PatientCard; onClick: 
   )
 }
 
-function FlowLane({ stage, patients, onClick }: { stage: FlowStage; patients: PatientCard[]; onClick: (p: PatientCard) => void }) {
+function FlowLane({ stage, patients, onClick, draggingId, isDropTarget, onCardDragStart, onCardDragEnd, onLaneDragOver, onLaneDragLeave, onLaneDrop }: {
+  stage: FlowStage
+  patients: PatientCard[]
+  onClick: (p: PatientCard) => void
+  draggingId: string | null
+  isDropTarget: boolean
+  onCardDragStart: (p: PatientCard) => void
+  onCardDragEnd: () => void
+  onLaneDragOver: () => void
+  onLaneDragLeave: () => void
+  onLaneDrop: () => void
+}) {
   const accent = stageAccent(stage)
   return (
-    <div style={{ flex:1, minWidth:160, display:'flex', flexDirection:'column' }}>
+    <div
+      onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; onLaneDragOver() }}
+      onDragLeave={onLaneDragLeave}
+      onDrop={e => { e.preventDefault(); onLaneDrop() }}
+      style={{ flex:1, minWidth:160, display:'flex', flexDirection:'column' }}
+    >
       {/* Lane header */}
       <div style={{
         display:'flex', alignItems:'center', justifyContent:'space-between',
@@ -432,15 +458,27 @@ function FlowLane({ stage, patients, onClick }: { stage: FlowStage; patients: Pa
         </div>
       </div>
 
-      {/* Cards */}
-      <div style={{ display:'flex', flexDirection:'column', gap:8, flex:1 }}>
+      {/* Cards — also the drop zone (highlights when a card hovers a new lane) */}
+      <div style={{
+        display:'flex', flexDirection:'column', gap:8, flex:1, padding:4,
+        border: isDropTarget ? `1px dashed ${C.gold}` : '1px solid transparent',
+        background: isDropTarget ? 'rgba(201,169,110,0.05)' : 'transparent',
+        transition: 'background 0.12s, border-color 0.12s',
+      }}>
         {patients.length === 0 ? (
-          <div style={{ padding:'20px 12px', textAlign:'center', color:C.dim, fontSize:11, fontFamily:'DM Mono,monospace', border:`1px dashed rgba(58,74,106,0.3)` }}>
-            EMPTY
+          <div style={{ padding:'20px 12px', textAlign:'center', color: isDropTarget ? C.gold : C.dim, fontSize:11, fontFamily:'DM Mono,monospace', border:`1px dashed rgba(58,74,106,0.3)` }}>
+            {isDropTarget ? 'DROP HERE' : 'EMPTY'}
           </div>
         ) : (
           patients.map(p => (
-            <PatientFlowCard key={p.id} patient={p} onClick={() => onClick(p)} />
+            <PatientFlowCard
+              key={p.id}
+              patient={p}
+              onClick={() => onClick(p)}
+              onDragStart={() => onCardDragStart(p)}
+              onDragEnd={onCardDragEnd}
+              dragging={draggingId === p.id}
+            />
           ))
         )}
       </div>
@@ -688,9 +726,34 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
 
   const [advancing, setAdvancing] = useState(false)
   const [showNewCase, setShowNewCase] = useState(false)
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dragOverStage, setDragOverStage] = useState<FlowStage | null>(null)
 
   const handlePatientClick = (p: PatientCard) => {
     setDrawerPatient(p)
+  }
+
+  // Single move path used by both the drawer buttons and drag-and-drop. The DB
+  // state machine accepts any target stage, so a drag across several lanes is
+  // one call. Optimistically reflects on the board + open drawer; realtime and
+  // the loadData refetch reconcile (and surface any server rejection).
+  const moveCaseToStage = async (patient: PatientCard, toStage: FlowStage) => {
+    if (patient.stage === toStage || advancing) return
+    setAdvancing(true)
+    const { error } = await supabase.rpc('advance_case_stage', {
+      p_case_id: Number(patient.id),
+      p_to_stage: toStage,
+    })
+    setAdvancing(false)
+    if (error) {
+      console.error('advance_case_stage error:', error)
+      setToast(`Could not move ${patient.name} — ${error.message}`)
+      return
+    }
+    setPatients(ps => ps.map(p => (p.id === patient.id ? { ...p, stage: toStage, timeInStage: 0 } : p)))
+    setDrawerPatient(p => (p && p.id === patient.id ? { ...p, stage: toStage } : p))
+    setToast(`${patient.name} → ${stageLabel(toStage)}`)
+    loadData(orgId)
   }
 
   // Book a new case onto the shared spine. Attribution + case number are
@@ -719,29 +782,20 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
     return true
   }
 
-  // Move a case along the shared spine via the DB state machine. Timing,
-  // status and attribution are all resolved server-side; we just name the
-  // target stage. Realtime refreshes the board, but we also reflect the new
-  // stage in the open drawer immediately (so the right module swaps in) and
-  // re-fetch as a fallback for environments where realtime is unavailable.
-  const advanceCase = async (toStage: FlowStage) => {
-    const current = drawerPatient
-    if (!current || advancing) return
-    setAdvancing(true)
-    const { error } = await supabase.rpc('advance_case_stage', {
-      p_case_id: Number(current.id),
-      p_to_stage: toStage,
-    })
-    setAdvancing(false)
-    if (error) {
-      console.error('advance_case_stage error:', error)
-      setToast(`Could not move ${current.name} — ${error.message}`)
-      return
-    }
-    setDrawerPatient(p => (p && p.id === current.id ? { ...p, stage: toStage } : p))
-    setToast(`${current.name} → ${stageLabel(toStage)}`)
-    loadData(orgId)
+  const advanceCase = (toStage: FlowStage) => {
+    if (drawerPatient) moveCaseToStage(drawerPatient, toStage)
   }
+
+  const handleDropOnStage = (stage: FlowStage) => {
+    const id = dragId
+    setDragId(null)
+    setDragOverStage(null)
+    if (!id) return
+    const p = patients.find(x => x.id === id)
+    if (p) moveCaseToStage(p, stage)
+  }
+
+  const draggingStage = dragId ? patients.find(p => p.id === dragId)?.stage ?? null : null
 
   const patientsByStage = (stage: FlowStage) => patients.filter(p => p.stage === stage)
 
@@ -891,7 +945,10 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
         {activeView === 'board' && (
           <>
             {/* Patient Flow Board */}
-            <SectionLabel>Patient Flow — {patients.length} Patients Active</SectionLabel>
+            <SectionLabel>
+              Patient Flow — {patients.length} Patients Active
+              {patients.length > 0 && <span style={{ color: C.dim, textTransform: 'none', letterSpacing: 0 }}> · drag a card to change stage</span>}
+            </SectionLabel>
 
             {patients.length === 0 && !loading && (
               <div style={{
@@ -932,6 +989,13 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
                   stage={stage}
                   patients={patientsByStage(stage)}
                   onClick={handlePatientClick}
+                  draggingId={dragId}
+                  isDropTarget={dragOverStage === stage && dragId !== null && draggingStage !== stage}
+                  onCardDragStart={p => setDragId(p.id)}
+                  onCardDragEnd={() => { setDragId(null); setDragOverStage(null) }}
+                  onLaneDragOver={() => setDragOverStage(stage)}
+                  onLaneDragLeave={() => setDragOverStage(s => (s === stage ? null : s))}
+                  onLaneDrop={() => handleDropOnStage(stage)}
                 />
               ))}
             </div>
