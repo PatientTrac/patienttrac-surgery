@@ -146,6 +146,19 @@ function stageLabel(s: FlowStage): string {
   return map[s]
 }
 
+// Ordered flow of the unified case spine. The DB state machine
+// (public.advance_case_stage) accepts any of these as a target; the UI walks
+// one step at a time, forward or — for corrections — back.
+const STAGE_FLOW: FlowStage[] = ['preop', 'inor', 'pacu', 'ward', 'discharge']
+function nextStage(s: FlowStage): FlowStage | null {
+  const i = STAGE_FLOW.indexOf(s)
+  return i >= 0 && i < STAGE_FLOW.length - 1 ? STAGE_FLOW[i + 1] : null
+}
+function prevStage(s: FlowStage): FlowStage | null {
+  const i = STAGE_FLOW.indexOf(s)
+  return i > 0 ? STAGE_FLOW[i - 1] : null
+}
+
 function statusColor(s: ScheduledCase['status']): string {
   const map = { scheduled: '#8a9bc0', in_progress: '#4ade80', completed: '#3a4a6a', delayed: '#f59e0b' }
   return map[s]
@@ -202,12 +215,17 @@ function stageAccent(s: FlowStage): { color: string; bg: string } {
 }
 
 // ── Drawer ─────────────────────────────────────────────────────────────────
-function PatientDrawer({ patient, orgId, onClose }: {
+function PatientDrawer({ patient, orgId, onClose, onAdvance, advancing }: {
   patient: PatientCard | null
   orgId: string
   onClose: () => void
+  onAdvance: (toStage: FlowStage) => void
+  advancing: boolean
 }) {
   if (!patient) return null
+
+  const next = nextStage(patient.stage)
+  const prev = prevStage(patient.stage)
 
   const moduleForStage = (stage: FlowStage) => {
     if (stage === 'preop')    return <PreOpModule    patientId={patient.id} encounterId={patient.id} orgId={orgId} />
@@ -270,6 +288,37 @@ function PatientDrawer({ patient, orgId, onClose }: {
           >
             ×
           </button>
+        </div>
+
+        {/* Stage progression — drives the shared spine; the OR console sees the
+            same move within ~a second via realtime. */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+          padding: '10px 24px', background: '#081020',
+          borderBottom: `1px solid rgba(201,169,110,0.1)`,
+        }}>
+          <div style={{ fontSize: 10, fontFamily: 'DM Mono,monospace', color: C.dim, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            Stage · <span style={{ color: stageAccent(patient.stage).color }}>{stageLabel(patient.stage)}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {prev && (
+              <button disabled={advancing} onClick={() => onAdvance(prev)} style={stageBtnGhost}>
+                ← {stageLabel(prev)}
+              </button>
+            )}
+            {next ? (
+              <button disabled={advancing} onClick={() => onAdvance(next)} style={stageBtnPrimary}>
+                {advancing ? 'Saving…' : `Advance to ${stageLabel(next)} →`}
+              </button>
+            ) : (
+              <span style={{
+                fontSize: 11, fontFamily: 'DM Mono,monospace', letterSpacing: '0.06em',
+                color: C.ward, background: 'rgba(74,222,128,0.12)', padding: '6px 12px',
+              }}>
+                ✓ Discharged
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Module content */}
@@ -423,6 +472,125 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   )
 }
 
+// ── New Case modal ───────────────────────────────────────────────────────
+function localNowValue(): string {
+  // datetime-local wants 'YYYY-MM-DDTHH:mm' in LOCAL time.
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+interface NewCaseForm {
+  patient_name: string
+  patient_age: string
+  patient_mrn: string
+  procedure_name: string
+  surgeon_name: string
+  or_room: string
+  scheduled_start: string
+  estimated_duration_minutes: string
+  urgency: Urgency
+  anesthesiologist_name: string
+}
+
+function NewCaseModal({ defaultSurgeon, onSubmit, onClose }: {
+  defaultSurgeon: string
+  onSubmit: (form: NewCaseForm) => Promise<boolean>
+  onClose: () => void
+}) {
+  const [form, setForm] = useState<NewCaseForm>({
+    patient_name: '', patient_age: '', patient_mrn: '',
+    procedure_name: '', surgeon_name: defaultSurgeon, or_room: '',
+    scheduled_start: localNowValue(), estimated_duration_minutes: '',
+    urgency: 'routine', anesthesiologist_name: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  const set = <K extends keyof NewCaseForm>(k: K, v: NewCaseForm[K]) => setForm(f => ({ ...f, [k]: v }))
+
+  const submit = async () => {
+    if (!form.patient_name.trim() || !form.procedure_name.trim() || !form.surgeon_name.trim() || !form.or_room.trim()) {
+      setErr('Patient, procedure, surgeon and OR room are required.')
+      return
+    }
+    setErr(null)
+    setSaving(true)
+    const ok = await onSubmit(form)
+    setSaving(false)
+    if (!ok) setErr('Could not book the case — check connection and try again.')
+  }
+
+  const field = (label: string, node: React.ReactNode, req = false) => (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <span style={{ fontSize: 10, fontFamily: 'DM Mono,monospace', color: C.dim, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        {label}{req && <span style={{ color: C.gold }}> *</span>}
+      </span>
+      {node}
+    </label>
+  )
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 300, backdropFilter: 'blur(2px)' }} />
+      <div style={{
+        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 301,
+        width: 'min(620px, 94vw)', maxHeight: '90vh', overflowY: 'auto',
+        background: '#0a1628', border: `1px solid ${C.goldBorder}`, boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+      }}>
+        <div style={{
+          position: 'sticky', top: 0, background: '#0a1628', borderBottom: `1px solid ${C.goldBorder}`,
+          padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.gold, fontFamily: "'DM Sans',sans-serif", letterSpacing: '0.04em' }}>
+            Book New Case
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: C.muted, fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
+        </div>
+
+        <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {field('Patient Name', <input value={form.patient_name} onChange={e => set('patient_name', e.target.value)} style={modalInput} placeholder="Last, First" />, true)}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            {field('Age', <input value={form.patient_age} onChange={e => set('patient_age', e.target.value.replace(/\D/g, ''))} style={modalInput} placeholder="—" inputMode="numeric" />)}
+            {field('MRN', <input value={form.patient_mrn} onChange={e => set('patient_mrn', e.target.value)} style={modalInput} placeholder="optional" />)}
+          </div>
+
+          {field('Procedure', <input value={form.procedure_name} onChange={e => set('procedure_name', e.target.value)} style={modalInput} placeholder="e.g. Laparoscopic Cholecystectomy" />, true)}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            {field('Surgeon', <input value={form.surgeon_name} onChange={e => set('surgeon_name', e.target.value)} style={modalInput} />, true)}
+            {field('OR Room', <input value={form.or_room} onChange={e => set('or_room', e.target.value)} style={modalInput} placeholder="e.g. OR 3" />, true)}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 14 }}>
+            {field('Scheduled Start', <input type="datetime-local" value={form.scheduled_start} onChange={e => set('scheduled_start', e.target.value)} style={modalInput} />, true)}
+            {field('Duration (min)', <input value={form.estimated_duration_minutes} onChange={e => set('estimated_duration_minutes', e.target.value.replace(/\D/g, ''))} style={modalInput} placeholder="—" inputMode="numeric" />)}
+            {field('Urgency', (
+              <select value={form.urgency} onChange={e => set('urgency', e.target.value as Urgency)} style={modalInput}>
+                <option value="routine">Routine</option>
+                <option value="urgent">Urgent</option>
+                <option value="stat">STAT</option>
+              </select>
+            ))}
+          </div>
+
+          {field('Anesthesiologist', <input value={form.anesthesiologist_name} onChange={e => set('anesthesiologist_name', e.target.value)} style={modalInput} placeholder="optional" />)}
+
+          {err && <div style={{ fontSize: 12, color: '#fca5a5', fontFamily: 'DM Mono,monospace' }}>{err}</div>}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
+            <button onClick={onClose} style={stageBtnGhost}>Cancel</button>
+            <button onClick={submit} disabled={saving} style={stageBtnPrimary}>
+              {saving ? 'Booking…' : 'Book Case'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────
 interface Props {
   orgId?: string
@@ -518,11 +686,63 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
     return () => { supabase.removeChannel(channel) }
   }, [orgId, loadData])
 
+  const [advancing, setAdvancing] = useState(false)
+  const [showNewCase, setShowNewCase] = useState(false)
+
   const handlePatientClick = (p: PatientCard) => {
     setDrawerPatient(p)
   }
 
-  const stageOrder: FlowStage[] = ['preop', 'inor', 'pacu', 'ward', 'discharge']
+  // Book a new case onto the shared spine. Attribution + case number are
+  // resolved server-side by the RPC; the new case lands in Pre-Op and appears
+  // on the board (and the OR app) via the realtime refetch below.
+  const bookCase = async (form: NewCaseForm): Promise<boolean> => {
+    const { error } = await supabase.rpc('book_case', {
+      p_patient_name: form.patient_name.trim(),
+      p_procedure_name: form.procedure_name.trim(),
+      p_surgeon_name: form.surgeon_name.trim(),
+      p_or_room: form.or_room.trim(),
+      p_scheduled_start: form.scheduled_start ? new Date(form.scheduled_start).toISOString() : null,
+      p_urgency: form.urgency,
+      p_patient_age: form.patient_age ? Number(form.patient_age) : null,
+      p_patient_mrn: form.patient_mrn.trim() || null,
+      p_estimated_duration_minutes: form.estimated_duration_minutes ? Number(form.estimated_duration_minutes) : null,
+      p_anesthesiologist_name: form.anesthesiologist_name.trim() || null,
+    })
+    if (error) {
+      console.error('book_case error:', error)
+      return false
+    }
+    setShowNewCase(false)
+    setToast(`Case booked — ${form.patient_name.trim()}`)
+    loadData(orgId)
+    return true
+  }
+
+  // Move a case along the shared spine via the DB state machine. Timing,
+  // status and attribution are all resolved server-side; we just name the
+  // target stage. Realtime refreshes the board, but we also reflect the new
+  // stage in the open drawer immediately (so the right module swaps in) and
+  // re-fetch as a fallback for environments where realtime is unavailable.
+  const advanceCase = async (toStage: FlowStage) => {
+    const current = drawerPatient
+    if (!current || advancing) return
+    setAdvancing(true)
+    const { error } = await supabase.rpc('advance_case_stage', {
+      p_case_id: Number(current.id),
+      p_to_stage: toStage,
+    })
+    setAdvancing(false)
+    if (error) {
+      console.error('advance_case_stage error:', error)
+      setToast(`Could not move ${current.name} — ${error.message}`)
+      return
+    }
+    setDrawerPatient(p => (p && p.id === current.id ? { ...p, stage: toStage } : p))
+    setToast(`${current.name} → ${stageLabel(toStage)}`)
+    loadData(orgId)
+  }
+
   const patientsByStage = (stage: FlowStage) => patients.filter(p => p.stage === stage)
 
   if (loading) return <Spinner />
@@ -582,6 +802,9 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
           <div style={{ fontSize:12, color:C.muted, fontFamily:'DM Mono,monospace' }}>
             {providerName}
           </div>
+          <button onClick={() => setShowNewCase(true)} style={{ ...headerBtnStyle, color:C.gold, borderColor:'rgba(201,169,110,0.4)', background:'rgba(201,169,110,0.14)' }}>
+            + New Case
+          </button>
           {onNavigateSettings && (
             <button onClick={onNavigateSettings} style={headerBtnStyle}>
               Settings
@@ -690,6 +913,9 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
                   No cases scheduled for today.<br/>
                   <span style={{ fontSize: 11, color: C.dim }}>Cases booked here or on the OR board will appear in real time.</span>
                 </div>
+                <button onClick={() => setShowNewCase(true)} style={{ ...stageBtnPrimary, padding: '9px 18px' }}>
+                  + Book a Case
+                </button>
               </div>
             )}
 
@@ -700,7 +926,7 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
               paddingBottom:8,
               minHeight: patients.length > 0 ? 320 : 0,
             }}>
-              {patients.length > 0 && stageOrder.map(stage => (
+              {patients.length > 0 && STAGE_FLOW.map(stage => (
                 <FlowLane
                   key={stage}
                   stage={stage}
@@ -898,7 +1124,18 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
         patient={drawerPatient}
         orgId={orgId}
         onClose={() => setDrawerPatient(null)}
+        onAdvance={advanceCase}
+        advancing={advancing}
       />
+
+      {/* ── New Case modal ───────────────────────────────────────────────── */}
+      {showNewCase && (
+        <NewCaseModal
+          defaultSurgeon={providerName}
+          onSubmit={bookCase}
+          onClose={() => setShowNewCase(false)}
+        />
+      )}
     </div>
   )
 }
@@ -914,4 +1151,37 @@ const headerBtnStyle: React.CSSProperties = {
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
   cursor: 'pointer',
+}
+
+const stageBtnPrimary: React.CSSProperties = {
+  background: 'rgba(201,169,110,0.14)',
+  color: C.gold,
+  border: '1px solid rgba(201,169,110,0.4)',
+  padding: '7px 16px',
+  fontSize: 11,
+  fontFamily: 'DM Mono,monospace',
+  letterSpacing: '0.06em',
+  cursor: 'pointer',
+  fontWeight: 600,
+}
+
+const stageBtnGhost: React.CSSProperties = {
+  background: 'transparent',
+  color: C.muted,
+  border: '1px solid rgba(58,74,106,0.5)',
+  padding: '7px 12px',
+  fontSize: 11,
+  fontFamily: 'DM Mono,monospace',
+  letterSpacing: '0.06em',
+  cursor: 'pointer',
+}
+
+const modalInput: React.CSSProperties = {
+  background: '#060e1c',
+  border: '1px solid rgba(201,169,110,0.18)',
+  color: '#e8eaf0',
+  padding: '9px 11px',
+  fontSize: 13,
+  fontFamily: "'DM Sans',sans-serif",
+  width: '100%',
 }
