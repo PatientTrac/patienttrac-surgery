@@ -2,6 +2,13 @@
 -- PatientTrac Surgery — Patients + Surgical Cases Schema
 -- Project: mskormozwekezjmtcylv
 -- Run AFTER supabase-migration.sql
+--
+-- Path note (for consistency, not a change to this file's intent):
+-- the live shared DB serves the case record through the unified spine
+-- cr.or_cases (public.or_cases view) and patients through cr.patient.
+-- Current Surgery/OR code (advance_case_stage, book_case, flow board)
+-- reads/writes those paths. Keep new work aligned to them.
+-- See DB_LOGIC_RECONCILIATION.md for the current live-path reference.
 -- ============================================================
 
 -- ── 1. cr.patients ───────────────────────────────────────────
