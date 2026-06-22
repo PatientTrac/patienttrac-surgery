@@ -36,7 +36,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
   const SUPABASE_URL = process.env.SUPABASE_URL!;
   const SVC_KEY      = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   const RESEND_KEY   = process.env.RESEND_API_KEY;
-  const FROM_EMAIL   = process.env.CONSENT_FROM_EMAIL ?? 'consents@patienttrac-revela.com';
+  const FROM_EMAIL   = process.env.NOTIFY_FROM_EMAIL ?? 'noreply@patienttrac.com';
 
   let body: ConsentSubmitRequest;
   try { body = JSON.parse(event.body ?? '{}'); }

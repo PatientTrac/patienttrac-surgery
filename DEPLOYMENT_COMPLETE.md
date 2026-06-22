@@ -356,7 +356,7 @@ supabase: {
 
 ### Technical Issues:
 - GitHub Issues: https://github.com/PatientTrac/patienttrac-surgery/issues
-- Email: tech@patienttrac.com
+- Email: support@patienttrac.com
 
 ### Deployment Questions:
 - Netlify Dashboard: https://app.netlify.com/sites/patienttracsurg

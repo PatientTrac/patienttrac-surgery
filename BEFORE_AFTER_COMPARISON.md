@@ -574,7 +574,7 @@ Netlify will auto-deploy to https://patienttracsurg.com
 ## 📞 Support Contacts
 
 **Technical Issues:**
-- Email: tech@patienttrac.com
+- Email: support@patienttrac.com
 - GitHub: Open issue in PatientTrac/patienttrac-surgery
 
 **PatientTracForge Setup:**
@@ -582,7 +582,7 @@ Netlify will auto-deploy to https://patienttracsurg.com
 - Documentation: https://docs.forge.patienttrac.com
 
 **User Training:**
-- Schedule: training@patienttrac.com
+- Schedule: support@patienttrac.com
 - Self-service videos: https://patienttrac.com/training
 
 ---

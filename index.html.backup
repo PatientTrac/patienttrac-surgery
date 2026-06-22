@@ -568,7 +568,7 @@
                         <li data-i18n="plan-starter-4">E-signature consent forms</li>
                         <li data-i18n="plan-starter-5">Standard support</li>
                     </ul>
-                    <a href="mailto:sales@patienttracforge.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
+                    <a href="mailto:sales@patienttrac.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
                 </div>
                 
                 <div class="pricing-card featured">
@@ -583,7 +583,7 @@
                         <li data-i18n="plan-professional-5">Auto-superbill generation</li>
                         <li data-i18n="plan-professional-6">Priority support</li>
                     </ul>
-                    <a href="mailto:sales@patienttracforge.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
+                    <a href="mailto:sales@patienttrac.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
                 </div>
                 
                 <div class="pricing-card">
@@ -598,7 +598,7 @@
                         <li data-i18n="plan-enterprise-5">Dedicated success manager</li>
                         <li data-i18n="plan-enterprise-6">24/7 phone support</li>
                     </ul>
-                    <a href="mailto:sales@patienttracforge.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
+                    <a href="mailto:sales@patienttrac.com" class="cta-button" style="display: block; padding: 0.75rem; font-size: 1rem;" data-i18n="contact-sales">Contact Sales</a>
                 </div>
             </div>
         </section>

@@ -460,7 +460,7 @@ Track these after deployment:
 - Check browser console for errors
 - Review this guide carefully
 - Test in Chrome/Edge first
-- Contact: tech@patienttrac.com
+- Contact: support@patienttrac.com
 
 ---
 

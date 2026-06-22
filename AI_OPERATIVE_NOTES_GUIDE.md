@@ -432,8 +432,8 @@ Apply AI operative note features to these existing forms:
 ## 📞 Support
 
 For questions or issues:
-- **Technical Support:** tech@patienttrac.com
-- **Clinical Questions:** clinical@patienttrac.com
+- **Technical Support:** support@patienttrac.com
+- **Clinical Questions:** support@patienttrac.com
 - **Feature Requests:** GitHub Issues
 
 ---

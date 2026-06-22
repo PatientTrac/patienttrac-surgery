@@ -48,7 +48,7 @@ const handlerImpl: Handler = async (event: HandlerEvent) => {
   const SVC_KEY      = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   const RESEND_KEY   = process.env.RESEND_API_KEY;
   const APP_URL      = process.env.URL ?? 'https://patienttrac-revela.com';
-  const FROM_EMAIL   = process.env.CONSENT_FROM_EMAIL ?? 'consents@patienttrac-revela.com';
+  const FROM_EMAIL   = process.env.NOTIFY_FROM_EMAIL ?? 'noreply@patienttrac.com';
 
   if (!SUPABASE_URL || !SVC_KEY) {
     return { statusCode: 500, body: JSON.stringify({ error: 'Database not configured' }) };

@@ -6,7 +6,7 @@ import { useAppStore } from './store'
  * Resolution order:
  * 1. Cross-app session (sessionStore) - most reliable for Mind/Revela
  * 2. URL parameters (cross-app bridge entry point)
- * 3. Development fallback (VITE_DEV_ORG_ID env var, DEV mode only)
+ * 3. Development fallback (VITE_ORG_ID env var, DEV mode only)
  * 4. Throw error (production without valid session)
  *
  * @throws {Error} In production if org_id cannot be determined
@@ -42,7 +42,7 @@ export function getOrgId(): string {
 
   // 3. Development fallback (only if DEV mode)
   if (import.meta.env.DEV) {
-    const devOrgId = import.meta.env.VITE_DEV_ORG_ID
+    const devOrgId = import.meta.env.VITE_ORG_ID
     if (devOrgId) {
       console.warn(
         '[DEV MODE] Using fallback org_id:',
@@ -92,7 +92,7 @@ export function tryGetOrgId(): string | null {
  */
 export function isDevOrg(): boolean {
   const orgId = tryGetOrgId()
-  const devOrgId = import.meta.env.VITE_DEV_ORG_ID
+  const devOrgId = import.meta.env.VITE_ORG_ID
   return import.meta.env.DEV && orgId === devOrgId
 }
 
@@ -108,9 +108,9 @@ export function getDevOrgId(): string {
     throw new Error('getDevOrgId() is only available in development mode')
   }
 
-  const devOrgId = import.meta.env.VITE_DEV_ORG_ID
+  const devOrgId = import.meta.env.VITE_ORG_ID
   if (!devOrgId) {
-    throw new Error('VITE_DEV_ORG_ID environment variable not set')
+    throw new Error('VITE_ORG_ID environment variable not set')
   }
 
   return devOrgId

@@ -153,7 +153,7 @@ const handlerImpl: Handler = async (event: HandlerEvent) => {
   }
 
   const resendKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.PROPOSAL_FROM_EMAIL ?? 'proposals@patienttrac-revela.com';
+  const fromEmail = process.env.NOTIFY_FROM_EMAIL ?? 'noreply@patienttrac.com';
 
   if (!resendKey) {
     return { statusCode: 500, body: JSON.stringify({ error: 'Email service not configured. Set RESEND_API_KEY.' }) };

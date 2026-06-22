@@ -701,4 +701,4 @@ const metrics = {
 
 **All code snippets ready to copy-paste into your forms! 🚀**
 
-**Questions? Contact: tech@patienttrac.com**
+**Questions? Contact: support@patienttrac.com**
