@@ -48,8 +48,8 @@ export const handler: Handler = async (event: HandlerEvent) => {
   if (!body.signatureDataUrl) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Signature is required' }) };
   }
-  if (!body.agreedToProcedure || !body.agreedToRisks) {
-    return { statusCode: 422, body: JSON.stringify({ error: 'Patient must agree to procedure and risks' }) };
+  if (!body.agreedToRisks || (!body.agreedToProcedure && !body.agreedToAnesthesia)) {
+    return { statusCode: 422, body: JSON.stringify({ error: 'Patient must agree to risks and to the procedure or anesthesia' }) };
   }
 
   const crH   = svcHeaders(SVC_KEY, 'cr');

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
   Send, ExternalLink, Clock, CheckCircle2, Eye, FileSignature,
-  Loader2, RefreshCw, ChevronRight, User, Mail,
+  Loader2, RefreshCw, ChevronRight, User, Mail, Stethoscope, Scale,
 } from 'lucide-react';
 
 // Shared platform functions live on the surgery site; sibling apps set VITE_SHARED_FN_BASE
@@ -11,6 +11,7 @@ const FN_BASE: string = (import.meta as any).env?.VITE_SHARED_FN_BASE ?? '';
 interface Template {
   template_id: number;
   template_name: string;
+  consent_kind: string;
   procedure_category: string;
   consent_statement: string;
   risks_general: string[];
@@ -75,6 +76,7 @@ export default function ConsentSender({ orgId }: Props) {
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   // Form state
+  const [kindFilter, setKindFilter] = useState<'surgical' | 'anesthesia'>('surgical');
   const [templateId, setTemplateId] = useState<number | ''>('');
   const [surgeonId, setSurgeonId]   = useState<number | ''>('');
   const [firstName, setFirstName]   = useState('');
@@ -95,7 +97,7 @@ export default function ConsentSender({ orgId }: Props) {
   useEffect(() => {
     // Load templates
     supabase.schema('cr').from('informed_consent_templates')
-      .select('template_id,template_name,procedure_category,consent_statement,risks_general,risks_specific,risks_anesthesia,benefits,alternatives,no_guarantee_clause,photography_clause,is_active')
+      .select('template_id,template_name,consent_kind,procedure_category,consent_statement,risks_general,risks_specific,risks_anesthesia,benefits,alternatives,no_guarantee_clause,photography_clause,is_active')
       .eq('org_id', orgId)
       .eq('is_active', true)
       .order('template_name')
@@ -161,6 +163,7 @@ export default function ConsentSender({ orgId }: Props) {
           orgId,
           templateId,
           templateName: t.template_name,
+          consentKind: t.consent_kind ?? 'surgical',
           patientFirstName: firstName,
           patientLastName: lastName,
           patientEmail: email,
@@ -202,6 +205,7 @@ export default function ConsentSender({ orgId }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orgId, templateId, templateName: t.template_name,
+          consentKind: t.consent_kind ?? 'surgical',
           patientFirstName: firstName, patientLastName: lastName,
           patientEmail: email || 'no-email@placeholder.local',
           patientDob: dob || undefined,
@@ -272,20 +276,36 @@ export default function ConsentSender({ orgId }: Props) {
             <input value={procedureName} onChange={e => setProcedureName(e.target.value)} placeholder="e.g. Breast Augmentation" style={input} />
           </div>
 
+          {/* Consent kind filter */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+            {([['surgical', 'Surgical', Scale], ['anesthesia', 'Anesthesia', Stethoscope]] as const).map(([kind, lbl, Icon]) => {
+              const active = kindFilter === kind;
+              return (
+                <button key={kind} onClick={() => { setKindFilter(kind); setTemplateId(''); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1px solid', borderColor: active ? '#c9a96e' : 'rgba(255,255,255,0.15)', background: active ? 'rgba(201,169,110,0.15)' : 'transparent', color: active ? '#c9a96e' : 'rgba(255,255,255,0.5)' }}>
+                  <Icon size={12} /> {lbl}
+                </button>
+              );
+            })}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <div>
               <span style={label}>Consent Template *</span>
               <select value={templateId} onChange={e => handleTemplateChange(Number(e.target.value) || '')} style={input}>
                 <option value="">— select template —</option>
-                {Object.entries(CATEGORY_LABELS).map(([key, catLabel]) => {
-                  const cats = templates.filter(t => t.procedure_category === key);
-                  if (!cats.length) return null;
-                  return (
-                    <optgroup key={key} label={catLabel}>
-                      {cats.map(t => <option key={t.template_id} value={t.template_id}>{t.template_name}</option>)}
-                    </optgroup>
-                  );
-                })}
+                {kindFilter === 'anesthesia'
+                  ? templates.filter(t => t.consent_kind === 'anesthesia')
+                      .map(t => <option key={t.template_id} value={t.template_id}>{t.template_name}</option>)
+                  : Object.entries(CATEGORY_LABELS).map(([key, catLabel]) => {
+                      const cats = templates.filter(t => (t.consent_kind ?? 'surgical') !== 'anesthesia' && t.procedure_category === key);
+                      if (!cats.length) return null;
+                      return (
+                        <optgroup key={key} label={catLabel}>
+                          {cats.map(t => <option key={t.template_id} value={t.template_id}>{t.template_name}</option>)}
+                        </optgroup>
+                      );
+                    })}
               </select>
             </div>
             <div>

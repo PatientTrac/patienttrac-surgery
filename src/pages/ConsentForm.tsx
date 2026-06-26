@@ -10,6 +10,7 @@ interface ConsentData {
   surgeon_name:       string;
   facility_name:      string;
   status:             string;
+  consent_kind?:      string;
 }
 
 interface TemplateData {
@@ -237,7 +238,10 @@ export default function ConsentForm() {
       .catch(() => { setErrorMsg('Network error — please check your connection'); setPhase('error'); });
   }, [token]);
 
-  const canSubmit = agreedToProcedure && agreedToRisks && !!signatureDataUrl;
+  const isAnesthesia = consent?.consent_kind === 'anesthesia';
+  const canSubmit = isAnesthesia
+    ? agreedToAnesthesia && agreedToRisks && !!signatureDataUrl
+    : agreedToProcedure && agreedToRisks && !!signatureDataUrl;
 
   const handleSubmit = async () => {
     if (!canSubmit || !token) return;
@@ -360,7 +364,7 @@ export default function ConsentForm() {
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div>
             <div style={{ color: GOLD, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>{c.facility_name}</div>
-            <div style={{ color: '#fff', fontSize: 18, fontWeight: 700 }}>Informed Consent Form</div>
+            <div style={{ color: '#fff', fontSize: 18, fontWeight: 700 }}>{isAnesthesia ? 'Anesthesia Consent Form' : 'Informed Consent Form'}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11 }}>Patient</div>
@@ -474,29 +478,43 @@ export default function ConsentForm() {
         {/* Agreement checkboxes */}
         <Section title="Your Agreement">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <AgreementCheck
-              id="agree_procedure"
-              label="I consent to the proposed procedure"
-              description={`I consent to ${c.procedure_name} and any additional procedures deemed necessary by my surgeon during the operation.`}
-              checked={agreedToProcedure}
-              onChange={setAgreedToProcedure}
-              required
-            />
+            {!isAnesthesia && (
+              <AgreementCheck
+                id="agree_procedure"
+                label="I consent to the proposed procedure"
+                description={`I consent to ${c.procedure_name} and any additional procedures deemed necessary by my surgeon during the operation.`}
+                checked={agreedToProcedure}
+                onChange={setAgreedToProcedure}
+                required
+              />
+            )}
+            {isAnesthesia && (
+              <AgreementCheck
+                id="agree_anesthesia_primary"
+                label="I consent to anesthesia"
+                description="I consent to the administration of anesthesia (general, regional, or sedation) as deemed appropriate by the anesthesia team for my procedure."
+                checked={agreedToAnesthesia}
+                onChange={setAgreedToAnesthesia}
+                required
+              />
+            )}
             <AgreementCheck
               id="agree_risks"
-              label="I understand the risks and complications"
+              label={isAnesthesia ? 'I understand the anesthesia risks' : 'I understand the risks and complications'}
               description="I have read and understood the risks, potential complications, and alternatives described in this document."
               checked={agreedToRisks}
               onChange={setAgreedToRisks}
               required
             />
-            <AgreementCheck
-              id="agree_anesthesia"
-              label="I consent to anesthesia"
-              description="I consent to the administration of anesthesia as deemed appropriate by the anesthesia team."
-              checked={agreedToAnesthesia}
-              onChange={setAgreedToAnesthesia}
-            />
+            {!isAnesthesia && (
+              <AgreementCheck
+                id="agree_anesthesia"
+                label="I consent to anesthesia"
+                description="I consent to the administration of anesthesia as deemed appropriate by the anesthesia team."
+                checked={agreedToAnesthesia}
+                onChange={setAgreedToAnesthesia}
+              />
+            )}
             {t?.photography_clause && (
               <AgreementCheck
                 id="agree_photos"
@@ -536,9 +554,13 @@ export default function ConsentForm() {
           <div style={{ background: '#fef9ee', border: '1px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 8 }}>
             <AlertTriangle size={14} style={{ flexShrink: 0 }} />
             <span>
-              {!agreedToProcedure || !agreedToRisks
-                ? 'Please agree to the procedure and risks (required) before signing.'
-                : 'Please provide your signature above.'}
+              {isAnesthesia
+                ? (!agreedToAnesthesia || !agreedToRisks
+                    ? 'Please agree to anesthesia and the anesthesia risks (required) before signing.'
+                    : 'Please provide your signature above.')
+                : (!agreedToProcedure || !agreedToRisks
+                    ? 'Please agree to the procedure and risks (required) before signing.'
+                    : 'Please provide your signature above.')}
             </span>
           </div>
         )}

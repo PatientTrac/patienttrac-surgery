@@ -1,149 +1,174 @@
-# PatientTrac OutPatient Surgery - Complete Application
+# PatientTrac Outpatient Surgery
 
-**Standalone surgical documentation platform accessible from all specialty EMRs**
+Surgical documentation and perioperative workflow platform, accessible standalone and from
+the connected PatientTrac apps. Developed with input from top physicians and surgeons.
 
-## 📦 What's Included
+## Stack
 
-### 1. **landing.html** - Marketing Homepage
-- Hero section with value proposition
-- Features grid (6 surgical documentation modules)
-- Integration section (PatientTracForge, Revela, Mind)
-- Pricing cards ($299 Starter, $699 Professional, $1,499 Enterprise)
-- Footer with navigation and legal links
+This repository is a **React 18 + TypeScript + Vite 5** single-page application — not a static
+HTML site. The SPA lives under `src/` and builds to `dist/`.
 
-### 2. **app.html** - Authentication Portal
-- Email + Password sign-in
-- Google Authenticator TOTP (MFA) setup
-- MFA verification for returning users
-- Cross-app token validation from URL parameters
-- Secure Supabase authentication
+- **Frontend:** React 18, TypeScript, React Router, Zustand, `@tanstack/react-query`
+- **Data / auth:** Supabase (`@supabase/supabase-js`), Postgres 17
+- **Documents / canvas:** `@react-pdf/renderer`, `fabric`
+- **Serverless:** Netlify Functions (TypeScript, esbuild) under `netlify/functions/`, plus a
+  Netlify Edge Function for streaming AI note drafting
+- **Build:** `vite build`, then the index is split so the SPA shell is served at `/app.html`
+  and the marketing landing page (`public/landing.html`) is served at `/index.html`
 
-### 3. **dashboard.html** - Main Surgical Navigation
-- Patient context banner (photo, name, DOB, MRN)
-- 6 navigation cards:
-  - Pre-Op Assessment
-  - Operative Note
-  - Anesthesia Record
-  - Post-Op Care
-  - Equipment & Supplies
-  - Billing Preview
-- Empty state when no patient context
-- Sign out functionality
+### Static specialty pages
 
-## 🚀 Deployment Instructions
+The root-level static HTML pages (`ophthalmic-surgery.html`, `orthopedic-eval.html`,
+`cardiac-cath.html`, `dermatology.html`, `anesthesia-eval.html`, etc.) and the
+`landing-*.html` variants are the per-specialty **marketing / landing surfaces**. They are
+self-contained brand pages and are independent of the React app. The canonical deployed
+landing page is `public/landing.html` (mirrored at the repo root).
 
-### Step 1: Create GitHub Repo
-```bash
-mkdir patienttrac-surgery
-cd patienttrac-surgery
+## Database schemas
 
-# Copy files
-cp ~/Downloads/surgery-app/* .
+Clinical conventions used throughout:
 
-# Initialize Git
-git init
-git add .
-git commit -m "Initial PatientTrac OutPatient Surgery application"
-git remote add origin https://github.com/PatientTrac/patienttrac-surgery.git
-git push -u origin master
-```
+- `cr.*` — clinical record tables (integer IDENTITY primary keys)
+- `saas.*` — tenancy / routing; `org_id` is a `uuid`, scoped via `saas.current_org_id()`
+- `terms.*` — reference / terminology tables
 
-### Step 2: Deploy to Netlify
-1. Go to https://app.netlify.com
-2. Click "Add new site" → "Import an existing project"
-3. Connect GitHub → Select `PatientTrac/patienttrac-surgery`
-4. Build settings:
-   - Build command: (leave empty)
-   - Publish directory: `.`
-5. Deploy!
+## Anesthesia Vertical (`cr.*` schema)
 
-### Step 3: Configure Custom Domain
-1. In Netlify: Site settings → Domain management
-2. Add custom domain: `patienttracsurg.com`
-3. Configure DNS (A/CNAME records)
-4. Enable HTTPS (automatic)
+A normalized anesthesia documentation layer anchored on a single record per case.
 
-### Step 4: Update Database Routing
-Already done! Migration 036 added:
-- `saas.app_routing` entry for surgery app
-- `cr.surgery_encounter_view` for cross-app data access
+**Core**
+- `cr.anesthesia_record` — parent, integer PK, **one per case** via `UNIQUE(case_id)` →
+  `cr.or_cases`. FKs to patient / encounter / providers / operative note detail, plus an
+  optional `anesthesia_consent_id` → `cr.patient_consents`.
+- Three 1:1 phase tables, each `UNIQUE(anesthesia_record_id)`:
+  - `cr.anesthesia_preop` — airway, ASA, STOP-BANG, RCRI, NPO, OSA, lines, eval
+  - `cr.anesthesia_intraop` — technique, induction, maintenance, reversal, Cormack, warming
+  - `cr.anesthesia_postop` — Aldrete component scores, PONV, discharge criteria, PACU duration
 
-## 🔗 Cross-App Integration
+**Specialty extensions** (flat phase-table pattern, anchored on `anesthesia_record_id`):
+`anesthesia_plastics`, `anesthesia_regional_block` (**1:many** — multiple blocks per case),
+`anesthesia_cardiac`, `anesthesia_obstetric`, `anesthesia_pediatric`, `anesthesia_ent_airway`,
+`anesthesia_bariatric`, `anesthesia_neuro`, `anesthesia_ophthalmic_anes`. All except
+`regional_block` are 1:1 (`UNIQUE(anesthesia_record_id)`).
 
-### From PatientTracForge:
+The active extension for a case is selected from `or_cases.procedure_category` via the
+`terms.anesthesia_specialty` registry (9 rows). A null or unmapped category uses the generic
+core record only — no extension. **Adding a future specialty is one registry row plus one flat
+table on the same pattern — no redesign.**
+
+**RLS:** every anesthesia table is org-scoped with `org_id = saas.current_org_id()`.
+
+**Serial intra-op vitals** live in `cr.case_vitals` (the OR live console reads them) and are
+**never** duplicated into the anesthesia tables.
+
+**Read convenience:** `cr.anesthesia_full` joins record ⋈ preop ⋈ intraop ⋈ postop.
+
+**Boundaries:** the full H&P is owned by the Pre-Op Evaluation (`preop_module` note), and
+consent is owned by the consent subsystem — `anesthesia_preop` duplicates neither.
+
+## Anesthesia Consent
+
+Standalone anesthesia consent is modeled as a `consent_kind` column (`'surgical'` |
+`'anesthesia'`, default `'surgical'`) on both `cr.informed_consent_templates` and
+`cr.patient_consents`. It reuses the existing consent flow end to end — `consent_tokens`,
+`signature_data_url`, status transitions, and the `agreed_to_anesthesia` agreement. When an
+anesthesia consent is signed it links back via `cr.anesthesia_record.anesthesia_consent_id`.
+
+UI surfaces: `ConsentTemplates.tsx` (kind selector + anesthesia risk fields),
+`ConsentSender.tsx` (kind filter + stamps `consent_kind`), and the patient-facing
+`ConsentForm.tsx` (renders anesthesia title/risks and requires the anesthesia agreement).
+
+## Anesthesiology specialty UI
+
+Anesthesiology is presented as a first-class specialty, mirroring the existing surgeon
+"medical hero" design language (Orbitron / Exo 2, cyan `#28dfff` / gold `#ffd76a` on
+`#050914`):
+
+- A specialty placecard in `public/landing.html`, root `landing.html`, and
+  `landing-GOLD-ENHANCED.html`.
+- A dedicated `#anesthesiology` hero section in the landing pages.
+- A standalone `public/anesthesiology.html` page (shared nav / hero / brand / footer).
+- In-app, `AnesthesiaRecord.tsx` shows the case anesthesiologist
+  (`or_cases.anesthesiologist_name`) in its header, the way the surgery board attributes a
+  surgeon to a case.
+
+**Asset slots (drop-in, with gradient fallback):** `public/assets/anesthesiology.png`
+(~230px tall placecard image) and `public/assets/hero-anesthesiology-bg.png` (hero
+background). Both are optional — if absent, a navy→teal gradient with a gold-rimmed label is
+shown automatically (the placecard `<img>` falls back via `onerror`; the hero falls back via
+its base CSS gradient).
+
+## Dashboard navigation
+
+The in-app dashboard exposes the surgical documentation modules:
+
+- Pre-Op Assessment
+- Operative Note
+- **Anesthesia Record** — backed by the anesthesia vertical above (pre-op eval / intra-op
+  record / PACU), with specialty extensions selected by procedure category
+- Post-Op Care
+- Equipment & Supplies
+- Billing Preview
+
+## In progress
+
+### Shared Clinical Chart (`@patienttrac/clinical-viewer`)
+
+Planned: consume `@patienttrac/clinical-viewer` from GitHub Packages for the standard
+9-section chart (target version **0.1.3**, which inherits `react-is` — required transitively
+by recharts 3.x; on 0.1.2 `react-is` must be declared explicitly). This is **not yet wired**
+into this repo (no dependency, no `.npmrc`). When it is added:
+
+- Add `.npmrc` with `@patienttrac:registry=https://npm.pkg.github.com` and `NODE_AUTH_TOKEN`
+  in both the Codespace and the Netlify build environment.
+- Verify clean builds with `npm ci && npm run build` (not a plain `npm run build`) — see Jira
+  SCRUM-86.
+
+This is separate from the anesthesia vertical.
+
+## Deployment (Netlify + Vite)
+
+- **Build command:** `npm run build`
+- **Publish directory:** `dist`
+- **Node:** 20 (set in `netlify.toml`)
+
+`netlify.toml` already configures function bundling (esbuild), the streaming edge function,
+SPA redirects (app routes → `/app.html`, marketing → `/index.html`), and security headers
+(CSP, HSTS, etc.).
+
+**GitHub Packages prerequisite (once `clinical-viewer` is wired):** an `.npmrc` pointing
+`@patienttrac` at GitHub Packages and a `NODE_AUTH_TOKEN` in the Codespace and Netlify
+environments will be required to install the private package.
+
+### Environment variables
+
+Supabase keys for the SPA (`VITE_*`), and for the Netlify functions: `SUPABASE_URL`,
+`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`.
+
+## Cross-app integration
+
+The surgery app participates in the PatientTrac ecosystem via short-lived cross-app session
+tokens. Other apps (e.g. PatientTracForge, Revela) route a checked-in encounter here:
+
 ```typescript
 const { data } = await supabase.rpc('checkin_and_route', {
   p_appointment_id: appointmentId,
-  p_target_app: 'surgery'
+  p_target_app: 'surgery',
 });
 window.location.href = data.url;
-// Opens: patienttracsurg.com/dashboard?encounter_id=X&patient_id=Y&token=Z
+// Opens the surgery app with encounter_id / patient_id / token params
 ```
 
-### From Revela:
-```typescript
-// In RevelaDashboard.tsx - replace BasicOperativeNote module
-<button onClick={() => routeToSurgery()}>
-  ⚕️ Operative Note → Surgery App
-</button>
+The app consumes and validates the inbound session token on load.
 
-async function routeToSurgery() {
-  const { data } = await supabase.rpc('checkin_and_route', {
-    p_appointment_id: appointmentId,
-    p_target_app: 'surgery'
-  });
-  window.location.href = data.url;
-}
-```
+## Security
 
-## 🎨 Design System
+- Supabase authentication with session management and TOTP MFA
+- Short-lived cross-app session tokens with server-side validation
+- Row-level security on clinical tables (`org_id = saas.current_org_id()`)
+- Strict CSP and security headers enforced at the edge (`netlify.toml`)
 
-- Background: `#060e1c` (navy)
-- Accent: `#c9a96e` (gold)
-- Border: `rgba(201, 169, 110, 0.2)`
-- Fonts: Inter (body), system fonts fallback
-
-## 🔐 Security Features
-
-1. **Supabase Authentication**
-   - Email + password required
-   - Session management
-   - Secure token storage
-
-2. **Google Authenticator MFA**
-   - TOTP enrollment on first sign-in
-   - QR code generation
-   - 6-digit verification code
-   - Required for all users
-
-3. **Cross-App Token Bridge**
-   - 4-hour session tokens
-   - `validate_cross_app_token()` RPC
-   - Automatic expiration
-   - URL parameter validation
-
-## 📊 Database Views
-
-### `cr.surgery_encounter_view`
-Provides patient context for cross-app access:
-- Patient demographics (name, DOB, sex, photo)
-- Encounter details (type, date, status)
-- Provider information
-- Insurance details
-- Facility information
-
-## 🎯 Next Steps
-
-1. ✅ Deploy landing page to patienttracsurg.com
-2. ✅ Test authentication flow
-3. ⏳ Build operative note page (operative.html)
-4. ⏳ Build pre-op assessment page (preop.html)
-5. ⏳ Build post-op care page (postop.html)
-6. ⏳ Build equipment management page (equipment.html)
-7. ⏳ Update Revela to route to surgery app
-8. ⏳ Test cross-app flow end-to-end
-
-## 📞 Support
+## Support
 
 - **Sales:** sales@patienttrac.com
 - **Support:** support@patienttrac.com
@@ -151,4 +176,4 @@ Provides patient context for cross-app access:
 
 ---
 
-**PatientTrac Corp © 2026 | HIPAA Compliant**
+**PatientTrac Corp © 2026 · HIPAA Compliant**

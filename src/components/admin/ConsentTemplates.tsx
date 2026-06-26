@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Edit2, CheckCircle, AlertTriangle, X, Save, ToggleLeft, ToggleRight, Scale } from 'lucide-react';
+import { Plus, Edit2, CheckCircle, AlertTriangle, X, Save, ToggleLeft, ToggleRight, Scale, Stethoscope } from 'lucide-react';
 
 interface ConsentTemplate {
   template_id: number;
   org_id: string;
   template_name: string;
+  consent_kind: string;
   procedure_category: string;
   procedure_specific: string[];
   body_part: string;
@@ -84,7 +85,7 @@ function ArrayEditor({ label, value, onChange }: { label: string; value: string[
 }
 
 const BLANK: Omit<ConsentTemplate, 'template_id'> = {
-  org_id: '', template_name: '', procedure_category: 'Breast', procedure_specific: [],
+  org_id: '', template_name: '', consent_kind: 'surgical', procedure_category: 'Breast', procedure_specific: [],
   body_part: '', consent_title: '', introduction: '', procedure_description: '',
   risks_general: ['Bleeding', 'Infection', 'Scarring', 'Anesthesia reactions', 'Blood clots (DVT/PE)', 'Wound healing complications'],
   risks_specific: [], risks_anesthesia: ['Nausea and vomiting', 'Allergic reactions', 'Respiratory complications'],
@@ -160,6 +161,7 @@ export default function ConsentTemplates({ orgId }: Props) {
   const filtered = filter === 'all' ? templates : templates.filter(t => t.procedure_category === filter);
 
   if (editing) {
+    const isAnes = editing.consent_kind === 'anesthesia';
     return (
       <div>
         {/* Editor header */}
@@ -175,10 +177,23 @@ export default function ConsentTemplates({ orgId }: Props) {
           </button>
         </div>
 
+        {/* Consent kind selector */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+          {([['surgical', 'Surgical', Scale], ['anesthesia', 'Anesthesia', Stethoscope]] as const).map(([kind, lbl, Icon]) => {
+            const active = (editing.consent_kind ?? 'surgical') === kind;
+            return (
+              <button key={kind} onClick={() => setEditing(p => ({ ...p!, consent_kind: kind }))}
+                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 700, border: '1px solid', borderColor: active ? '#c9a96e' : 'rgba(255,255,255,0.15)', background: active ? 'rgba(201,169,110,0.15)' : 'transparent', color: active ? '#c9a96e' : 'rgba(255,255,255,0.5)' }}>
+                <Icon size={16} /> {lbl} Consent
+              </button>
+            );
+          })}
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <div>
             <label style={LABEL}>Template Name</label>
-            <input style={INPUT} value={editing.template_name ?? ''} onChange={e => setEditing(p => ({ ...p!, template_name: e.target.value }))} placeholder="e.g. Breast Augmentation Consent" />
+            <input style={INPUT} value={editing.template_name ?? ''} onChange={e => setEditing(p => ({ ...p!, template_name: e.target.value }))} placeholder={isAnes ? 'e.g. General Anesthesia Consent' : 'e.g. Breast Augmentation Consent'} />
           </div>
           <div>
             <label style={LABEL}>Procedure Category</label>
@@ -204,11 +219,20 @@ export default function ConsentTemplates({ orgId }: Props) {
           </div>
         </div>
 
-        <ArrayEditor label="General Risks" value={editing.risks_general ?? []} onChange={v => setEditing(p => ({ ...p!, risks_general: v }))} />
-        <ArrayEditor label="Procedure-Specific Risks" value={editing.risks_specific ?? []} onChange={v => setEditing(p => ({ ...p!, risks_specific: v }))} />
-        <ArrayEditor label="Anesthesia Risks" value={editing.risks_anesthesia ?? []} onChange={v => setEditing(p => ({ ...p!, risks_anesthesia: v }))} />
-        <ArrayEditor label="Expected Benefits" value={editing.benefits ?? []} onChange={v => setEditing(p => ({ ...p!, benefits: v }))} />
-        <ArrayEditor label="Alternatives" value={editing.alternatives ?? []} onChange={v => setEditing(p => ({ ...p!, alternatives: v }))} />
+        {isAnes ? (
+          <>
+            <ArrayEditor label="Anesthesia Risks" value={editing.risks_anesthesia ?? []} onChange={v => setEditing(p => ({ ...p!, risks_anesthesia: v }))} />
+            <ArrayEditor label="Alternatives to Anesthesia" value={editing.alternatives ?? []} onChange={v => setEditing(p => ({ ...p!, alternatives: v }))} />
+          </>
+        ) : (
+          <>
+            <ArrayEditor label="General Risks" value={editing.risks_general ?? []} onChange={v => setEditing(p => ({ ...p!, risks_general: v }))} />
+            <ArrayEditor label="Procedure-Specific Risks" value={editing.risks_specific ?? []} onChange={v => setEditing(p => ({ ...p!, risks_specific: v }))} />
+            <ArrayEditor label="Anesthesia Risks" value={editing.risks_anesthesia ?? []} onChange={v => setEditing(p => ({ ...p!, risks_anesthesia: v }))} />
+            <ArrayEditor label="Expected Benefits" value={editing.benefits ?? []} onChange={v => setEditing(p => ({ ...p!, benefits: v }))} />
+            <ArrayEditor label="Alternatives" value={editing.alternatives ?? []} onChange={v => setEditing(p => ({ ...p!, alternatives: v }))} />
+          </>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <div>
@@ -297,6 +321,7 @@ export default function ConsentTemplates({ orgId }: Props) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                       <span style={{ color: '#fff', fontSize: 15, fontWeight: 600 }}>{t.template_name}</span>
+                      {t.consent_kind === 'anesthesia' && <span style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.35)', color: '#00d4ff', fontSize: 11, padding: '2px 8px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 3 }}><Stethoscope size={9} /> Anesthesia</span>}
                       <span style={{ background: 'rgba(201,169,110,0.1)', border: '1px solid rgba(201,169,110,0.25)', color: '#c9a96e', fontSize: 11, padding: '2px 8px', borderRadius: 20 }}>{t.procedure_category}</span>
                       {t.legally_reviewed && <span style={{ background: 'rgba(46,204,113,0.1)', border: '1px solid rgba(46,204,113,0.3)', color: '#2ecc71', fontSize: 11, padding: '2px 8px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 3 }}><Scale size={9} /> Reviewed</span>}
                     </div>

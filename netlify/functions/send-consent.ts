@@ -14,6 +14,7 @@ interface SendConsentRequest {
   encounterId?:     number;
   templateId?:      number;
   templateName:     string;
+  consentKind?:     string;
   patientFirstName: string;
   patientLastName:  string;
   patientEmail:     string;
@@ -74,6 +75,7 @@ const handlerImpl: Handler = async (event: HandlerEvent) => {
       org_id:             body.orgId,
       encounter_id:       body.encounterId ?? null,
       template_id:        body.templateId  ?? null,
+      consent_kind:       body.consentKind ?? 'surgical',
       patient_first_name: body.patientFirstName,
       patient_last_name:  body.patientLastName,
       patient_email:      body.patientEmail,

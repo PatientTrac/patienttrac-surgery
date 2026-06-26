@@ -7,7 +7,7 @@
 // ================================================================
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Stethoscope, Save, Loader2, CheckCircle2, Activity, Plus, Wind } from 'lucide-react';
+import { Stethoscope, Save, Loader2, CheckCircle2, Activity, Plus, Wind, FileSignature } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const C = {
@@ -81,6 +81,8 @@ export default function AnesthesiaRecord({ caseId, patientId, encounterId, orgId
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
   const [err, setErr] = useState('');
+  const [anesConsent, setAnesConsent] = useState<{ consent_id: string; status: string; signed_at: string | null } | null>(null);
+  const [anesthesiologist, setAnesthesiologist] = useState<string>('');
 
   // Load latest record + vitals
   useEffect(() => {
@@ -103,6 +105,43 @@ export default function AnesthesiaRecord({ caseId, patientId, encounterId, orgId
       }
     })();
   }, [encounterId]);
+
+  // Surface the standalone anesthesia consent (consent_kind='anesthesia') for this encounter.
+  // When one is signed, link it onto the structured anesthesia_record row if that row exists.
+  useEffect(() => {
+    (async () => {
+      const { data: rows } = await (supabase as any)
+        .schema('cr').from('patient_consents')
+        .select('consent_id,status,signed_at')
+        .eq('encounter_id', encounterId)
+        .eq('consent_kind', 'anesthesia')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      const c = rows?.[0] ?? null;
+      setAnesConsent(c);
+      if (c?.status === 'signed') {
+        // Best-effort link-back: stamp anesthesia_consent_id on the structured record if present.
+        await (supabase as any).schema('cr').from('anesthesia_record')
+          .update({ anesthesia_consent_id: c.consent_id })
+          .eq('encounter_id', encounterId)
+          .is('anesthesia_consent_id', null);
+      }
+    })();
+  }, [encounterId]);
+
+  // Case-attributed anesthesiologist — shown in the header the way the
+  // surgery board attributes the surgeon to a case.
+  useEffect(() => {
+    if (!caseId) { setAnesthesiologist(''); return; }
+    (async () => {
+      const { data: row } = await supabase
+        .from('or_cases')
+        .select('anesthesiologist_name')
+        .eq('case_id', caseId)
+        .maybeSingle();
+      setAnesthesiologist((row as any)?.anesthesiologist_name ?? '');
+    })();
+  }, [caseId]);
 
   const loadVitals = useCallback(async () => {
     if (!caseId) return;
@@ -194,12 +233,26 @@ export default function AnesthesiaRecord({ caseId, patientId, encounterId, orgId
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <Stethoscope size={17} color={C.gold} />
         <span style={{ color: C.text, fontSize: 14, fontWeight: 700 }}>Anesthesia Record</span>
+        {anesthesiologist && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: C.muted, fontSize: 11.5, fontWeight: 600 }}>
+            <Stethoscope size={12} color={C.muted} /> {anesthesiologist}
+          </span>
+        )}
         {data.eval.asaClass && (
           <span style={{ fontSize: 11, fontWeight: 700, color: C.gold, border: '1px solid rgba(201,169,110,0.35)', borderRadius: 5, padding: '2px 8px' }}>
             ASA {data.eval.asaClass}{data.eval.asaE ? 'E' : ''}
           </span>
         )}
         <span style={{ color: C.dim, fontSize: 11 }}>STOP-BANG {stopBangScore}/8 · RCRI {rcriScore}/6</span>
+        {anesConsent && (
+          <span title={anesConsent.signed_at ? `Signed ${new Date(anesConsent.signed_at).toLocaleDateString()}` : undefined}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, borderRadius: 5, padding: '2px 8px',
+              color: anesConsent.status === 'signed' ? C.green : C.muted,
+              border: `1px solid ${anesConsent.status === 'signed' ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.15)'}`,
+              background: anesConsent.status === 'signed' ? 'rgba(74,222,128,0.1)' : 'transparent' }}>
+            <FileSignature size={11} /> Anesthesia consent {anesConsent.status === 'signed' ? 'signed' : anesConsent.status}
+          </span>
+        )}
         <button onClick={save} disabled={saving}
           style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 7, border: 'none', background: C.gold, color: C.navy, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : savedMsg ? <CheckCircle2 size={13} /> : <Save size={13} />}
