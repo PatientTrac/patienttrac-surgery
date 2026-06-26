@@ -355,7 +355,7 @@ function PatientDrawer({ patient, orgId, onClose, onAdvance, advancing }: {
             </button>
             {showChart && patient.patientId && (
               <div style={{ marginTop: 14, background: '#fff', borderRadius: 8, padding: 20 }}>
-                <ClinicalChart patientId={patient.patientId} />
+                <ClinicalChart patientId={Number(patient.patientId)} />
               </div>
             )}
           </div>
