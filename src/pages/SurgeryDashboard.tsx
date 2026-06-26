@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useAppStore } from '../lib/store'
 import { supabase } from '../lib/supabase'
 import { STAGE_ICONS, MODULE_MARKS } from '../components/surgery/MedicalIcons'
+import { ClinicalChart } from '@patienttrac/clinical-viewer'
 
 const PreOpModule    = lazy(() => import('../components/surgery/PreOpModule'))
 const OperativeModule = lazy(() => import('../components/surgery/OperativeModule'))
@@ -12,7 +13,8 @@ type FlowStage = 'preop' | 'inor' | 'pacu' | 'ward' | 'discharge'
 type Urgency = 'routine' | 'urgent' | 'stat'
 
 interface PatientCard {
-  id: string
+  id: string             // case_id (string) — drives the case spine
+  patientId: string | null  // real cr.patients id — drives the shared clinical chart
   name: string
   procedure: string
   surgeon: string
@@ -55,6 +57,7 @@ interface QuickStats {
 // ── DB row shape — unified case spine (cr.or_cases, shared with the OR app) ─
 interface CaseRow {
   case_id: number
+  patient_id: string | null
   procedure_name: string
   surgeon_name: string
   urgency: string
@@ -83,6 +86,7 @@ function fmtClock(ts: string | null): string {
 function rowToPatientCard(r: CaseRow): PatientCard {
   return {
     id:           String(r.case_id),
+    patientId:    r.patient_id,
     name:         r.patient_name,
     procedure:    r.procedure_name,
     surgeon:      r.surgeon_name,
@@ -222,6 +226,7 @@ function PatientDrawer({ patient, orgId, onClose, onAdvance, advancing }: {
   onAdvance: (toStage: FlowStage) => void
   advancing: boolean
 }) {
+  const [showChart, setShowChart] = useState(false)
   if (!patient) return null
 
   const next = nextStage(patient.stage)
@@ -330,6 +335,30 @@ function PatientDrawer({ patient, orgId, onClose, onAdvance, advancing }: {
           }>
             {moduleForStage(patient.stage)}
           </Suspense>
+
+          {/* Shared clinical chart (@patienttrac/clinical-viewer) — keyed to the
+              real cr.patients id, not the case_id. */}
+          <div style={{ marginTop: 24, borderTop: `1px solid rgba(201,169,110,0.15)`, paddingTop: 18 }}>
+            <button
+              onClick={() => setShowChart(s => !s)}
+              disabled={!patient.patientId}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                background: 'rgba(201,169,110,0.08)', border: `1px solid rgba(201,169,110,0.2)`,
+                color: patient.patientId ? C.gold : C.dim, padding: '10px 14px',
+                fontSize: 12, fontFamily: 'DM Mono,monospace', letterSpacing: '0.08em',
+                textTransform: 'uppercase', cursor: patient.patientId ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {showChart ? '▾' : '▸'} Clinical Chart
+              {!patient.patientId && <span style={{ marginLeft: 'auto', textTransform: 'none', letterSpacing: 0 }}>no linked patient record</span>}
+            </button>
+            {showChart && patient.patientId && (
+              <div style={{ marginTop: 14, background: '#fff', borderRadius: 8, padding: 20 }}>
+                <ClinicalChart patientId={patient.patientId} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
@@ -661,7 +690,7 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
       const { data, error } = await supabase
         .from('or_cases')
         .select(`
-          case_id, procedure_name, surgeon_name, urgency, stage, stage_entered_at,
+          case_id, patient_id, procedure_name, surgeon_name, urgency, stage, stage_entered_at,
           scheduled_start, or_room, estimated_duration_minutes, schedule_status,
           completed_at, total_time_min, outcome, patient_name, patient_age
         `)

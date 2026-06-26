@@ -110,21 +110,28 @@ The in-app dashboard exposes the surgical documentation modules:
 - Equipment & Supplies
 - Billing Preview
 
-## In progress
+## Shared Clinical Chart (`@patienttrac/clinical-viewer`)
 
-### Shared Clinical Chart (`@patienttrac/clinical-viewer`)
+Surgery is wired to the shared `@patienttrac/clinical-viewer` package from GitHub Packages —
+the standard 9-section clinical chart used across the PatientTrac fleet (Forge / Revela /
+Companion / Mind / Surgery). Surgery is pinned to the **live published registry version**
+(currently **0.1.2**), so it tracks whatever the fleet is on without stalling on an unreleased
+tag.
 
-Planned: consume `@patienttrac/clinical-viewer` from GitHub Packages for the standard
-9-section chart (target version **0.1.3**, which inherits `react-is` — required transitively
-by recharts 3.x; on 0.1.2 `react-is` must be declared explicitly). This is **not yet wired**
-into this repo (no dependency, no `.npmrc`). When it is added:
-
-- Add `.npmrc` with `@patienttrac:registry=https://npm.pkg.github.com` and `NODE_AUTH_TOKEN`
-  in both the Codespace and the Netlify build environment.
-- Verify clean builds with `npm ci && npm run build` (not a plain `npm run build`) — see Jira
-  SCRUM-86.
-
-This is separate from the anesthesia vertical.
+- `ClinicalViewerProvider` (given the app's Supabase client) wraps the app in `src/main.tsx`,
+  alongside the existing `QueryClientProvider`; `@patienttrac/clinical-viewer/styles.css` is
+  imported globally.
+- `ClinicalChart` is mounted in the patient drawer of `SurgeryDashboard`, keyed to the **real
+  `cr.patients` id** (`or_cases.patient_id`) — never the `case_id`. When a board case has no
+  linked patient record the chart toggle is disabled.
+- **`react-is` caveat:** on `clinical-viewer` 0.1.2 the package does not inherit `react-is`,
+  and recharts 3.x imports it without declaring it, so `react-is` is declared explicitly
+  (pinned to React 18's major, `^18.3.1`). 0.1.3 is expected to inherit it.
+- Auth: `.npmrc` points `@patienttrac` at `https://npm.pkg.github.com` and reads the token
+  from `${NODE_AUTH_TOKEN}` (no token in source). The token must be present in both the
+  Codespace and the Netlify build environment.
+- Verified with `npm ci && npm run build` (clean install from the lockfile, not a plain
+  `npm run build`) — see Jira SCRUM-86.
 
 ## Deployment (Netlify + Vite)
 
@@ -136,9 +143,9 @@ This is separate from the anesthesia vertical.
 SPA redirects (app routes → `/app.html`, marketing → `/index.html`), and security headers
 (CSP, HSTS, etc.).
 
-**GitHub Packages prerequisite (once `clinical-viewer` is wired):** an `.npmrc` pointing
-`@patienttrac` at GitHub Packages and a `NODE_AUTH_TOKEN` in the Codespace and Netlify
-environments will be required to install the private package.
+**GitHub Packages prerequisite:** installing the private `@patienttrac/clinical-viewer`
+package requires the repo `.npmrc` (which points `@patienttrac` at GitHub Packages) plus a
+`NODE_AUTH_TOKEN` in both the Codespace and the Netlify build environment.
 
 ### Environment variables
 

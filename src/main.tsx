@@ -2,6 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ClinicalViewerProvider } from '@patienttrac/clinical-viewer'
+import '@patienttrac/clinical-viewer/styles.css'
 import App from './App'
 import './index.css'
 import { supabase } from './lib/supabase'
@@ -75,9 +77,11 @@ supabase.auth.onAuthStateChange((_event, session) => {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <ClinicalViewerProvider client={supabase}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ClinicalViewerProvider>
     </QueryClientProvider>
   </React.StrictMode>
 )
