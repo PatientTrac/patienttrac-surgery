@@ -3,6 +3,7 @@ import { useAppStore } from '../lib/store'
 import { supabase } from '../lib/supabase'
 import { STAGE_ICONS, MODULE_MARKS } from '../components/surgery/MedicalIcons'
 import { ClinicalChart } from '@patienttrac/clinical-viewer'
+import { buildSharedProposalUrl } from '../lib/sharedProposalLinks'
 
 const PreOpModule    = lazy(() => import('../components/surgery/PreOpModule'))
 const OperativeModule = lazy(() => import('../components/surgery/OperativeModule'))
@@ -306,6 +307,18 @@ function PatientDrawer({ patient, orgId, onClose, onAdvance, advancing }: {
             Stage · <span style={{ color: stageAccent(patient.stage).color }}>{stageLabel(patient.stage)}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={() => {
+                window.location.href = buildSharedProposalUrl({
+                  sourceApp: 'surgery',
+                  patientId: patient.patientId,
+                  returnTo: window.location.href,
+                })
+              }}
+              style={stageBtnGhost}
+            >
+              Proposal
+            </button>
             {prev && (
               <button disabled={advancing} onClick={() => onAdvance(prev)} style={stageBtnGhost}>
                 ← {stageLabel(prev)}
@@ -887,6 +900,18 @@ export default function SurgeryDashboard({ orgId: orgIdProp = '', providerName =
           </div>
           <button onClick={() => setShowNewCase(true)} style={{ ...headerBtnStyle, color:C.gold, borderColor:'rgba(201,169,110,0.4)', background:'rgba(201,169,110,0.14)' }}>
             + New Case
+          </button>
+          <button
+            onClick={() => {
+              window.location.href = buildSharedProposalUrl({
+                sourceApp: 'surgery',
+                returnTo: window.location.href,
+              })
+            }}
+            style={headerBtnStyle}
+            title="Open shared Proposal Invoice in PatientTrac OR"
+          >
+            Proposal Invoice
           </button>
           {onNavigateSettings && (
             <button onClick={onNavigateSettings} style={headerBtnStyle}>
